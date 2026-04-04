@@ -1,0 +1,18 @@
+/* Transforma o corpo da tabela em um container grid */
+.inline-group .tabular tbody {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr); /* 5 colunas */
+    gap: 10px;
+}
+
+/* Esconde os cabeçalhos da tabela que não fazem mais sentido na grid */
+.inline-group .tabular thead {
+    display: none;
+}
+
+/* Transforma cada linha da tabela (tr) em um card */
+.inline-group .tabular tr.form-row {
+    display: block;
+    border: 1px solid #ccc;
+    padding: 10px;
+}
