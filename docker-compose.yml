@@ -1,0 +1,26 @@
+services:
+  app:
+    build:
+      context: .
+      args:
+        - POETRY_ARGS=--with prod
+    command: python manage.py runserver 0.0.0.0:8000
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:${APP_HOME}
+
+  jupyter:
+    build:
+      context: .
+      args:
+        - POETRY_ARGS=--with dev
+    command: jupyter lab --ip=0.0.0.0 --notebook-dir=notebooks --port=8088 --no-browser --allow-root
+    env_file:
+      - .env
+    ports:
+      - "8088:8088"
+    volumes:
+      - .:${APP_HOME}

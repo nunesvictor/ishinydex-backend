@@ -1,0 +1,52 @@
+[project]
+name = "ishinydex-backend"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Victor Nunes",email = "victor.gn@defensoria.to.def.br"}
+]
+requires-python = ">=3.14"
+dependencies = [
+    "django (>=6.0.3,<7.0.0)",
+    "python-decouple (>=3.8,<4.0)",
+    "djangorestframework (>=3.17.1,<4.0.0)",
+    "pokebase (>=1.4.1,<2.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "black (>=26.3.1,<27.0.0)",
+    "flake8 (>=7.3.0,<8.0.0)",
+    "isort (>=8.0.1,<9.0.0)",
+    "jupyterlab (>=4.5.6,<5.0.0)"
+]
+prod = [
+    "uwsgi (>=2.0.31,<3.0.0)"
+]
+
+[tool.black]
+line-length = 88
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # The following are specific to Black, you probably don't want those.
+  | blib2to3
+  | tests/data
+  | profiling
+  | migrations
+)/
+'''
+
+[tool.isort]
+profile = "black"
+default_section = "THIRDPARTY"
+known_django = ["django"]
+known_third_party = ["decouple", "pokebase", "rest_framework"]
+sections = ["FUTURE", "STDLIB", "DJANGO", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
+multi_line_output = 3
+skip = [".gitignore", ".dockerignore", ".venv", "migrations"]
