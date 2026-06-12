@@ -1,28 +1,30 @@
 FROM python:3.14-slim
 
-# Crete guest user and group
+# Create guest user and group
 RUN groupadd -g 1000 guest \
     && useradd -u 1000 -g 1000 guest \
     && mkdir -p /home/guest \
     && chown -R 1000:1000 /home/guest \
     && cp /etc/bash.bashrc /home/guest/.bashrc
 
-# Set current user
+# Set current user and user's HOME env
 USER guest
-
-# Set app envs
 ENV HOME=/home/guest
+
+# Set app's build args
+ARG APP_NAME="ishinydex-backend"
+ARG APP_HOME="$HOME/${APP_NAME}"
+ARG POETRY_ARGS
+
+# Set all other app envs
+ENV DJANGO_SETTINGS_MODULE=ishinydex.settings
 ENV LANG=pt_BR.UTF-8
 ENV LANGUAGE=pt_BR:en
 ENV LC_ALL=pt_BR.UTF-8
 ENV PATH="$PATH:$HOME/.local/bin:$HOME/.cargo/bin"
+ENV PYTHONPATH=${APP_HOME}/src
 ENV PYTHONUNBUFFERED=1
 ENV TZ=America/Araguaina
-
-# Set apps variables
-ARG APP_NAME="ishinydex-backend"
-ARG APP_HOME="$HOME/${APP_NAME}"
-ARG POETRY_ARGS
 
 # Set current workdir
 RUN mkdir -p ${APP_HOME}
