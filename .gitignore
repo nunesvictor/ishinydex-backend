@@ -64,6 +64,11 @@ htmlcov/
 .cache/**
 !.cache/**/
 !.cache/**/.gitkeep
+backups/**
+!backups/**/
+!backups/**/.gitkeep
+.hypothesis/
+.pytest_cache/
 nosetests.xml
 coverage.xml
 *.cover
