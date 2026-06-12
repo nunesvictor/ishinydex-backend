@@ -11,6 +11,7 @@ db.sqlite3
 db.sqlite3-journal
 db.sqlite3.bak
 media
+backups/*
 
 # If your build process includes running collectstatic, then you probably don't need or want to include staticfiles/
 # in your Git repository. Update and uncomment the following line accordingly.
@@ -60,7 +61,9 @@ htmlcov/
 .nox/
 .coverage
 .coverage.*
-.cache
+.cache/**
+!.cache/**/
+!.cache/**/.gitkeep
 nosetests.xml
 coverage.xml
 *.cover
