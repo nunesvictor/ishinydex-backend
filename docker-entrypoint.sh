@@ -2,6 +2,7 @@
 #
 # Inicia o serviço do cron
 # autor: Victor Guimarães Nunes <nunessvictorr@gmail.com>
+set +euo pipefail
 
 if [[ $REPLICA == "1" ]] ; then
     echo "[${APP_NAME}] Installing crontab..."
@@ -16,6 +17,21 @@ if [[ $REPLICA == "1" ]] ; then
 
     echo "[${APP_NAME}] Starting cron service..."
     /usr/sbin/cron -f &
+fi
+
+if [[ $RECREATE_DB == "1" ]] ; then
+    echo "[${APP_NAME}] Recreating database..."
+    python manage.py recreatedb
+
+    echo "[${APP_NAME}] Recreating migrations..."
+    rm -rf core/migrations pokedex/migrations
+    python manage.py makemigrations core pokedex
+
+    echo "[${APP_NAME}] Migrating database..."
+    python manage.py migrate
+
+    echo "[${APP_NAME}] Check superuser credentials..."
+    python manage.py createsuperuser --no-input 2> /dev/null
 fi
 
 exec "$@"
