@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-03 22:03-0300\n"
+"POT-Creation-Date: 2026-06-15 04:03-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,42 +17,322 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-#: core/models.py:8
+
+#: core/management/commands/create_pokemon_home_boxes_mirror.py:20
+msgid "Number of boxes to create (default: 200)"
+msgstr "Número de caixas a serem criadas (padrão: 200)"
+
+#: core/management/commands/create_pokemon_home_boxes_mirror.py:32
+msgid "Successfully created mirror boxes for Pokémon Home."
+msgstr "Caixas espelho do Pokémon Home criadas com sucesso."
+
+#: core/models.py:9
 msgid "position"
 msgstr "posição"
 
-#: core/models.py:27
+#: core/models.py:36 pokedex/models.py:8 pokedex/models.py:26
+#: pokedex/models.py:57 pokedex/models.py:92 pokedex/models.py:184
 msgid "name"
 msgstr "nome"
 
 #: core/models.py:39
 msgid "box"
-msgstr ""
+msgstr "caixa"
 
 #: core/models.py:40
 msgid "boxes"
+msgstr "caixas"
+
+#: core/models.py:60
+msgid "national dex number"
+msgstr "número do dex nacional"
+
+#: core/models.py:61
+msgid "species"
+msgstr "espécies"
+
+#: core/models.py:62
+msgid "nickname"
+msgstr "apelido"
+
+#: core/models.py:63 pokedex/models.py:27
+msgid "language"
+msgstr "idoma"
+
+#: core/models.py:64
+msgid "gender"
+msgstr "gênero"
+
+#: core/models.py:65
+msgid "form"
+msgstr "forma"
+
+#: core/models.py:66
+msgid "is gmax"
+msgstr "é gmax"
+
+#: core/models.py:67 pokedex/models.py:98
+msgid "is legendary"
+msgstr "é lendário"
+
+#: core/models.py:68 pokedex/models.py:62
+msgid "is mega"
+msgstr "é mega"
+
+#: core/models.py:69 pokedex/models.py:99
+msgid "is mythical"
+msgstr "é mítico"
+
+#: core/models.py:70
+msgid "is shiny"
+msgstr "é brilhante"
+
+#: core/models.py:71
+msgid "original trainer name"
 msgstr ""
 
-#: core/models.py:48
+#: core/models.py:72
+msgid "original trainer ID"
+msgstr ""
+
+#: core/models.py:73 pokedex/models.py:17 pokedex/models.py:119
+msgid "game generation"
+msgstr ""
+
+#: core/models.py:74 pokedex/models.py:66 pokedex/models.py:86
+msgid "game version group"
+msgstr ""
+
+#: core/models.py:75
+msgid "game version name"
+msgstr ""
+
+#: core/models.py:76
+msgid "captured at"
+msgstr ""
+
+#: core/models.py:79
+msgid "pokémon specimen"
+msgstr ""
+
+#: core/models.py:80
+msgid "pokémon specimens"
+msgstr ""
+
+#: core/models.py:94
 msgid "row"
 msgstr "linha"
 
-#: core/models.py:49
+#: core/models.py:95
 msgid "col"
 msgstr "coluna"
 
-#: core/models.py:50
-msgid "pokemon"
-msgstr ""
-
-#: core/models.py:53
+#: core/models.py:101 pokedex/models.py:34 pokedex/models.py:52
+#: pokedex/models.py:162
 msgid "slot"
 msgstr ""
 
-#: core/models.py:54
+#: core/models.py:102
 msgid "slots"
 msgstr ""
 
-#: core/models.py:59
-msgid "Empty slot"
-msgstr "Slot vazio"
+#: core/models.py:107
+msgid "Empty Slot"
+msgstr "Slot Vazio"
+
+#: pokedex/admin.py:102
+#, fuzzy
+#| msgid "national dex number"
+msgid "national pokedex id"
+msgstr "número do dex nacional"
+
+#: pokedex/admin.py:103
+msgid "sprite"
+msgstr ""
+
+#: pokedex/admin.py:104
+msgid "types"
+msgstr ""
+
+#: pokedex/admin_filters.py:6
+msgid "egg group"
+msgstr ""
+
+#: pokedex/models.py:9
+msgid "accuracy"
+msgstr ""
+
+#: pokedex/models.py:11
+msgid "effect chance"
+msgstr ""
+
+#: pokedex/models.py:13
+msgid "pp"
+msgstr ""
+
+#: pokedex/models.py:14
+msgid "priority"
+msgstr ""
+
+#: pokedex/models.py:15
+msgid "power"
+msgstr ""
+
+#: pokedex/models.py:16
+msgid "damage class"
+msgstr ""
+
+#: pokedex/models.py:18
+msgid "target"
+msgstr ""
+
+#: pokedex/models.py:19 pokedex/models.py:53 pokedex/models.py:163
+msgid "type"
+msgstr ""
+
+#: pokedex/models.py:35
+msgid "is hidden"
+msgstr ""
+
+#: pokedex/models.py:36
+msgid "ability"
+msgstr ""
+
+#: pokedex/models.py:40
+msgid "Pokemon abilities"
+msgstr ""
+
+#: pokedex/models.py:58 pokedex/models.py:88 pokedex/models.py:93
+#: pokedex/models.py:190
+msgid "order"
+msgstr ""
+
+#: pokedex/models.py:59
+msgid "form order"
+msgstr ""
+
+#: pokedex/models.py:60 pokedex/models.py:133 pokedex/models.py:189
+msgid "is default"
+msgstr ""
+
+#: pokedex/models.py:61
+msgid "is battle only"
+msgstr ""
+
+#: pokedex/models.py:63
+#, fuzzy
+#| msgid "name"
+msgid "form name"
+msgstr "nome"
+
+#: pokedex/models.py:65 pokedex/models.py:195
+msgid "sprites"
+msgstr ""
+
+#: pokedex/models.py:85
+msgid "move learn method"
+msgstr ""
+
+#: pokedex/models.py:87
+msgid "level learned at"
+msgstr ""
+
+#: pokedex/models.py:94
+#, fuzzy
+#| msgid "gender"
+msgid "gender rate"
+msgstr "gênero"
+
+#: pokedex/models.py:95
+msgid "capture rate"
+msgstr ""
+
+#: pokedex/models.py:96
+msgid "base happiness"
+msgstr ""
+
+#: pokedex/models.py:97
+msgid "is baby"
+msgstr ""
+
+#: pokedex/models.py:100
+msgid "hatch counter"
+msgstr ""
+
+#: pokedex/models.py:102
+msgid "has gender differences"
+msgstr ""
+
+#: pokedex/models.py:104
+msgid "forms switchable"
+msgstr ""
+
+#: pokedex/models.py:105
+msgid "growth rate"
+msgstr ""
+
+#: pokedex/models.py:109
+msgid "egg groups"
+msgstr ""
+
+#: pokedex/models.py:110
+msgid "color"
+msgstr ""
+
+#: pokedex/models.py:111
+msgid "shape"
+msgstr ""
+
+#: pokedex/models.py:126
+#, fuzzy
+#| msgid "species"
+msgid "Pokemon species"
+msgstr "espécies"
+
+#: pokedex/models.py:145
+msgid "entry number"
+msgstr ""
+
+#: pokedex/models.py:146
+msgid "pokedex"
+msgstr ""
+
+#: pokedex/models.py:153
+msgid "stat"
+msgstr ""
+
+#: pokedex/models.py:154
+msgid "effort"
+msgstr ""
+
+#: pokedex/models.py:155
+msgid "base stat"
+msgstr ""
+
+#: pokedex/models.py:173
+msgid "game index"
+msgstr ""
+
+#: pokedex/models.py:174
+msgid "game version"
+msgstr ""
+
+#: pokedex/models.py:177
+msgid "Version game indices"
+msgstr ""
+
+#: pokedex/models.py:186
+msgid "base experience"
+msgstr ""
+
+#: pokedex/models.py:188
+msgid "height"
+msgstr ""
+
+#: pokedex/models.py:191
+msgid "weight"
+msgstr ""
+
+#: pokedex/models.py:196
+msgid "cries"
+msgstr ""
