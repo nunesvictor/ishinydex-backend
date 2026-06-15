@@ -6,22 +6,20 @@ from core.models import TimestampedModel
 
 class Move(TimestampedModel):
     name = models.CharField(_("name"), max_length=255)
-    accuracy = models.PositiveIntegerField(_("accuracy"))
-    effect_chance = models.PositiveIntegerField(_("effect chance"))
+    accuracy = models.PositiveIntegerField(_("accuracy"), blank=True, null=True)
+    effect_chance = models.PositiveIntegerField(
+        _("effect chance"), blank=True, null=True
+    )
     pp = models.PositiveIntegerField(_("pp"))
-    priority = models.PositiveIntegerField(_("priority"))
-    power = models.PositiveIntegerField(_("power"))
+    priority = models.IntegerField(_("priority"))
+    power = models.PositiveIntegerField(_("power"), blank=True, null=True)
     damage_class = models.CharField(_("damage class"), max_length=255)
     generation = models.CharField(_("game generation"), max_length=255)
     target = models.CharField(_("target"), max_length=255)
     type = models.CharField(_("type"), max_length=255)
 
-
-class MoveVersion(TimestampedModel):
-    move_learn_method = models.CharField(_("move learn method"), max_length=255)
-    version_group = models.CharField(_("game version group"), max_length=255)
-    level_learned_at = models.PositiveIntegerField(_("level learned at"))
-    order = models.PositiveIntegerField(_("order"), blank=True, null=True)
+    def __str__(self):
+        return self.name
 
 
 class Name(TimestampedModel):
@@ -73,6 +71,23 @@ class PokemonForm(TimestampedModel):
     )
 
 
+class PokemonMove(TimestampedModel):
+    move = models.ForeignKey(Move, on_delete=models.CASCADE)
+    version_group_details = models.ManyToManyField(
+        "PokemonMoveVersion", related_name="moves"
+    )
+
+    def __str__(self):
+        return self.move.name
+
+
+class PokemonMoveVersion(TimestampedModel):
+    move_learn_method = models.CharField(_("move learn method"), max_length=255)
+    version_group = models.CharField(_("game version group"), max_length=255)
+    level_learned_at = models.PositiveIntegerField(_("level learned at"))
+    order = models.PositiveIntegerField(_("order"), blank=True, null=True)
+
+
 class PokemonSpecies(TimestampedModel):
     name = models.CharField(_("name"), max_length=255)
     order = models.PositiveIntegerField(_("order"))
@@ -94,12 +109,12 @@ class PokemonSpecies(TimestampedModel):
     egg_groups = models.JSONField(_("egg groups"), default=list)
     color = models.CharField(_("color"), max_length=255)
     shape = models.CharField(_("shape"), max_length=255)
-    evolves_from_species = models.OneToOneField(
+    evolves_from_species = models.ForeignKey(
         "self",
+        related_name="evolves_to_species",
         on_delete=models.SET_NULL,
         blank=True,
         null=True,
-        related_name="evolves_to_species",
     )
     generation = models.CharField(_("game generation"), max_length=255)
     names = models.ManyToManyField(Name, related_name="pokemon_species_names")
@@ -120,10 +135,18 @@ class PokemonSpeciesVariety(TimestampedModel):
         "Pokemon", on_delete=models.CASCADE, related_name="pokemon_species_varieties"
     )
 
+    def __str__(self):
+        return (
+            f"{self.pokemon.name} (default)" if self.is_default else self.pokemon.name
+        )
+
 
 class PokemonSpeciesDexEntry(TimestampedModel):
     entry_number = models.PositiveIntegerField(_("entry number"))
     pokedex = models.CharField(_("pokedex"), max_length=255)
+
+    def __str__(self):
+        return f"{self.pokedex}#{self.entry_number}"
 
 
 class PokemonStat(TimestampedModel):
@@ -131,19 +154,19 @@ class PokemonStat(TimestampedModel):
     effort = models.PositiveIntegerField(_("effort"))
     base_stat = models.PositiveIntegerField(_("base stat"))
 
+    def __str__(self):
+        return f"{self.stat}: {self.base_stat}"
+
 
 class PokemonType(TimestampedModel):
     slot = models.PositiveIntegerField(_("slot"))
     type = models.CharField(_("type"), max_length=255)
 
-
-class PokemonMove(TimestampedModel):
-    move = models.ForeignKey(Move, on_delete=models.CASCADE)
-    pokemon = models.ForeignKey("Pokemon", on_delete=models.CASCADE)
-    version_group_details = models.ManyToManyField("MoveVersion", related_name="moves")
+    class Meta:
+        ordering = ("slot",)
 
     def __str__(self):
-        return self.move
+        return f"{self.type}"
 
 
 class VersionGameIndex(TimestampedModel):
@@ -159,18 +182,24 @@ class VersionGameIndex(TimestampedModel):
 
 class Pokemon(TimestampedModel):
     name = models.CharField(_("name"), max_length=255)
-    base_experience = models.PositiveIntegerField(_("base experience"))
+    base_experience = models.PositiveIntegerField(
+        _("base experience"), blank=True, null=True
+    )
     height = models.PositiveIntegerField(_("height"))
     is_default = models.BooleanField(_("is default"), default=True)
-    order = models.PositiveIntegerField(_("order"))
+    order = models.IntegerField(_("order"))
     weight = models.PositiveIntegerField(_("weight"))
     abilities = models.ManyToManyField(PokemonAbility, related_name="pokemons")
     game_indices = models.ManyToManyField("VersionGameIndex", related_name="pokemons")
-    moves = models.ManyToManyField(Move, through=PokemonMove, related_name="pokemons")
+    moves = models.ManyToManyField(PokemonMove, related_name="pokemons")
     sprites = models.JSONField(_("sprites"), default=dict)
     cries = models.JSONField(_("cries"), default=dict)
     species = models.ForeignKey(
-        PokemonSpecies, on_delete=models.CASCADE, related_name="pokemons"
+        PokemonSpecies,
+        on_delete=models.CASCADE,
+        related_name="pokemons",
+        blank=True,
+        null=True,
     )
     stats = models.ManyToManyField(PokemonStat, related_name="pokemons")
     types = models.ManyToManyField(PokemonType, related_name="pokemons")
