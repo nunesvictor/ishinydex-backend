@@ -24,11 +24,12 @@ if [[ $RECREATE_DB == "1" ]] ; then
     python manage.py recreatedb
 
     echo "[${APP_NAME}] Recreating migrations..."
-    rm -rf core/migrations pokedex/migrations
-    python manage.py makemigrations core pokedex
+    for app in $PROJECT_APPS; do rm -rf "$app/migrations"; done
+    python manage.py makemigrations $PROJECT_APPS
 
     echo "[${APP_NAME}] Migrating database..."
     python manage.py migrate
+
 
     echo "[${APP_NAME}] Check superuser credentials..."
     python manage.py createsuperuser --no-input 2> /dev/null

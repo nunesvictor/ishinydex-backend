@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 from django.utils.translation import gettext as _
 
-from core.models import Box
+from ...models import Box
 
 
 class Command(BaseCommand):

@@ -89,7 +89,6 @@ class PokemonFormAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
     )
     list_filter = (
         "is_default",
-        "is_home_compatible",
         "is_battle_only",
         "is_mega",
         "types__type",
