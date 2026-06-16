@@ -23,9 +23,12 @@ class CustomFieldsRendererMixin:
         )
 
     def render_sprite(self, obj: Pokemon | PokemonForm):
-        return format_html(
-            "<img src='{}' alt='{}' />", obj.sprites["front_default"], obj.name
-        )
+        sprite = obj.sprites.get("front_default", None)
+
+        if sprite is None and isinstance(obj, PokemonForm):
+            sprite = obj.pokemon.sprites.get("front_default")
+
+        return format_html("<img src='{}' alt='{}' />", sprite, obj.name)
 
     def render_types(self, obj: Pokemon | PokemonForm):
         if not obj.types.exists():

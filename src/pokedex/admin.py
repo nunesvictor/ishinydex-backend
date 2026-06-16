@@ -57,17 +57,23 @@ class PokemonAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
     )
     list_filter = (
         "is_default",
+        "forms__is_mega",
+        "forms__is_battle_only",
         "types__type",
         "species__generation",
         "game_indices__version",
     )
     list_per_page = 6
-    ordering = ("order",)
+    ordering = (
+        "species__order",
+        "order",
+    )
     search_fields = (
         "name",
         "abilities__ability",
         "moves__move__name",
     )
+    show_facets = admin.ShowFacets.ALWAYS
 
 
 @admin.register(PokemonForm)
@@ -83,17 +89,23 @@ class PokemonFormAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
     )
     list_filter = (
         "is_default",
+        "is_home_compatible",
         "is_battle_only",
         "is_mega",
         "types__type",
         "pokemon__species__generation",
+    )
+    list_per_page = 6
+    ordering = (
+        "pokemon__species__order",
+        "order",
     )
     search_fields = (
         "name",
         "types__type",
         "pokemon__species__generation",
     )
-    ordering = ("order",)
+    show_facets = admin.ShowFacets.ALWAYS
 
 
 @admin.register(PokemonSpecies)
@@ -130,6 +142,7 @@ class PokemonSpeciesAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
         "color",
         "shape",
     )
+    show_facets = admin.ShowFacets.ALWAYS
 
     def render_national_pokedex_id(self, obj: PokemonSpecies):
         return obj.pokedex_numbers.filter(pokedex="national").first().entry_number
