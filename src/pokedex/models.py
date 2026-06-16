@@ -52,6 +52,12 @@ class PokemonFormType(TimestampedModel):
     slot = models.PositiveIntegerField(_("slot"))
     type = models.CharField(_("type"), max_length=255)
 
+    class Meta:
+        ordering = ("slot",)
+
+    def __str__(self):
+        return f"{self.type}"
+
 
 class PokemonForm(TimestampedModel):
     name = models.CharField(_("name"), max_length=255)
@@ -69,6 +75,9 @@ class PokemonForm(TimestampedModel):
     pokemon = models.ForeignKey(
         "Pokemon", on_delete=models.CASCADE, related_name="forms"
     )
+
+    def __str__(self):
+        return self.name
 
 
 class PokemonMove(TimestampedModel):

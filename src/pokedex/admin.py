@@ -1,24 +1,45 @@
 from django.contrib import admin
-from django.utils.html import format_html
 from django.utils.translation import gettext as _
 
 from .admin_filters import EggGroupFilter
+from .admin_mixins import CustomFieldsRendererMixin
 from .models import (
     Move,
     Pokemon,
+    PokemonForm,
     PokemonSpecies,
 )
 
 
 @admin.register(Move)
 class MoveAdmin(admin.ModelAdmin):
-    list_display = ("name",)
-    search_fields = ("name",)
+    list_display = (
+        "name",
+        "type",
+        "accuracy",
+        "power",
+        "damage_class",
+        "pp",
+        "target",
+    )
+    list_filter = (
+        "type",
+        "damage_class",
+        "generation",
+    )
+    list_per_page = 25
     ordering = ("name",)
+    search_fields = (
+        "name",
+        "damage_class",
+        "target",
+        "type",
+        "pokemonmove__pokemons__name",
+    )
 
 
 @admin.register(Pokemon)
-class PokemonAdmin(admin.ModelAdmin):
+class PokemonAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
     filter_horizontal = (
         "abilities",
         "game_indices",
@@ -26,7 +47,14 @@ class PokemonAdmin(admin.ModelAdmin):
         "stats",
         "types",
     )
-    list_display = ("render_sprite", "name", "order", "height", "weight")
+    list_display = (
+        "render_sprite",
+        "name",
+        "render_types",
+        "height",
+        "weight",
+        "order",
+    )
     list_filter = (
         "is_default",
         "types__type",
@@ -41,16 +69,35 @@ class PokemonAdmin(admin.ModelAdmin):
         "moves__move__name",
     )
 
-    def render_sprite(self, obj):
-        return format_html(
-            "<img src={} alt='{}' />", obj.sprites["front_default"], obj.name
-        )
 
-    render_sprite.short_description = "Sprite"
+@admin.register(PokemonForm)
+class PokemonFormAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
+    list_display = (
+        "render_sprite",
+        "name",
+        "render_types",
+        "is_default",
+        "is_battle_only",
+        "is_mega",
+        "order",
+    )
+    list_filter = (
+        "is_default",
+        "is_battle_only",
+        "is_mega",
+        "types__type",
+        "pokemon__species__generation",
+    )
+    search_fields = (
+        "name",
+        "types__type",
+        "pokemon__species__generation",
+    )
+    ordering = ("order",)
 
 
 @admin.register(PokemonSpecies)
-class PokemonSpeciesAdmin(admin.ModelAdmin):
+class PokemonSpeciesAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
     filter_horizontal = (
         "pokedex_numbers",
         "names",
@@ -89,16 +136,10 @@ class PokemonSpeciesAdmin(admin.ModelAdmin):
 
     def render_sprite(self, obj: PokemonSpecies):
         pokemon = obj.varieties.filter(is_default=True).first().pokemon
-
-        return format_html(
-            "<img src={} alt='{}' />", pokemon.sprites["front_default"], pokemon.name
-        )
+        return super().render_sprite(pokemon)
 
     def render_types(self, obj: PokemonSpecies):
         pokemon = obj.varieties.filter(is_default=True).first().pokemon
-
-        return ", ".join([t.type for t in pokemon.types.all()])
+        return super().render_types(pokemon)
 
     render_national_pokedex_id.short_description = _("national pokedex id")
-    render_sprite.short_description = _("sprite")
-    render_types.short_description = _("types")
