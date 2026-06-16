@@ -36,9 +36,11 @@ services:
       context: .
       args:
         - POETRY_ARGS=--with dev
-    command: jupyter lab --ip=0.0.0.0 --notebook-dir=notebooks --port=8088 --no-browser --allow-root
+    command: jupyter lab --ServerApp.token='${JUPYTER_TOKEN:-}' --ip=0.0.0.0 --port=8088 --allow-root --no-browser --notebook-dir=notebooks
     env_file:
       - .env
+    environment:
+      JUPYTER_TOKEN: ${JUPYTER_TOKEN:-}
     ports:
       - "8088:8088"
     volumes:
