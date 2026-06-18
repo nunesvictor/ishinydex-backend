@@ -73,8 +73,11 @@ class PokemonForm(TimestampedModel):
     names = models.ManyToManyField("Name", related_name="pokemon_forms_names")
     form_names = models.ManyToManyField("Name", related_name="pokemon_forms_form_names")
     pokemon = models.ForeignKey(
-        "Pokemon", on_delete=models.CASCADE, related_name="forms"
+        "Pokemon", on_delete=models.CASCADE, related_name="forms", blank=True, null=True
     )
+
+    class Meta:
+        ordering = ("pokemon__species__order", "order")
 
     def __str__(self):
         return self.name

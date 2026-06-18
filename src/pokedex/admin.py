@@ -11,6 +11,31 @@ from .models import (
 )
 
 
+class PokemonFormInline(admin.TabularInline, CustomFieldsRendererMixin):
+    model = PokemonForm
+    extra = 0
+    max_num = 255
+    can_delete = False
+    show_change_link = False
+    exclude = (
+        "form_name",
+        "form_names",
+        "names",
+        "sprites",
+        "types",
+        "version_group",
+    )
+    readonly_fields = (
+        "render_sprite",
+        "name",
+        "render_types",
+        "is_default",
+        "is_battle_only",
+        "is_mega",
+        "order",
+    )
+
+
 @admin.register(Move)
 class MoveAdmin(admin.ModelAdmin):
     list_display = (
@@ -47,6 +72,7 @@ class PokemonAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
         "stats",
         "types",
     )
+    inlines = (PokemonFormInline,)
     list_display = (
         "render_sprite",
         "name",
@@ -88,11 +114,12 @@ class PokemonFormAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
         "order",
     )
     list_filter = (
+        "personaldex",
+        "types__type",
+        "pokemon__species__generation",
         "is_default",
         "is_battle_only",
         "is_mega",
-        "types__type",
-        "pokemon__species__generation",
     )
     list_per_page = 6
     ordering = (
