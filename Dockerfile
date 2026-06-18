@@ -36,6 +36,7 @@ USER root
 # Install build-dependencies
 RUN DEBIAN_FRONTEND=noninteractive apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+        postgresql-client \
         python3-dev \
         zlib1g-dev \
         libpq-dev \
@@ -54,10 +55,10 @@ RUN awk '/shopt -oq posix/ { sub("#","",$0); print; for(n=0; n<=6; n++) { getlin
     && chmod 644 $HOME/.bashrc
 
 # Install git and bash-completions for dev build
-RUN if [ ! -z "$POETRY_ARGS" ] ; then \
+RUN if [[ "$POETRY_ARGS" == *"dev"* ]] ; then \
         curl -fsSL https://raw.githubusercontent.com/django/django/main/extras/django_bash_completion -o $HOME/.django_bash_completion \
         && printf "\nsource $HOME/.django_bash_completion" >> $HOME/.bashrc \
-        && DEBIAN_FRONTEND=noninteractive apt-get install -y bash-completion git; \
+        && DEBIAN_FRONTEND=noninteractive apt-get install -y bash-completion postgresql-client git; \
     fi
 
 # Remove apt cache

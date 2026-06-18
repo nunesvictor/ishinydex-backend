@@ -4,10 +4,14 @@ volumes:
 services:
   db:
     image: postgres:17
+    env_file:
+      - .env
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-ishinydex}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - data:/var/lib/postgresql/data
       - ./backups:/var/lib/postgresql/backups
@@ -18,13 +22,15 @@ services:
       args:
         - POETRY_ARGS=--with prod
     command: python manage.py runserver 0.0.0.0:8000
+    depends_on:
+      - db
     env_file:
       - .env
     environment:
       DJANGO_SUPERUSER_EMAIL: ${DJANGO_SUPERUSER_EMAIL:-admin@localhost}
       DJANGO_SUPERUSER_USERNAME: ${DJANGO_SUPERUSER_USERNAME:-admin}
       DJANGO_SUPERUSER_PASSWORD: ${DJANGO_SUPERUSER_PASSWORD:-admin}
-      RECREATE_DB: ${RECREATE_DB:-0}
+      DB_INIT: ${DB_INIT:-0}
     ports:
       - "8000:8000"
     volumes:
