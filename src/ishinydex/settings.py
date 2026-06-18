@@ -13,7 +13,6 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 from pathlib import Path
 
 from decouple import config
-from dj_database_url import parse as db_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -88,9 +87,14 @@ WSGI_APPLICATION = "ishinydex.wsgi.application"
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-    "default": config(
-        "DATABASE_URL", cast=db_url, default="sqlite:///" + str(BASE_DIR / "db.sqlite3")
-    )
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": config("POSTGRES_DB", default="ishinydex"),
+        "USER": config("POSTGRES_USER", default="postgres"),
+        "PASSWORD": config("POSTGRES_PASSWORD"),
+        "HOST": config("POSTGRES_HOST", default="db"),
+        "PORT": config("POSTGRES_PORT", cast=int, default=5432),
+    }
 }
 
 
