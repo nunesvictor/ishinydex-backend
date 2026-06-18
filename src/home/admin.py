@@ -1,6 +1,7 @@
 from django.contrib import admin
+from django.utils.translation import gettext as _
 
-from .models import Box, PokemonSpecimen, Slot
+from .models import Box, PersonalDex, PokemonSpecimen, Slot
 
 
 class SlotInline(admin.TabularInline):
@@ -28,3 +29,19 @@ class PokemonSpecimenAdmin(admin.ModelAdmin):
     search_fields = ("nickname", "ndex_id")
     list_filter = ("is_shiny", "is_legendary", "is_mythical", "is_mega", "is_gmax")
     ordering = ("ndex_id",)
+
+
+@admin.register(PersonalDex)
+class PersonalDexAdmin(admin.ModelAdmin):
+    filter_horizontal = ("boxes", "forms")
+    search_fields = ("name",)
+    list_display = ("name", "forms_count")
+
+    def boxes_count(self, obj):
+        return obj.boxes.count()
+
+    def forms_count(self, obj):
+        return obj.forms.count()
+
+    boxes_count.short_description = _("boxes")
+    forms_count.short_description = _("forms")

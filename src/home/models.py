@@ -3,6 +3,7 @@ from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
 
 from core.models import OrderedModel, TimestampedModel
+from pokedex.models import PokemonForm
 
 from .utils import col_choices, row_choices
 
@@ -80,3 +81,16 @@ class Slot(OrderedModel):
 
     def __str__(self):
         return str(self.specimen) if self.specimen else gettext("Empty Slot")
+
+
+class PersonalDex(TimestampedModel):
+    name = models.CharField(_("name"), max_length=255, unique=True)
+    forms = models.ManyToManyField(PokemonForm, blank=True)
+    boxes = models.ManyToManyField(Box, blank=True)
+
+    class Meta:
+        verbose_name = _("personal dex")
+        verbose_name_plural = _("personal dex")
+
+    def __str__(self):
+        return self.name
