@@ -2,6 +2,7 @@ import os
 import subprocess
 from datetime import datetime
 
+from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.utils.translation import gettext as _
 
@@ -21,7 +22,7 @@ class Command(BaseCommand):
     help = _("Dumps the app's database on the backups folder.")
 
     def handle(self, *args, **options):
-        comando = [
+        command = [
             "pg_dump",
             "-h",
             POSTGRES_HOST,
@@ -46,12 +47,18 @@ class Command(BaseCommand):
         env_config["PGPASSWORD"] = POSTGRES_PASSWORD
 
         try:
-            # Executa o comando. capture_output=True silencia o stdout/stderr do pg_dump
-            resultado = subprocess.run(
-                comando, env=env_config, capture_output=True, text=True
+            # Clear old auth sessions before dumping the database
+            call_command("clearsessions")
+
+            # Dumps the database
+            result = subprocess.run(
+                command,
+                capture_output=True,
+                env=env_config,
+                text=True,
             )
 
-            if resultado.returncode == 0:
+            if result.returncode == 0:
                 self.stdout.write(
                     f"[{APP_NAME}] Database `{POSTGRES_DB}` dumped to {backup_filename}"
                 )
@@ -60,6 +67,6 @@ class Command(BaseCommand):
                     f"[{APP_NAME}] Failed to dump database `{POSTGRES_DB}`"
                 )
 
-                self.stderr.write(f"Error:\n{resultado.stderr}")
+                self.stderr.write(f"Error:\n{result.stderr}")
         except FileNotFoundError:
             self.stderr.write(f"[{APP_NAME}] Error: command 'pg_dump' not found")
