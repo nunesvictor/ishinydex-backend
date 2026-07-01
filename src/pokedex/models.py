@@ -69,7 +69,9 @@ class PokemonForm(TimestampedModel):
     form_name = models.CharField(_("form name"), max_length=255)
     types = models.ManyToManyField(PokemonFormType, related_name="pokemon_forms")
     sprites = models.JSONField(_("sprites"), default=dict)
-    version_group = models.CharField(_("game version group"), max_length=255)
+    version_group = models.ForeignKey(
+        "VersionGroup", on_delete=models.CASCADE, related_name="pokemon_forms"
+    )
     names = models.ManyToManyField("Name", related_name="pokemon_forms_names")
     form_names = models.ManyToManyField("Name", related_name="pokemon_forms_form_names")
     pokemon = models.ForeignKey(
@@ -95,7 +97,7 @@ class PokemonMove(TimestampedModel):
 
 class PokemonMoveVersion(TimestampedModel):
     move_learn_method = models.CharField(_("move learn method"), max_length=255)
-    version_group = models.CharField(_("game version group"), max_length=255)
+    version_group = models.ForeignKey("VersionGroup", on_delete=models.CASCADE)
     level_learned_at = models.PositiveIntegerField(_("level learned at"))
     order = models.PositiveIntegerField(_("order"), blank=True, null=True)
 
@@ -181,17 +183,6 @@ class PokemonType(TimestampedModel):
         return f"{self.type}"
 
 
-class VersionGameIndex(TimestampedModel):
-    game_index = models.PositiveIntegerField(_("game index"))
-    version = models.CharField(_("game version"), max_length=255)
-
-    class Meta:
-        verbose_name_plural = _("Version game indices")
-
-    def __str__(self):
-        return f"{self.version}#{self.game_index}"
-
-
 class Pokemon(TimestampedModel):
     name = models.CharField(_("name"), max_length=255)
     base_experience = models.PositiveIntegerField(
@@ -215,6 +206,32 @@ class Pokemon(TimestampedModel):
     )
     stats = models.ManyToManyField(PokemonStat, related_name="pokemons")
     types = models.ManyToManyField(PokemonType, related_name="pokemons")
+
+    def __str__(self):
+        return self.name
+
+
+class VersionGameIndex(TimestampedModel):
+    game_index = models.PositiveIntegerField(_("game index"))
+    version = models.CharField(_("game version"), max_length=255)
+
+    class Meta:
+        verbose_name_plural = _("Version game indices")
+
+    def __str__(self):
+        return f"{self.version}#{self.game_index}"
+
+
+class VersionGroup(TimestampedModel):
+    name = models.CharField(_("name"), max_length=255)
+    generation = models.CharField(_("game generation"), max_length=255)
+    order = models.PositiveIntegerField(_("order"))
+    pokedexes = models.JSONField(_("pokedexes"), default=list)
+    regions = models.JSONField(_("regions"), default=list)
+    versions = models.JSONField(_("versions"), default=list)
+
+    class Meta:
+        ordering = ("order",)
 
     def __str__(self):
         return self.name
