@@ -1,8 +1,9 @@
 from django.contrib import admin
 from django.utils.translation import gettext as _
 
+from core.admin_mixins import CustomFieldsRendererMixin
+
 from .admin_filters import EggGroupFilter
-from .admin_mixins import CustomFieldsRendererMixin
 from .models import (
     Move,
     Pokemon,
@@ -65,13 +66,6 @@ class MoveAdmin(admin.ModelAdmin):
 
 @admin.register(Pokemon)
 class PokemonAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
-    filter_horizontal = (
-        "abilities",
-        "game_indices",
-        "moves",
-        "stats",
-        "types",
-    )
     inlines = (PokemonFormInline,)
     list_display = (
         "render_sprite",
@@ -93,6 +87,13 @@ class PokemonAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
     ordering = (
         "species__order",
         "order",
+    )
+    readonly_fields = (
+        "abilities",
+        "game_indices",
+        "moves",
+        "stats",
+        "types",
     )
     search_fields = (
         "name",

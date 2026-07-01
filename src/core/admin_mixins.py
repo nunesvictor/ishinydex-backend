@@ -3,7 +3,8 @@ from django.utils.translation import gettext as _
 
 import pokebase as pb
 
-from .models import Pokemon, PokemonForm
+from home.models import Slot
+from pokedex.models import Pokemon, PokemonForm
 
 
 class CustomFieldsRendererMixin:
@@ -22,13 +23,14 @@ class CustomFieldsRendererMixin:
             type,
         )
 
-    def render_sprite(self, obj: Pokemon | PokemonForm):
-        sprite = obj.sprites.get("front_default", None)
+    def render_sprite(self, obj: Pokemon | PokemonForm | Slot, opt="front_default"):
+        if isinstance(obj, Slot) and obj.form:
+            obj = obj.form
+
+        sprite = obj.sprites.get(opt, None)
 
         if isinstance(obj, Pokemon):
-            sprite = (
-                obj.sprites.get("other", {}).get("home", {}).get("front_default", None)
-            )
+            sprite = obj.sprites.get("other", {}).get("home", {}).get(opt, None)
 
         return format_html("<img height='96' src='{}' alt='{}' />", sprite, obj.name)
 

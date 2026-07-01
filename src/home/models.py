@@ -69,6 +69,10 @@ class Slot(OrderedModel):
     box = models.ForeignKey(Box, on_delete=models.CASCADE, related_name="slots")
     row = models.IntegerField(_("row"), choices=row_choices)
     col = models.IntegerField(_("col"), choices=col_choices)
+    is_shiny = models.BooleanField(_("is shiny"), default=False)
+    form = models.ForeignKey(
+        PokemonForm, on_delete=models.SET_NULL, blank=True, null=True
+    )
     specimen = models.ForeignKey(
         PokemonSpecimen, on_delete=models.SET_NULL, blank=True, null=True
     )
@@ -80,13 +84,22 @@ class Slot(OrderedModel):
         ordering = ["box__position", "row", "col"]
 
     def __str__(self):
-        return str(self.specimen) if self.specimen else gettext("Empty Slot")
+        return gettext(
+            "[{box}: {row},{col}] ({form}): {specimen}".format(
+                box=self.box,
+                row=self.row + 1,
+                col=self.col + 1,
+                form=self.form if self.form else gettext("no form defined"),
+                specimen=self.specimen if self.specimen else gettext("empty slot"),
+            )
+        )
 
 
 class PersonalDex(TimestampedModel):
     name = models.CharField(_("name"), max_length=255, unique=True)
     forms = models.ManyToManyField(PokemonForm, blank=True)
     boxes = models.ManyToManyField(Box, blank=True)
+    is_shiny_dex = models.BooleanField(_("is shiny dex"), default=False)
 
     class Meta:
         verbose_name = _("personal dex")
