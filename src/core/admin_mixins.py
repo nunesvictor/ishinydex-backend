@@ -31,6 +31,8 @@ class CustomFieldsRendererMixin:
 
         if isinstance(obj, Pokemon):
             sprite = obj.sprites.get("other", {}).get("home", {}).get(opt, None)
+        elif not sprite and isinstance(obj, PokemonForm):
+            sprite = obj.pokemon.sprites.get(opt, None)
 
         return format_html("<img height='96' src='{}' alt='{}' />", sprite, obj.name)
 

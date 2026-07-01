@@ -65,11 +65,29 @@ class PokemonSpecimen(TimestampedModel):
         )
 
 
+class PersonalDex(TimestampedModel):
+    name = models.CharField(_("name"), max_length=255, unique=True)
+    forms = models.ManyToManyField(PokemonForm, blank=True)
+    is_shiny_dex = models.BooleanField(_("is shiny dex"), default=False)
+
+    class Meta:
+        verbose_name = _("personal dex")
+        verbose_name_plural = _("personal dex")
+
+    def __str__(self):
+        return self.name
+
+
 class Slot(OrderedModel):
     box = models.ForeignKey(Box, on_delete=models.CASCADE, related_name="slots")
     row = models.IntegerField(_("row"), choices=row_choices)
     col = models.IntegerField(_("col"), choices=col_choices)
-    is_shiny = models.BooleanField(_("is shiny"), default=False)
+    personal_dex = models.ForeignKey(
+        PersonalDex,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+    )
     form = models.ForeignKey(
         PokemonForm, on_delete=models.SET_NULL, blank=True, null=True
     )
@@ -93,17 +111,3 @@ class Slot(OrderedModel):
                 specimen=self.specimen if self.specimen else gettext("empty slot"),
             )
         )
-
-
-class PersonalDex(TimestampedModel):
-    name = models.CharField(_("name"), max_length=255, unique=True)
-    forms = models.ManyToManyField(PokemonForm, blank=True)
-    slots = models.ManyToManyField(Slot, blank=True)
-    is_shiny_dex = models.BooleanField(_("is shiny dex"), default=False)
-
-    class Meta:
-        verbose_name = _("personal dex")
-        verbose_name_plural = _("personal dex")
-
-    def __str__(self):
-        return self.name
