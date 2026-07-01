@@ -98,7 +98,7 @@ class Slot(OrderedModel):
 class PersonalDex(TimestampedModel):
     name = models.CharField(_("name"), max_length=255, unique=True)
     forms = models.ManyToManyField(PokemonForm, blank=True)
-    boxes = models.ManyToManyField(Box, blank=True)
+    slots = models.ManyToManyField(Slot, blank=True)
     is_shiny_dex = models.BooleanField(_("is shiny dex"), default=False)
 
     class Meta:

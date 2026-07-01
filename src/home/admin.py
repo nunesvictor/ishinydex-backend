@@ -42,22 +42,22 @@ class PokemonSpecimenAdmin(admin.ModelAdmin):
 class PersonalDexAdmin(admin.ModelAdmin):
     filter_horizontal = (
         "forms",
-        "boxes",
+        "slots",
     )
     list_display = (
         "name",
         "is_shiny_dex",
         "forms_count",
-        "boxes_count",
+        "slots_count",
     )
     list_filter = ("is_shiny_dex",)
     search_fields = ("name",)
 
-    def boxes_count(self, obj):
-        return obj.boxes.count()
-
     def forms_count(self, obj):
         return obj.forms.count()
 
-    boxes_count.short_description = _("boxes")
+    def slots_count(self, obj):
+        return obj.slots.count()
+
     forms_count.short_description = _("forms")
+    slots_count.short_description = _("slots")
