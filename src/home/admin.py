@@ -18,13 +18,16 @@ class SlotInline(TabularInlinePaginated, CustomFieldsRendererMixin):
     readonly_fields = ("render_sprite", "position", "row", "col")
     show_change_link = False
 
+    class Media:
+        css = {"all": ("css/styles.css",)}
+
     def render_sprite(self, obj):
         opt = "front_default"
 
         if obj.personal_dex and obj.personal_dex.is_shiny_dex:
             opt = "front_shiny"
 
-        return super().render_sprite(obj, opt)
+        return super().render_sprite(obj, opt, obj.specimen is not None)
 
 
 @admin.register(Box)
@@ -78,6 +81,15 @@ class SlotAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
         "specimen",
     )
     list_per_page = 30
+    search_fields = (
+        "box__name",
+        "row",
+        "col",
+        "form__name",
+    )
+
+    class Media:
+        css = {"all": ("css/styles.css",)}
 
     def render_sprite(self, obj):
         opt = "front_default"
@@ -85,4 +97,4 @@ class SlotAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
         if obj.personal_dex and obj.personal_dex.is_shiny_dex:
             opt = "front_shiny"
 
-        return super().render_sprite(obj, opt)
+        return super().render_sprite(obj, opt, obj.specimen is not None)

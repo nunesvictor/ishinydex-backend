@@ -155,3 +155,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 10,
 }
+
+# DATA_UPLOAD_MAX_NUMBER_FIELDS
+# https://docs.djangoproject.com/en/6.0/ref/settings/#data-upload-max-number-fields
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 3000

@@ -1,0 +1,12 @@
+.status-unregistred {
+    /* Transforma a imagem em 100% preto e branco */
+    filter: grayscale(100%);
+
+    /* Reduz a opacidade para dar o efeito de "apagado" */
+    opacity: 0.6;
+
+    /* (Opcional) Transição suave caso você mude o estado via JavaScript */
+    transition:
+        filter 0.3s ease,
+        opacity 0.3s ease;
+}

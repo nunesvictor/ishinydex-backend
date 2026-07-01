@@ -1,3 +1,5 @@
+from typing import Literal
+
 from django.utils.html import format_html, format_html_join
 from django.utils.translation import gettext as _
 
@@ -5,6 +7,8 @@ import pokebase as pb
 
 from home.models import Slot
 from pokedex.models import Pokemon, PokemonForm
+
+HOME_SPRITE_BASE_URL = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/home/"  # noqa
 
 
 class CustomFieldsRendererMixin:
@@ -23,18 +27,36 @@ class CustomFieldsRendererMixin:
             type,
         )
 
-    def render_sprite(self, obj: Pokemon | PokemonForm | Slot, opt="front_default"):
+    def render_sprite(
+        self,
+        obj: Pokemon | PokemonForm | Slot,
+        opt: Literal["front_default", "front_shiny"] = "front_default",
+        is_registred: bool = False,
+    ):
         if isinstance(obj, Slot) and obj.form:
             obj = obj.form
 
-        sprite = obj.sprites.get(opt, None)
+        default_sprite = obj.sprites.get(opt, None)
+        sprite = default_sprite
 
-        if isinstance(obj, Pokemon):
-            sprite = obj.sprites.get("other", {}).get("home", {}).get(opt, None)
-        elif not sprite and isinstance(obj, PokemonForm):
-            sprite = obj.pokemon.sprites.get(opt, None)
+        if default_sprite:
+            home_sprite = obj.sprites.get("other", {}).get("home", {}).get(opt, None)
 
-        return format_html("<img height='96' src='{}' alt='{}' />", sprite, obj.name)
+            if home_sprite:
+                home_sprite.split("/")[-1] = default_sprite.split("/")[-1]
+            else:
+                home_sprite = HOME_SPRITE_BASE_URL
+                home_sprite += "shiny/" if opt == "front_shiny" else ""
+                home_sprite += default_sprite.split("/")[-1]
+
+            sprite = home_sprite
+
+        return format_html(
+            "<img height='96' src='{}' alt='{}' class='{}' />",
+            sprite,
+            obj.name,
+            "status-unregistred" if not is_registred else "",
+        )
 
     def render_types(self, obj: Pokemon | PokemonForm):
         if not obj.types.exists():
