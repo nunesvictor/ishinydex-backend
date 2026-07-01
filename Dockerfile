@@ -58,7 +58,7 @@ RUN awk '/shopt -oq posix/ { sub("#","",$0); print; for(n=0; n<=6; n++) { getlin
 RUN if [[ "$POETRY_ARGS" == *"dev"* ]] ; then \
         curl -fsSL https://raw.githubusercontent.com/django/django/main/extras/django_bash_completion -o $HOME/.django_bash_completion \
         && printf "\nsource $HOME/.django_bash_completion" >> $HOME/.bashrc \
-        && DEBIAN_FRONTEND=noninteractive apt-get install -y bash-completion postgresql-client git; \
+        && DEBIAN_FRONTEND=noninteractive apt-get install -y bash-completion git; \
     fi
 
 # Remove apt cache
