@@ -32,6 +32,19 @@ class Box(OrderedModel):
         return self.name
 
 
+class PersonalDex(TimestampedModel):
+    name = models.CharField(_("name"), max_length=255, unique=True)
+    forms = models.ManyToManyField(PokemonForm, blank=True)
+    is_shiny_dex = models.BooleanField(_("is shiny dex"), default=False)
+
+    class Meta:
+        verbose_name = _("personal dex")
+        verbose_name_plural = _("personal dex")
+
+    def __str__(self):
+        return self.name
+
+
 class PokemonSpecimen(TimestampedModel):
     ndex_id = models.PositiveIntegerField(_("national dex number"), unique=True)
     species = models.CharField(_("species"), max_length=255)
@@ -63,19 +76,6 @@ class PokemonSpecimen(TimestampedModel):
         return (
             self.nickname if self.nickname else f"#{self.ndex_id:04d}: {self.species}"
         )
-
-
-class PersonalDex(TimestampedModel):
-    name = models.CharField(_("name"), max_length=255, unique=True)
-    forms = models.ManyToManyField(PokemonForm, blank=True)
-    is_shiny_dex = models.BooleanField(_("is shiny dex"), default=False)
-
-    class Meta:
-        verbose_name = _("personal dex")
-        verbose_name_plural = _("personal dex")
-
-    def __str__(self):
-        return self.name
 
 
 class Slot(OrderedModel):
