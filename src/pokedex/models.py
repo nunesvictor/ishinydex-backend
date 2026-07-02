@@ -211,9 +211,20 @@ class Pokemon(TimestampedModel):
         return self.name
 
 
+class Version(TimestampedModel):
+    name = models.CharField(_("name"), max_length=255)
+    version_group = models.ForeignKey("VersionGroup", on_delete=models.CASCADE)
+
+    class Meta:
+        ordering = ("version_group__order",)
+
+    def __str__(self):
+        return self.name
+
+
 class VersionGameIndex(TimestampedModel):
     game_index = models.PositiveIntegerField(_("game index"))
-    version = models.CharField(_("game version"), max_length=255)
+    version = models.ForeignKey(Version, on_delete=models.CASCADE)
 
     class Meta:
         verbose_name_plural = _("Version game indices")

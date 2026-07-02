@@ -4,12 +4,8 @@ from django.utils.translation import gettext as _
 from core.admin_mixins import CustomFieldsRendererMixin
 
 from .admin_filters import EggGroupFilter
-from .models import (
-    Move,
-    Pokemon,
-    PokemonForm,
-    PokemonSpecies,
-)
+from .forms import PokemonSpeciesAdminForm
+from .models import Move, Pokemon, PokemonForm, PokemonSpecies, Version, VersionGroup
 
 
 class PokemonFormInline(admin.TabularInline, CustomFieldsRendererMixin):
@@ -142,6 +138,7 @@ class PokemonSpeciesAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
         "names",
         "varieties",
     )
+    form = PokemonSpeciesAdminForm
     list_display = (
         "render_sprite",
         "name",
@@ -183,3 +180,21 @@ class PokemonSpeciesAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
         return super().render_types(pokemon)
 
     render_national_pokedex_id.short_description = _("national pokedex id")
+
+
+@admin.register(Version)
+class VersionAdmin(admin.ModelAdmin):
+    list_display = (
+        "name",
+        "version_group",
+    )
+
+
+@admin.register(VersionGroup)
+class VersionGroupAdmin(admin.ModelAdmin):
+    list_display = (
+        "name",
+        "generation",
+        "order",
+    )
+    list_filter = ("generation",)
