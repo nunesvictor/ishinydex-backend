@@ -103,7 +103,7 @@ class Specimen(TimestampedModel):
     ot = models.ForeignKey(
         OriginalTrainer, on_delete=models.SET_NULL, blank=True, null=True
     )
-    captured_at = models.DateField(_("captured at"))
+    captured_at = models.DateField(_("captured at"), blank=True, null=True)
 
     def __str__(self):
         return "{shiny_icon}{alpha_icon}{nickname}{ot_suffix}".format(
