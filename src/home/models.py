@@ -95,6 +95,7 @@ class Slot(OrderedModel):
 class Specimen(TimestampedModel):
     form = models.ForeignKey(PokemonForm, on_delete=models.CASCADE)
     nickname = models.CharField(_("nickname"), max_length=255, blank=True, null=True)
+    ability = models.CharField(_("ability"), max_length=255, blank=True, null=True)
     language = models.CharField(_("language"), max_length=255, default="en")
     gender = models.CharField(_("gender"), max_length=255, default="genderless")
     nature = models.CharField(_("nature"), max_length=255, default="hardy")
@@ -104,6 +105,11 @@ class Specimen(TimestampedModel):
         OriginalTrainer, on_delete=models.SET_NULL, blank=True, null=True
     )
     captured_at = models.DateField(_("captured at"), blank=True, null=True)
+
+    class Meta:
+        verbose_name = _("specimen")
+        verbose_name_plural = _("specimens")
+        ordering = ("form__order",)
 
     def __str__(self):
         return "{shiny_icon}{alpha_icon}{nickname}{ot_suffix}".format(

@@ -107,6 +107,7 @@ class SlotAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
 
     class Media:
         css = {"all": ("css/styles.css",)}
+        js = ("js/admin_fk_pass.js",)
 
     def registration_status(self, obj):
         return obj.specimen is not None
@@ -128,27 +129,53 @@ class SpecimenAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
     inlines = (SlotInline,)
     list_display = (
         "render_sprite",
-        "form",
-        "nickname",
+        "render_label",
+        "ability",
         "language",
-        "gender",
+        "render_gender",
         "nature",
         "is_alpha",
         "is_shiny",
         "ot",
         "captured_at",
     )
-    list_filter = ("language", "gender", "nature", "is_alpha", "is_shiny", "ot")
+    list_filter = ("language", "gender", "is_alpha", "is_shiny", "ot")
     search_fields = (
         "form__name",
         "nickname",
+        "ability",
+        "nature",
         "ot__trainer_id",
         "captured_at",
     )
     show_facets = admin.ShowFacets.ALWAYS
 
+    class Media:
+        js = ("js/admin_load_abilities.js",)
+
+    def get_changeform_initial_data(self, request):
+        initial = super().get_changeform_initial_data(request)
+
+        if "form_id" in request.GET:
+            initial["form"] = request.GET["form_id"]
+
+        return initial
+
+    def render_label(self, obj):
+        return obj.nickname if obj.nickname else obj.form.name
+
+    def render_gender(self, obj):
+        if obj.gender == "male":
+            return "♂️"
+        elif obj.gender == "female":
+            return "♀️"
+
+        return "-"
+
     def render_sprite(self, obj):
         opt = "front_shiny" if obj.is_shiny else "front_default"
         return super().render_sprite(obj.form, opt, True)
 
+    render_label.short_description = _("nickname or form")
+    render_gender.short_description = _("gender")
     render_sprite.short_description = _("sprite")
