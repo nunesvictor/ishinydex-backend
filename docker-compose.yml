@@ -11,7 +11,8 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-ishinydex}
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "0.0.0.0:${POSTGRES_PORT:-5432}:5432"
+    restart: always
     volumes:
       - data:/var/lib/postgresql/data
       - ./backups:/var/lib/postgresql/backups
@@ -22,12 +23,14 @@ services:
       args:
         - POETRY_ARGS=--with dev
     command: jupyter lab --ServerApp.token='${JUPYTER_TOKEN:-}' --ip=0.0.0.0 --port=8088 --allow-root --no-browser --notebook-dir=notebooks
+    depends_on:
+      - db
     env_file:
       - .env
     environment:
       JUPYTER_TOKEN: ${JUPYTER_TOKEN:-}
     ports:
-      - "8088:8088"
+      - "0.0.0.0:8088:8088"
     volumes:
       - .:${APP_HOME}
       - .cache/pokebase:/home/guest/.cache/pokebase
@@ -48,7 +51,8 @@ services:
       DJANGO_SUPERUSER_PASSWORD: ${DJANGO_SUPERUSER_PASSWORD:-admin}
       DB_INIT: ${DB_INIT:-0}
     ports:
-      - "8000:8000"
+      - "0.0.0.0:8000:8000"
+    restart: always
     volumes:
       - .:${APP_HOME}
       - .cache/pokebase:/home/guest/.cache/pokebase
