@@ -2,10 +2,10 @@
 count = true
 docstring-convention = google
 exclude =
-    .jupyter
-    .ipynb_checkpoints/
+    .jupyter,
+    .ipynb_checkpoints/,
     *.ipynb,
-    migrations
+    **/migrations/*,
 ignore = D203, D100, D101, D101, D102, D103, D104, D105, D106, D107, W503
 max-complexity = 20
 max-line-length = 88
