@@ -1,11 +1,13 @@
 from functools import reduce
 from operator import or_
 
+from django.core.management import call_command
 from django.core.management.base import BaseCommand
+from django.db import transaction
 from django.db.models import Q
 from django.utils.translation import gettext as _
 
-from home.models import PersonalDex
+from home.models import Box, PersonalDex
 from pokedex.models import PokemonForm
 
 _DEFAULT_FORM_ONLY_LIST = [
@@ -41,24 +43,37 @@ _DEFAULT_EXTRA_ARGS = (
 
 
 class Command(BaseCommand):
-    help = _(
-        (
-            "Create mirror boxes for Pokémon Home. This will create 30 boxes with 30 "
-            "slots each, mirroring the structure of Pokémon Home."
-        )
-    )
+    help = _(("Create a personal dex with the default settings."))
 
     def add_arguments(self, parser):
         parser.add_argument(
             "dex_name",
             type=str,
-            help=_("personal dex name"),
-            default=_("new personal dex"),
+            help=_("PersonalDex name"),
+            default=_("New PersonalDex"),
             nargs="?",
         )
+        parser.add_argument("-f", "--force-new-box", action="store_true")
+        parser.add_argument("-i", "--install-scheme", action="store_true")
+        parser.add_argument("-s", "--shiny-dex", action="store_true")
 
+    @transaction.atomic()
     def handle(self, *args, **options):
-        dex = PersonalDex.objects.get_or_create(name=options["dex_name"])[0]
+        self.stdout.write(
+            self.style.MIGRATE_LABEL(
+                _("Working on PersonalDex: `%s`... " % options["dex_name"])
+            ),
+            ending="",
+        )
+
+        dex, created = PersonalDex.objects.update_or_create(
+            name=options["dex_name"],
+            defaults={
+                "force_new_box": options["force_new_box"],
+                "is_shiny_dex": options["shiny_dex"],
+            },
+        )
+
         forms = (
             PokemonForm.objects.filter(is_battle_only=False)
             .exclude(
@@ -75,5 +90,13 @@ class Command(BaseCommand):
         dex.forms.add(*forms)
 
         self.stdout.write(
-            self.style.SUCCESS(_("successfully created personal dex: %s" % dex.name))
+            self.style.SUCCESS(_("%s" % "created!" if created else "updated!"))
         )
+
+        if options["install_scheme"]:
+            call_command(
+                "create_home_scheme",
+                personal_dex_id=dex.id,
+                first_box_id=Box.objects.first().id,
+                override=True,
+            )

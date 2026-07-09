@@ -17,7 +17,7 @@ BACKUPS_DIR = f"{APP_HOME}/backups"
 
 
 class Command(BaseCommand):
-    help = _("Restores the database using the newest .backup file found.")
+    help = _("Restores the database using the newest .backup file.")
 
     def handle(self, *args, **options):
         search_pattern = os.path.join(BACKUPS_DIR, "*.backup")
