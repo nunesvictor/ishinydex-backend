@@ -1,6 +1,7 @@
 volumes:
   data:
   pokemon_sprites:
+  staticfiles:
   type_sprites:
 
 services:
@@ -20,19 +21,18 @@ services:
       - ./backups:/var/lib/postgresql/backups
 
   jupyter:
-    build:
-      context: .
-      args:
-        - POETRY_ARGS=--with dev
     command: jupyter lab --ServerApp.token='${JUPYTER_TOKEN:-}' --ip=0.0.0.0 --port=8088 --allow-root --no-browser --notebook-dir=notebooks
     depends_on:
       - db
+      - web
     env_file:
       - .env
     environment:
       JUPYTER_TOKEN: ${JUPYTER_TOKEN:-}
+    image: ${APP_NAME:-ishinydex}-backend:${APP_VERSION:-latest}
     ports:
       - "0.0.0.0:8088:8088"
+    pull_policy: never
     volumes:
       - .:${APP_HOME}
       - .cache/pokebase:/home/guest/.cache/pokebase
@@ -52,11 +52,12 @@ services:
       DJANGO_SUPERUSER_USERNAME: ${DJANGO_SUPERUSER_USERNAME:-admin}
       DJANGO_SUPERUSER_PASSWORD: ${DJANGO_SUPERUSER_PASSWORD:-admin}
       DB_INIT: ${DB_INIT:-0}
+    image: ${APP_NAME:-ishinydex}-backend:${APP_VERSION:-latest}
     ports:
       - "0.0.0.0:8000:8000"
     restart: always
     volumes:
       - .:${APP_HOME}
       - pokemon_sprites:${APP_HOME}/src/media/sprites/pokemon
+      - staticfiles:${APP_HOME}/src/media/staticfiles
       - type_sprites:${APP_HOME}/src/media/sprites/types
-
