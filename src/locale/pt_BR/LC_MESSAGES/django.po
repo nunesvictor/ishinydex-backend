@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-15 04:03-0300\n"
+"POT-Creation-Date: 2026-07-09 15:01-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,153 +18,285 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: core/management/commands/create_pokemon_home_boxes_mirror.py:20
-msgid "Number of boxes to create (default: 200)"
-msgstr "Número de caixas a serem criadas (padrão: 200)"
-
-#: core/management/commands/create_pokemon_home_boxes_mirror.py:32
-msgid "Successfully created mirror boxes for Pokémon Home."
-msgstr "Caixas espelho do Pokémon Home criadas com sucesso."
-
-#: core/models.py:9
-msgid "position"
-msgstr "posição"
-
-#: core/models.py:36 pokedex/models.py:8 pokedex/models.py:26
-#: pokedex/models.py:57 pokedex/models.py:92 pokedex/models.py:184
-msgid "name"
-msgstr "nome"
-
-#: core/models.py:39
-msgid "box"
-msgstr "caixa"
-
-#: core/models.py:40
-msgid "boxes"
-msgstr "caixas"
-
-#: core/models.py:60
-msgid "national dex number"
-msgstr "número do dex nacional"
-
-#: core/models.py:61
-msgid "species"
-msgstr "espécies"
-
-#: core/models.py:62
-msgid "nickname"
-msgstr "apelido"
-
-#: core/models.py:63 pokedex/models.py:27
-msgid "language"
-msgstr "idoma"
-
-#: core/models.py:64
-msgid "gender"
-msgstr "gênero"
-
-#: core/models.py:65
-msgid "form"
-msgstr "forma"
-
-#: core/models.py:66
-msgid "is gmax"
-msgstr "é gmax"
-
-#: core/models.py:67 pokedex/models.py:98
-msgid "is legendary"
-msgstr "é lendário"
-
-#: core/models.py:68 pokedex/models.py:62
-msgid "is mega"
-msgstr "é mega"
-
-#: core/models.py:69 pokedex/models.py:99
-msgid "is mythical"
-msgstr "é mítico"
-
-#: core/models.py:70
-msgid "is shiny"
-msgstr "é brilhante"
-
-#: core/models.py:71
-msgid "original trainer name"
-msgstr ""
-
-#: core/models.py:72
-msgid "original trainer ID"
-msgstr ""
-
-#: core/models.py:73 pokedex/models.py:17 pokedex/models.py:119
-msgid "game generation"
-msgstr ""
-
-#: core/models.py:74 pokedex/models.py:66 pokedex/models.py:86
-msgid "game version group"
-msgstr ""
-
-#: core/models.py:75
-msgid "game version name"
-msgstr ""
-
-#: core/models.py:76
-msgid "captured at"
-msgstr ""
-
-#: core/models.py:79
-msgid "pokémon specimen"
-msgstr ""
-
-#: core/models.py:80
-msgid "pokémon specimens"
-msgstr ""
-
-#: core/models.py:94
-msgid "row"
-msgstr "linha"
-
-#: core/models.py:95
-msgid "col"
-msgstr "coluna"
-
-#: core/models.py:101 pokedex/models.py:34 pokedex/models.py:52
-#: pokedex/models.py:162
-msgid "slot"
-msgstr ""
-
-#: core/models.py:102
-msgid "slots"
-msgstr ""
-
-#: core/models.py:107
-msgid "Empty Slot"
-msgstr "Slot Vazio"
-
-#: pokedex/admin.py:102
-#, fuzzy
-#| msgid "national dex number"
-msgid "national pokedex id"
-msgstr "número do dex nacional"
-
-#: pokedex/admin.py:103
+#: core/admin_mixins.py:106 home/admin.py:43 home/admin.py:183
 msgid "sprite"
 msgstr ""
 
-#: pokedex/admin.py:104
+#: core/admin_mixins.py:107
 msgid "types"
+msgstr "tipos"
+
+#: core/management/commands/create_home_boxes.py:21
+msgid "Number of boxes to create (default: 200)"
+msgstr "Número de caixas a serem criadas (padrão: 200)"
+
+#: core/management/commands/create_home_boxes.py:31
+msgid "Creating Pokémon HOME Mirror Boxes... "
+msgstr "Criando Caixas Espelho do Pokémon HOME..."
+
+#: core/management/commands/create_home_boxes.py:39
+msgid "failure!"
+msgstr "falhou!"
+
+#: core/management/commands/create_home_boxes.py:40
+msgid "Error creating Pokémon Home boxes mirror"
+msgstr "Erro ao criar o espelho das caixas do Pokémon Home"
+
+#: core/management/commands/create_home_boxes.py:42
+msgid "success!"
+msgstr "sucesso!"
+
+#: core/management/commands/create_home_scheme.py:35
+msgid ""
+"There isn't enough space in the boxes for all the forms linked to this "
+"PersonalDex."
 msgstr ""
+"Não há espaço suficiente nas caixas para todos as formas vinculadas a este "
+"PersonalDex."
+
+#: core/management/commands/create_home_scheme.py:64
+msgid "Installing scheme... "
+msgstr "Instalando esquema..."
+
+#: core/management/commands/create_home_scheme.py:82
+#: core/management/commands/create_home_scheme.py:116
+msgid "done!"
+msgstr "feito!"
+
+#: core/management/commands/create_home_scheme.py:88
+msgid "WARNING!"
+msgstr "AVISO!"
+
+#: core/management/commands/create_home_scheme.py:93
+#, python-format
+msgid ""
+"This action will reset %d boxes to the default configuration. All previous "
+"schemes will be lost!\n"
+"THIS CHANGE IS IRREVERSIBLE. Do you want to continue? [y/N]: "
+msgstr ""
+"Esta ação redefinirá %d caixas para a configuração padrão. Todos os esquemas "
+"anteriores serão perdidos!\n"
+"ESTA ALTERAÇÃO É IRREVERSÍVEL. Deseja continuar? [y/N]: "
+
+#: core/management/commands/create_home_scheme.py:104
+msgid "Clearing previus scheme... "
+msgstr "Limpando o esquema anterior..."
+
+#: core/management/commands/create_home_scheme.py:118
+msgid "aborted!"
+msgstr "abortado!"
+
+#: core/management/commands/create_home_scheme.py:125
+msgid ""
+"The instance ID of the PersonalDex containing the forms to be organized by "
+"the scheme."
+msgstr ""
+"O ID da instância do PersonalDex contendo as formas a serem organizadas pelo "
+"esquema."
+
+#: core/management/commands/create_home_scheme.py:135
+msgid ""
+"The ID of the first Box to be used by the schema. The schema will use as "
+"many boxes as necessary to accommodate all PokemonForms from the "
+"PersonalDex, following the box order defined by the `position` attribute."
+msgstr ""
+"O ID da primeira Box a ser utilizada pelo esquema. O esquema utilizará "
+"quantas boxes forem necessárias para acomodar todas as PokemonForms do "
+"PersonalDex, seguindo a ordem das boxes definida pelo atributo `position`."
+
+#: core/management/commands/create_home_scheme.py:147
+msgid ""
+"The ID of the last box that the scheme is allowed to use. Use only if you "
+"have multiples PersonalDexes using different ranges of boxes. Note that if "
+"the range of boxes did't have enough space to acommodate all the forms of "
+"the PersonalDex, the command will fail."
+msgstr ""
+"O ID da última Box que o esquema tem permissão para usar. Utilize apenas se "
+"você tiver múltiplos PersonalDexes usando intervalos de caixas diferentes. "
+"Observe que, se o intervalo de caixas não tiver espaço suficiente para "
+"acomodar todas as formas do PersonalDex, o comando falhará."
+
+#: core/management/commands/create_home_scheme.py:157
+msgid "Clear all previous schemes before creating the new one."
+msgstr "Limpe todos os esquemas anteriores antes de criar o novo."
+
+#: core/management/commands/create_personal_dex.py:52
+msgid "PersonalDex name"
+msgstr "nome do PersonalDex"
+
+#: core/management/commands/create_personal_dex.py:53
+msgid "New PersonalDex"
+msgstr "Novo PersonalDex"
+
+#: core/management/commands/create_personal_dex.py:64
+#, python-format
+msgid "Working on PersonalDex: `%s`... "
+msgstr "Trabalhando no PersonalDex: `%s`... "
+
+#: core/management/commands/create_personal_dex.py:93
+#, python-format
+msgid "%s"
+msgstr ""
+
+#: core/management/commands/dumpdb.py:22
+msgid "Dumps the app's database on the backups folder."
+msgstr "Exporta o banco de dados do aplicativo para a pasta de backups."
+
+#: core/management/commands/restoredb.py:20
+msgid "Restores the database using the newest .backup file."
+msgstr "Restaura o banco de dados usando o arquivo .backup mais recente."
+
+#: core/models.py:27
+msgid "position"
+msgstr "posição"
+
+#: home/admin.py:80
+msgid "forms"
+msgstr ""
+
+#: home/admin.py:81 home/models.py:91
+msgid "slots"
+msgstr ""
+
+#: home/admin.py:181
+msgid "nickname or form"
+msgstr "nickname ou form"
+
+#: home/admin.py:182 home/models.py:132
+msgid "gender"
+msgstr "gênero"
+
+#: home/admin_filters.py:6
+msgid "registration status"
+msgstr "status de registro"
+
+#: home/admin_filters.py:11
+msgid "registred"
+msgstr "registrado"
+
+#: home/admin_filters.py:12
+msgid "unregistred"
+msgstr "não registrado"
+
+#: home/models.py:15 home/models.py:43 home/models.py:59 pokedex/models.py:8
+#: pokedex/models.py:26 pokedex/models.py:63 pokedex/models.py:106
+#: pokedex/models.py:184 pokedex/models.py:212 pokedex/models.py:234
+msgid "name"
+msgstr "nome"
+
+#: home/models.py:18
+msgid "box"
+msgstr ""
+
+#: home/models.py:19
+msgid "boxes"
+msgstr ""
+
+#: home/models.py:44
+msgid "trainer ID"
+msgstr "ID de Treinador"
+
+#: home/models.py:61
+msgid "is shiny dex"
+msgstr "é shiny dex"
+
+#: home/models.py:62
+msgid "force new Box for each gen"
+msgstr "força nova Box para cada geração"
+
+#: home/models.py:65
+msgid "PersonalDex"
+msgstr ""
+
+#: home/models.py:66
+msgid "PersonalDexes"
+msgstr ""
+
+#: home/models.py:74
+msgid "row"
+msgstr "linha"
+
+#: home/models.py:75
+msgid "col"
+msgstr "coluna"
+
+#: home/models.py:90 pokedex/models.py:34 pokedex/models.py:52
+#: pokedex/models.py:173
+msgid "slot"
+msgstr ""
+
+#: home/models.py:112
+msgid "specimen form doesn't match with slot form."
+msgstr "a forma do espécime não corresponde à forma do slot."
+
+#: home/models.py:121
+msgid "no form defined"
+msgstr "nenhuma forma definida"
+
+#: home/models.py:122
+msgid "empty slot"
+msgstr "slot vazio"
+
+#: home/models.py:117
+#, python-brace-format
+msgid "[{box}: {row},{col}] ({form}): {specimen}"
+msgstr ""
+
+#: home/models.py:129
+msgid "nickname"
+msgstr ""
+
+#: home/models.py:130 pokedex/models.py:36
+msgid "ability"
+msgstr "abilidade"
+
+#: home/models.py:131 pokedex/models.py:27
+msgid "language"
+msgstr "idoma"
+
+#: home/models.py:133
+msgid "nature"
+msgstr "natureza"
+
+#: home/models.py:134
+msgid "is alpha"
+msgstr "é alpha"
+
+#: home/models.py:135
+msgid "is shiny"
+msgstr "é brilhante"
+
+#: home/models.py:136
+msgid "is from Pokémon GO"
+msgstr "É do Pokémon GO."
+
+#: home/models.py:140
+msgid "captured at"
+msgstr "capturado em"
+
+#: home/models.py:143
+msgid "specimen"
+msgstr ""
+
+#: home/models.py:144
+msgid "specimens"
+msgstr ""
+
+#: pokedex/admin.py:182
+msgid "national pokedex id"
+msgstr "id do pokédex nacional"
 
 #: pokedex/admin_filters.py:6
 msgid "egg group"
-msgstr ""
+msgstr "grupo de ovos"
 
 #: pokedex/models.py:9
 msgid "accuracy"
-msgstr ""
+msgstr "precisão"
 
 #: pokedex/models.py:11
 msgid "effect chance"
-msgstr ""
+msgstr "chance de efeito"
 
 #: pokedex/models.py:13
 msgid "pp"
@@ -172,167 +304,177 @@ msgstr ""
 
 #: pokedex/models.py:14
 msgid "priority"
-msgstr ""
+msgstr "prioridade"
 
 #: pokedex/models.py:15
 msgid "power"
-msgstr ""
+msgstr "poder"
 
 #: pokedex/models.py:16
 msgid "damage class"
-msgstr ""
+msgstr "classe de dano"
+
+#: pokedex/models.py:17 pokedex/models.py:133 pokedex/models.py:235
+msgid "game generation"
+msgstr "geração de jogos"
 
 #: pokedex/models.py:18
 msgid "target"
-msgstr ""
+msgstr "alvo"
 
-#: pokedex/models.py:19 pokedex/models.py:53 pokedex/models.py:163
+#: pokedex/models.py:19 pokedex/models.py:53 pokedex/models.py:174
 msgid "type"
-msgstr ""
+msgstr "tipo"
 
 #: pokedex/models.py:35
 msgid "is hidden"
-msgstr ""
-
-#: pokedex/models.py:36
-msgid "ability"
-msgstr ""
+msgstr "é oculta"
 
 #: pokedex/models.py:40
-msgid "Pokemon abilities"
+msgid "PokemonAbilities"
 msgstr ""
 
-#: pokedex/models.py:58 pokedex/models.py:88 pokedex/models.py:93
-#: pokedex/models.py:190
+#: pokedex/models.py:64 pokedex/models.py:102 pokedex/models.py:107
+#: pokedex/models.py:190 pokedex/models.py:236
 msgid "order"
-msgstr ""
+msgstr "ordem"
 
-#: pokedex/models.py:59
+#: pokedex/models.py:65
 msgid "form order"
-msgstr ""
+msgstr "ordem da forma"
 
-#: pokedex/models.py:60 pokedex/models.py:133 pokedex/models.py:189
+#: pokedex/models.py:66 pokedex/models.py:144 pokedex/models.py:189
 msgid "is default"
-msgstr ""
+msgstr "é padrão"
 
-#: pokedex/models.py:61
+#: pokedex/models.py:67
 msgid "is battle only"
-msgstr ""
+msgstr "é somente batalha"
 
-#: pokedex/models.py:63
-#, fuzzy
-#| msgid "name"
+#: pokedex/models.py:68
+msgid "is mega"
+msgstr "é mega"
+
+#: pokedex/models.py:69
 msgid "form name"
-msgstr "nome"
+msgstr "nome da forma"
 
-#: pokedex/models.py:65 pokedex/models.py:195
+#: pokedex/models.py:71 pokedex/models.py:195
 msgid "sprites"
 msgstr ""
 
-#: pokedex/models.py:85
+#: pokedex/models.py:99
 msgid "move learn method"
-msgstr ""
+msgstr "método de aprendizado do movimento"
 
-#: pokedex/models.py:87
+#: pokedex/models.py:101
 msgid "level learned at"
-msgstr ""
+msgstr "nível em que é aprendido"
 
-#: pokedex/models.py:94
-#, fuzzy
-#| msgid "gender"
+#: pokedex/models.py:108
 msgid "gender rate"
-msgstr "gênero"
-
-#: pokedex/models.py:95
-msgid "capture rate"
-msgstr ""
-
-#: pokedex/models.py:96
-msgid "base happiness"
-msgstr ""
-
-#: pokedex/models.py:97
-msgid "is baby"
-msgstr ""
-
-#: pokedex/models.py:100
-msgid "hatch counter"
-msgstr ""
-
-#: pokedex/models.py:102
-msgid "has gender differences"
-msgstr ""
-
-#: pokedex/models.py:104
-msgid "forms switchable"
-msgstr ""
-
-#: pokedex/models.py:105
-msgid "growth rate"
-msgstr ""
+msgstr "taxa de gênero"
 
 #: pokedex/models.py:109
-msgid "egg groups"
-msgstr ""
+msgid "capture rate"
+msgstr "taxa de captura"
 
 #: pokedex/models.py:110
-msgid "color"
-msgstr ""
+msgid "base happiness"
+msgstr "felicidade base"
 
 #: pokedex/models.py:111
+msgid "is baby"
+msgstr "é bebê"
+
+#: pokedex/models.py:112
+msgid "is legendary"
+msgstr "é lendário"
+
+#: pokedex/models.py:113
+msgid "is mythical"
+msgstr "é mítico"
+
+#: pokedex/models.py:114
+msgid "hatch counter"
+msgstr "contador de eclosões"
+
+#: pokedex/models.py:116
+msgid "has gender differences"
+msgstr "tem difrenças de gênero"
+
+#: pokedex/models.py:118
+msgid "forms switchable"
+msgstr "formas alternáveis"
+
+#: pokedex/models.py:119
+msgid "growth rate"
+msgstr "taxa de crescimento"
+
+#: pokedex/models.py:123
+msgid "egg groups"
+msgstr "grupos de ovos"
+
+#: pokedex/models.py:124
+msgid "color"
+msgstr "cor"
+
+#: pokedex/models.py:125
 msgid "shape"
-msgstr ""
+msgstr "formato"
 
-#: pokedex/models.py:126
-#, fuzzy
-#| msgid "species"
-msgid "Pokemon species"
-msgstr "espécies"
-
-#: pokedex/models.py:145
+#: pokedex/models.py:156
 msgid "entry number"
+msgstr "número de registro"
+
+#: pokedex/models.py:157
+msgid "pokédex"
 msgstr ""
 
-#: pokedex/models.py:146
-msgid "pokedex"
-msgstr ""
-
-#: pokedex/models.py:153
+#: pokedex/models.py:164
 msgid "stat"
 msgstr ""
 
-#: pokedex/models.py:154
+#: pokedex/models.py:165
 msgid "effort"
-msgstr ""
+msgstr "esforço"
 
-#: pokedex/models.py:155
+#: pokedex/models.py:166
 msgid "base stat"
-msgstr ""
-
-#: pokedex/models.py:173
-msgid "game index"
-msgstr ""
-
-#: pokedex/models.py:174
-msgid "game version"
-msgstr ""
-
-#: pokedex/models.py:177
-msgid "Version game indices"
-msgstr ""
+msgstr "stat base"
 
 #: pokedex/models.py:186
 msgid "base experience"
-msgstr ""
+msgstr "experiência base"
 
 #: pokedex/models.py:188
 msgid "height"
-msgstr ""
+msgstr "altura"
 
 #: pokedex/models.py:191
 msgid "weight"
-msgstr ""
+msgstr "peso"
 
 #: pokedex/models.py:196
 msgid "cries"
+msgstr "sons"
+
+#: pokedex/models.py:223
+msgid "game index"
+msgstr "índice do jogo"
+
+#: pokedex/models.py:227
+msgid "VersionGameIndexes"
 msgstr ""
+
+#: pokedex/models.py:237
+msgid "pokédexes"
+msgstr ""
+
+#: pokedex/models.py:238
+msgid "regions"
+msgstr "regiões"
+
+#: pokedex/models.py:239
+msgid "versions"
+msgstr "versões"
