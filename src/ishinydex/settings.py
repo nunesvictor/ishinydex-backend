@@ -146,6 +146,12 @@ STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
+# Media files
+# https://docs.djangoproject.com/en/6.0/ref/settings/#media-root
+
+MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_URL = "/media/"
+
 # Django REST Framework
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
@@ -159,3 +165,9 @@ REST_FRAMEWORK = {
 # DATA_UPLOAD_MAX_NUMBER_FIELDS
 # https://docs.djangoproject.com/en/6.0/ref/settings/#data-upload-max-number-fields
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 3000
+
+# First Party ENVS
+SPRITES_BASE_URL = config(
+    "SPRITES_BASE_URL",
+    default="http://localhost:8000/media/sprites",
+)

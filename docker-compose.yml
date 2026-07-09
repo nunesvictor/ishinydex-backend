@@ -1,5 +1,7 @@
 volumes:
   data:
+  pokemon_sprites:
+  type_sprites:
 
 services:
   db:
@@ -39,7 +41,7 @@ services:
     build:
       context: .
       args:
-        - POETRY_ARGS=--with prod
+        - POETRY_ARGS=--with dev --with prod
     command: python manage.py runserver 0.0.0.0:8000
     depends_on:
       - db
@@ -55,4 +57,6 @@ services:
     restart: always
     volumes:
       - .:${APP_HOME}
-      - .cache/pokebase:/home/guest/.cache/pokebase
+      - pokemon_sprites:${APP_HOME}/src/media/sprites/pokemon
+      - type_sprites:${APP_HOME}/src/media/sprites/types
+

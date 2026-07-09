@@ -8,8 +8,8 @@ class RegistrationStatusFilter(admin.SimpleListFilter):
 
     def lookups(self, request, model_admin):
         return (
-            (0, _("unregistred")),
             (1, _("registred")),
+            (0, _("unregistred")),
         )
 
     def queryset(self, request, queryset):
