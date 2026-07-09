@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-09 15:01-0300\n"
+"POT-Creation-Date: 2026-07-09 19:47-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -180,7 +180,7 @@ msgstr "não registrado"
 
 #: home/models.py:15 home/models.py:43 home/models.py:59 pokedex/models.py:8
 #: pokedex/models.py:26 pokedex/models.py:63 pokedex/models.py:106
-#: pokedex/models.py:184 pokedex/models.py:212 pokedex/models.py:234
+#: pokedex/models.py:187 pokedex/models.py:215 pokedex/models.py:237
 msgid "name"
 msgstr "nome"
 
@@ -221,7 +221,7 @@ msgid "col"
 msgstr "coluna"
 
 #: home/models.py:90 pokedex/models.py:34 pokedex/models.py:52
-#: pokedex/models.py:173
+#: pokedex/models.py:176
 msgid "slot"
 msgstr ""
 
@@ -314,7 +314,7 @@ msgstr "poder"
 msgid "damage class"
 msgstr "classe de dano"
 
-#: pokedex/models.py:17 pokedex/models.py:133 pokedex/models.py:235
+#: pokedex/models.py:17 pokedex/models.py:133 pokedex/models.py:238
 msgid "game generation"
 msgstr "geração de jogos"
 
@@ -322,7 +322,7 @@ msgstr "geração de jogos"
 msgid "target"
 msgstr "alvo"
 
-#: pokedex/models.py:19 pokedex/models.py:53 pokedex/models.py:174
+#: pokedex/models.py:19 pokedex/models.py:53 pokedex/models.py:177
 msgid "type"
 msgstr "tipo"
 
@@ -335,7 +335,7 @@ msgid "PokemonAbilities"
 msgstr ""
 
 #: pokedex/models.py:64 pokedex/models.py:102 pokedex/models.py:107
-#: pokedex/models.py:190 pokedex/models.py:236
+#: pokedex/models.py:193 pokedex/models.py:239
 msgid "order"
 msgstr "ordem"
 
@@ -343,7 +343,7 @@ msgstr "ordem"
 msgid "form order"
 msgstr "ordem da forma"
 
-#: pokedex/models.py:66 pokedex/models.py:144 pokedex/models.py:189
+#: pokedex/models.py:66 pokedex/models.py:147 pokedex/models.py:192
 msgid "is default"
 msgstr "é padrão"
 
@@ -359,7 +359,7 @@ msgstr "é mega"
 msgid "form name"
 msgstr "nome da forma"
 
-#: pokedex/models.py:71 pokedex/models.py:195
+#: pokedex/models.py:71 pokedex/models.py:198
 msgid "sprites"
 msgstr ""
 
@@ -423,58 +423,62 @@ msgstr "cor"
 msgid "shape"
 msgstr "formato"
 
-#: pokedex/models.py:156
+#: pokedex/models.py:140
+msgid "PokemonSpecies"
+msgstr ""
+
+#: pokedex/models.py:159
 msgid "entry number"
 msgstr "número de registro"
 
-#: pokedex/models.py:157
+#: pokedex/models.py:160
 msgid "pokédex"
 msgstr ""
 
-#: pokedex/models.py:164
+#: pokedex/models.py:167
 msgid "stat"
 msgstr ""
 
-#: pokedex/models.py:165
+#: pokedex/models.py:168
 msgid "effort"
 msgstr "esforço"
 
-#: pokedex/models.py:166
+#: pokedex/models.py:169
 msgid "base stat"
 msgstr "stat base"
 
-#: pokedex/models.py:186
+#: pokedex/models.py:189
 msgid "base experience"
 msgstr "experiência base"
 
-#: pokedex/models.py:188
+#: pokedex/models.py:191
 msgid "height"
 msgstr "altura"
 
-#: pokedex/models.py:191
+#: pokedex/models.py:194
 msgid "weight"
 msgstr "peso"
 
-#: pokedex/models.py:196
+#: pokedex/models.py:199
 msgid "cries"
 msgstr "sons"
 
-#: pokedex/models.py:223
+#: pokedex/models.py:226
 msgid "game index"
 msgstr "índice do jogo"
 
-#: pokedex/models.py:227
+#: pokedex/models.py:230
 msgid "VersionGameIndexes"
 msgstr ""
 
-#: pokedex/models.py:237
+#: pokedex/models.py:240
 msgid "pokédexes"
 msgstr ""
 
-#: pokedex/models.py:238
+#: pokedex/models.py:241
 msgid "regions"
 msgstr "regiões"
 
-#: pokedex/models.py:239
+#: pokedex/models.py:242
 msgid "versions"
 msgstr "versões"
