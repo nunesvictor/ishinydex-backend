@@ -3,6 +3,7 @@ from django.utils.translation import gettext as _
 
 from django_admin_inline_paginator_plus.admin import TabularInlinePaginated
 
+from core.admin import TimestampedAdmin
 from core.admin_mixins import CustomFieldsRendererMixin
 
 from .admin_filters import RegistrationStatusFilter
@@ -43,7 +44,7 @@ class SlotInline(TabularInlinePaginated, CustomFieldsRendererMixin):
 
 
 @admin.register(Box)
-class BoxAdmin(admin.ModelAdmin):
+class BoxAdmin(TimestampedAdmin):
     list_display = ("name", "position")
     search_fields = ("name",)
     ordering = ("position",)
@@ -84,12 +85,13 @@ class PersonalDexAdmin(admin.ModelAdmin):
 class SlotAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
     list_display = (
         "render_sprite",
+        "form",
+        "specimen",
+        "personal_dex",
         "box",
         "row",
         "col",
-        "personal_dex",
-        "form",
-        "specimen",
+        "position",
     )
     list_filter = (
         "personal_dex",

@@ -37,7 +37,7 @@ class PokemonAbility(TimestampedModel):
 
     class Meta:
         unique_together = ("slot", "ability", "is_hidden")
-        verbose_name_plural = _("Pokemon abilities")
+        verbose_name_plural = _("PokemonAbilities")
 
     def __str__(self):
         _str = self.ability
@@ -136,9 +136,6 @@ class PokemonSpecies(TimestampedModel):
         "PokemonSpeciesVariety", related_name="pokemon_species_varieties"
     )
 
-    class Meta:
-        verbose_name_plural = _("Pokemon species")
-
     def __str__(self):
         return self.name
 
@@ -157,7 +154,7 @@ class PokemonSpeciesVariety(TimestampedModel):
 
 class PokemonSpeciesDexEntry(TimestampedModel):
     entry_number = models.PositiveIntegerField(_("entry number"))
-    pokedex = models.CharField(_("pokedex"), max_length=255)
+    pokedex = models.CharField(_("pokédex"), max_length=255)
 
     def __str__(self):
         return f"{self.pokedex}#{self.entry_number}"
@@ -227,7 +224,7 @@ class VersionGameIndex(TimestampedModel):
     version = models.ForeignKey(Version, on_delete=models.CASCADE)
 
     class Meta:
-        verbose_name_plural = _("Version game indices")
+        verbose_name_plural = _("VersionGameIndexes")
 
     def __str__(self):
         return f"{self.version}#{self.game_index}"
@@ -237,7 +234,7 @@ class VersionGroup(TimestampedModel):
     name = models.CharField(_("name"), max_length=255)
     generation = models.CharField(_("game generation"), max_length=255)
     order = models.PositiveIntegerField(_("order"))
-    pokedexes = models.JSONField(_("pokedexes"), default=list)
+    pokedexes = models.JSONField(_("pokédexes"), default=list)
     regions = models.JSONField(_("regions"), default=list)
     versions = models.JSONField(_("versions"), default=list)
 
