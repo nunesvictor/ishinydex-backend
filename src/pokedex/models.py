@@ -136,6 +136,9 @@ class PokemonSpecies(TimestampedModel):
         "PokemonSpeciesVariety", related_name="pokemon_species_varieties"
     )
 
+    class Meta:
+        verbose_name_plural = _("PokemonSpecies")
+
     def __str__(self):
         return self.name
 
