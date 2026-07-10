@@ -11,7 +11,10 @@ class SpecimenAdminForm(AdminModelForm):
         model = Specimen
         fields = "__all__"
         widgets = {
-            "captured_at": forms.DateTimeInput(attrs={"type": "date"}),
+            "captured_at": forms.DateInput(
+                attrs={"type": "date"},
+                format="%Y-%m-%d",
+            ),
         }
 
     def __init__(self, *args, **kwargs):
