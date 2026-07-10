@@ -3,7 +3,7 @@ import os
 import subprocess
 
 from django.core.management.base import BaseCommand
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 
 APP_HOME = os.getenv("APP_HOME", "/home/guest/ishinydex-backend")
 APP_NAME = os.getenv("APP_NAME", "ishinydex")
