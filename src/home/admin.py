@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.http import HttpResponseRedirect
+from django.urls import reverse
 from django.utils.translation import gettext as _
 
 from django_admin_inline_paginator_plus.admin import TabularInlinePaginated
@@ -99,6 +101,11 @@ class SlotAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
         "specimen__gender",
     )
     list_per_page = 30
+    readonly_fields = (
+        "row",
+        "col",
+        "position",
+    )
     search_fields = (
         "box__name",
         "row",
@@ -109,7 +116,31 @@ class SlotAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
 
     class Media:
         css = {"all": ("css/styles.css",)}
-        js = ("js/admin_fk_pass.js",)
+        js = (
+            "admin/js/vendor/jquery/jquery.js",
+            "admin/js/admin/RelatedObjectLookups.js",
+            "js/admin_fk_pass.js",
+            "js/admin_fix_focus.js",
+        )
+
+    def render_change_form(
+        self, request, context, add=False, change=False, form_url="", obj=None
+    ):
+        context["show_save_as_new"] = False
+        context["show_save_and_add_another"] = False
+        context["show_save_and_move_on"] = True
+        return super().render_change_form(request, context, add, change, form_url, obj)
+
+    def response_change(self, request, obj):
+        response = super().response_change(request, obj)
+
+        if "_moveon" in request.POST:
+            next_obj = Slot.objects.filter(id__gt=obj.id).order_by("id").first()
+            return HttpResponseRedirect(
+                reverse("admin:home_slot_change", args=[next_obj.id])
+            )
+
+        return response
 
     def registration_status(self, obj):
         return obj.specimen is not None

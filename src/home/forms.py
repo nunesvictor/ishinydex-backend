@@ -10,6 +10,9 @@ class SpecimenAdminForm(AdminModelForm):
     class Meta:
         model = Specimen
         fields = "__all__"
+        widgets = {
+            "captured_at": forms.DateTimeInput(attrs={"type": "date"}),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
