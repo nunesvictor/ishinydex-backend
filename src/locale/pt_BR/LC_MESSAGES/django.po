@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-09 23:29-0300\n"
+"POT-Creation-Date: 2026-07-10 07:10-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,11 +18,11 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: core/admin_mixins.py:106 home/admin.py:45 home/admin.py:207
+#: core/admin_mixins.py:66 home/admin.py:53 home/admin.py:254
 msgid "sprite"
 msgstr ""
 
-#: core/admin_mixins.py:107
+#: core/admin_mixins.py:67
 msgid "types"
 msgstr "tipos"
 
@@ -150,19 +150,35 @@ msgstr "Restaura o banco de dados usando o arquivo .backup mais recente."
 msgid "position"
 msgstr "posição"
 
-#: home/admin.py:82
+#: home/admin.py:69
+msgid "is schema configured"
+msgstr "esquema configurado"
+
+#: home/admin.py:73
+msgid "is schema filled out"
+msgstr "esquema preenchido"
+
+#: home/admin.py:80
+msgid "empty slots"
+msgstr "slots vazios"
+
+#: home/admin.py:116
 msgid "forms"
 msgstr ""
 
-#: home/admin.py:83 home/models.py:91
+#: home/admin.py:117 home/models.py:91
 msgid "slots"
 msgstr ""
 
-#: home/admin.py:205
+#: home/admin.py:162
+msgid "relative position"
+msgstr "posição relativa"
+
+#: home/admin.py:252
 msgid "nickname or form"
 msgstr "nickname ou form"
 
-#: home/admin.py:206 home/models.py:132
+#: home/admin.py:253 home/models.py:132
 msgid "gender"
 msgstr "gênero"
 
@@ -198,7 +214,7 @@ msgstr "ID de Treinador"
 
 #: home/models.py:61
 msgid "is shiny dex"
-msgstr "é shiny dex"
+msgstr "shiny dex"
 
 #: home/models.py:62
 msgid "force new Box for each gen"
@@ -260,15 +276,15 @@ msgstr "natureza"
 
 #: home/models.py:134
 msgid "is alpha"
-msgstr "é alpha"
+msgstr "alpha"
 
 #: home/models.py:135
 msgid "is shiny"
-msgstr "é brilhante"
+msgstr "brilhante"
 
 #: home/models.py:136
 msgid "is from Pokémon GO"
-msgstr "É do Pokémon GO."
+msgstr "originário do Pokémon GO."
 
 #: home/models.py:140
 msgid "captured at"
@@ -281,6 +297,19 @@ msgstr ""
 #: home/models.py:144
 msgid "specimens"
 msgstr ""
+
+#: home/utils.py:30
+msgid " and "
+msgstr " e "
+
+#: home/utils.py:36
+#, python-format
+msgid " %(and_more)s%(num)d"
+msgstr ""
+
+#: home/utils.py:36
+msgid "and +"
+msgstr "e +"
 
 #: pokedex/admin.py:182
 msgid "national pokedex id"
@@ -345,15 +374,15 @@ msgstr "ordem da forma"
 
 #: pokedex/models.py:66 pokedex/models.py:147 pokedex/models.py:192
 msgid "is default"
-msgstr "é padrão"
+msgstr "padrão"
 
 #: pokedex/models.py:67
 msgid "is battle only"
-msgstr "é somente batalha"
+msgstr "somente batalha"
 
 #: pokedex/models.py:68
 msgid "is mega"
-msgstr "é mega"
+msgstr "mega"
 
 #: pokedex/models.py:69
 msgid "form name"
@@ -385,15 +414,15 @@ msgstr "felicidade base"
 
 #: pokedex/models.py:111
 msgid "is baby"
-msgstr "é bebê"
+msgstr "bebê"
 
 #: pokedex/models.py:112
 msgid "is legendary"
-msgstr "é lendário"
+msgstr "lendário"
 
 #: pokedex/models.py:113
 msgid "is mythical"
-msgstr "é mítico"
+msgstr "mítico"
 
 #: pokedex/models.py:114
 msgid "hatch counter"
@@ -484,33 +513,33 @@ msgid "versions"
 msgstr "versões"
 
 #: templates/admin/submit_line.html:6
-msgid "Save"
-msgstr ""
-
-#: templates/admin/submit_line.html:11
-msgid "Save as new"
-msgstr ""
-
-#: templates/admin/submit_line.html:15
-msgid "Save and add another"
-msgstr ""
-
-#: templates/admin/submit_line.html:20
-msgid "Save and continue editing"
-msgstr ""
-
-#: templates/admin/submit_line.html:20
-msgid "Save and view"
-msgstr ""
-
-#: templates/admin/submit_line.html:25
 msgid "Save and move on"
 msgstr "Salvar e mover para o próximo"
 
-#: templates/admin/submit_line.html:33
+#: templates/admin/submit_line.html:11
+msgid "Save"
+msgstr ""
+
+#: templates/admin/submit_line.html:14
+msgid "Save as new"
+msgstr ""
+
+#: templates/admin/submit_line.html:18
+msgid "Save and add another"
+msgstr ""
+
+#: templates/admin/submit_line.html:23
+msgid "Save and continue editing"
+msgstr ""
+
+#: templates/admin/submit_line.html:23
+msgid "Save and view"
+msgstr ""
+
+#: templates/admin/submit_line.html:30
 msgid "Close"
 msgstr ""
 
-#: templates/admin/submit_line.html:39
+#: templates/admin/submit_line.html:36
 msgid "Delete"
 msgstr ""
