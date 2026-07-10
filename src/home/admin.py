@@ -40,15 +40,16 @@ class SlotInline(TabularInlinePaginated, CustomFieldsRendererMixin):
     class Media:
         css = {"all": ("css/styles.css",)}
 
-    def render_sprite(self, obj):
-        is_registred = obj.specimen is not None
-        opt = "front_default"
+    def render_sprite(self, obj: Slot):
+        p_dex = getattr(obj, "personal_dex", None)
+        specimen = getattr(obj, "specimen", None)
+        is_shiny = bool(
+            (isinstance(specimen, Specimen) and specimen.is_shiny)
+            or (isinstance(p_dex, PersonalDex) and p_dex.is_shiny_dex)
+        )
+        opt = f"front_{'shiny' if is_shiny else 'default'}"
 
-        if obj.personal_dex and obj.personal_dex.is_shiny_dex:
-            if is_registred and obj.specimen.is_shiny:
-                opt = "front_shiny"
-
-        return super().render_sprite(obj, opt, is_registred)
+        return super().render_sprite(obj, opt, specimen is not None)
 
     render_sprite.short_description = _("sprite")
 
@@ -185,15 +186,16 @@ class SlotAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
     def registration_status(self, obj):
         return obj.specimen is not None
 
-    def render_sprite(self, obj):
-        is_registred = obj.specimen is not None
-        opt = "front_default"
+    def render_sprite(self, obj: Slot):
+        p_dex = getattr(obj, "personal_dex", None)
+        specimen = getattr(obj, "specimen", None)
+        is_shiny = bool(
+            (isinstance(specimen, Specimen) and specimen.is_shiny)
+            or (isinstance(p_dex, PersonalDex) and p_dex.is_shiny_dex)
+        )
+        opt = f"front_{'shiny' if is_shiny else 'default'}"
 
-        if obj.personal_dex and obj.personal_dex.is_shiny_dex:
-            if is_registred and obj.specimen.is_shiny:
-                opt = "front_shiny"
-
-        return super().render_sprite(obj, opt, is_registred)
+        return super().render_sprite(obj, opt, specimen is not None)
 
 
 @admin.register(Specimen)
@@ -245,9 +247,12 @@ class SpecimenAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
 
         return "-"
 
-    def render_sprite(self, obj):
-        opt = "front_shiny" if obj.is_shiny else "front_default"
-        return super().render_sprite(obj.form, opt, True)
+    def render_sprite(self, obj: Specimen):
+        return super().render_sprite(
+            opt=f"front_{'shiny' if obj.is_shiny else 'default'}",
+            is_registered=True,
+            obj=obj.form,
+        )
 
     render_label.short_description = _("nickname or form")
     render_gender.short_description = _("gender")

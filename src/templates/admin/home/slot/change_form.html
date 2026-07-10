@@ -5,10 +5,10 @@
   {% if original %}
     <div class="custom-help-banner-container">
       <img src="{% get_sprite_url original %}"
-           alt="{{ original }}"
            class="custom-help-banner-img {% if not original.specimen %}status-unregistred{% endif %}"
-           height="192"
-           width="192" />
+           alt="{{ original }}"
+           height="288"
+           width="288" />
     </div>
   {% endif %}
 {% endblock form_top %}

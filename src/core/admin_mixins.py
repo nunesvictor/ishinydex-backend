@@ -1,6 +1,7 @@
 from typing import Literal
 
 from django.utils.html import format_html, format_html_join
+from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
 import pokebase as pb
@@ -33,11 +34,11 @@ class CustomFieldsRendererMixin:
         self,
         obj: SpriteModel,
         opt: SpriteOption = "front_default",
-        is_registred: bool = False,
+        is_registered: bool = False,
     ):
         if isinstance(obj, Slot):
             if not obj.form:
-                return "-"
+                return mark_safe("⛔")
 
             obj = obj.form
 
@@ -45,7 +46,7 @@ class CustomFieldsRendererMixin:
             "<img height='96' src='{}' alt='{}' class='pokemon-sprite {}' />",
             get_media_sprite_url(get_home_sprite(obj, opt)),
             obj.name,
-            "status-unregistred" if not is_registred else "",
+            "status-unregistred" if not is_registered else "",
         )
 
     def render_types(self, obj: Pokemon | PokemonForm):
