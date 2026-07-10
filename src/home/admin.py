@@ -201,6 +201,18 @@ class SlotAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
 @admin.register(Specimen)
 class SpecimenAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
     form = SpecimenAdminForm
+    fields = (
+        "form",
+        "nickname",
+        "gender",
+        "nature",
+        "ability",
+        "language",
+        "ot",
+        "is_shiny",
+        "is_alpha",
+        "captured_at",
+    )
     inlines = (SlotInline,)
     list_display = (
         "render_sprite",
