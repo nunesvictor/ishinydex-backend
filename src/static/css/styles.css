@@ -1,11 +1,28 @@
+.custom-help-banner-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+    margin-bottom: 30px;
+    background-color: var(--body-bg, #ffffff);
+    border: 1px solid var(--border-color, #e0e0e0);
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+.custom-help-banner-img {
+    display: block;
+    object-fit: contain;
+    transition: transform 0.2s ease;
+}
+.custom-help-banner-img:hover {
+    transform: scale(1.05);
+}
+.pokemon-sprite:hover {
+    transform: scale(1.05);
+}
 .status-unregistred {
-    /* Transforma a imagem em 100% preto e branco */
     filter: grayscale(100%);
-
-    /* Reduz a opacidade para dar o efeito de "apagado" */
     opacity: 0.6;
-
-    /* (Opcional) Transição suave caso você mude o estado via JavaScript */
     transition:
         filter 0.3s ease,
         opacity 0.3s ease;

@@ -10,6 +10,8 @@
     }
 
     $(document).ready(function () {
+        $("#add_id_specimen").focus();
+
         $(document).on(
             "click",
             ".related-lookup, .add-related, .change-related, .delete-related",

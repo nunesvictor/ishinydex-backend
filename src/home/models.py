@@ -8,7 +8,7 @@ from pokedex.models import PokemonForm, Version
 
 from .utils import col_choices, row_choices
 
-__DEFAULT_BOX_SIZE = 30
+DEFAULT_POKEMON_BOX_SIZE = 30
 
 
 class Box(OrderedModel, TimestampedModel):
@@ -24,7 +24,7 @@ class Box(OrderedModel, TimestampedModel):
 
     @property
     def page(self):
-        return (self.position - 1) // __DEFAULT_BOX_SIZE + 1
+        return (self.position - 1) // DEFAULT_POKEMON_BOX_SIZE + 1
 
     def save(self, *args, **kwargs):
         box = super().save(*args, **kwargs)
@@ -90,7 +90,7 @@ class Slot(OrderedModel, TimestampedModel):
         verbose_name = _("slot")
         verbose_name_plural = _("slots")
         unique_together = ("box", "row", "col")
-        ordering = ("box__position", "row", "col")
+        ordering = ("box__position", "position")
 
     @property
     def is_empty(self):

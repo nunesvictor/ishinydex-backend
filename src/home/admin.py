@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.http import HttpResponseRedirect
 from django.urls import reverse
-from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _
 
 from django_admin_inline_paginator_plus.admin import TabularInlinePaginated
 
@@ -10,7 +10,15 @@ from core.admin_mixins import CustomFieldsRendererMixin
 
 from .admin_filters import RegistrationStatusFilter
 from .forms import SpecimenAdminForm
-from .models import Box, OriginalTrainer, PersonalDex, Slot, Specimen
+from .models import DEFAULT_POKEMON_BOX_SIZE as BOX_SIZE
+from .models import (
+    Box,
+    OriginalTrainer,
+    PersonalDex,
+    Slot,
+    Specimen,
+)
+from .utils import list_humanize
 
 
 class SlotInline(TabularInlinePaginated, CustomFieldsRendererMixin):
@@ -47,10 +55,36 @@ class SlotInline(TabularInlinePaginated, CustomFieldsRendererMixin):
 
 @admin.register(Box)
 class BoxAdmin(TimestampedAdmin):
-    list_display = ("name", "position")
+    list_display = (
+        "name",
+        "position",
+        "is_schema_configured",
+        "is_schema_filled_out",
+        "empty_slots",
+    )
     search_fields = ("name",)
     ordering = ("position",)
     inlines = (SlotInline,)
+
+    @admin.display(boolean=True, description=_("is schema configured"))
+    def is_schema_configured(self, obj):
+        return any([s.personal_dex for s in obj.slots.all()])
+
+    @admin.display(boolean=True, description=_("is schema filled out"))
+    def is_schema_filled_out(self, obj):
+        if obj.slots.count() == 0:
+            return False
+
+        return not obj.slots.filter(form__isnull=False, specimen__isnull=True).exists()
+
+    @admin.display(description=_("empty slots"))
+    def empty_slots(self, obj):
+        return list_humanize(
+            [
+                ((s.position - 1) % BOX_SIZE) + 1
+                for s in obj.slots.filter(form__isnull=False, specimen__isnull=True)
+            ],
+        )
 
 
 @admin.register(OriginalTrainer)
@@ -85,6 +119,7 @@ class PersonalDexAdmin(admin.ModelAdmin):
 
 @admin.register(Slot)
 class SlotAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
+    exclude = ("position",)
     list_display = (
         "render_sprite",
         "form",
@@ -93,18 +128,19 @@ class SlotAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
         "box",
         "row",
         "col",
-        "position",
+        "relative_position",
     )
     list_filter = (
         "personal_dex",
         RegistrationStatusFilter,
-        "specimen__gender",
+        "row",
+        "col",
+        "box",
     )
     list_per_page = 30
     readonly_fields = (
         "row",
         "col",
-        "position",
     )
     search_fields = (
         "box__name",
@@ -122,6 +158,10 @@ class SlotAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
             "js/admin_fk_pass.js",
             "js/admin_fix_focus.js",
         )
+
+    @admin.display(description=_("relative position"))
+    def relative_position(self, obj):
+        return (obj.position - 1) % BOX_SIZE + 1
 
     def render_change_form(
         self, request, context, add=False, change=False, form_url="", obj=None
