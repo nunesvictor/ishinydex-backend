@@ -129,7 +129,7 @@ class Specimen(TimestampedModel):
     nickname = models.CharField(_("nickname"), max_length=255, blank=True, null=True)
     ability = models.CharField(_("ability"), max_length=255, blank=True, null=True)
     language = models.CharField(_("language"), max_length=255, default="en")
-    gender = models.CharField(_("gender"), max_length=255, default="genderless")
+    gender = models.CharField(_("gender"), max_length=255, default="male")
     nature = models.CharField(_("nature"), max_length=255, default="hardy")
     is_alpha = models.BooleanField(_("is alpha"), default=False)
     is_shiny = models.BooleanField(_("is shiny"), default=False)
