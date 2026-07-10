@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-09 19:47-0300\n"
+"POT-Creation-Date: 2026-07-09 23:29-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: core/admin_mixins.py:106 home/admin.py:43 home/admin.py:183
+#: core/admin_mixins.py:106 home/admin.py:45 home/admin.py:207
 msgid "sprite"
 msgstr ""
 
@@ -150,19 +150,19 @@ msgstr "Restaura o banco de dados usando o arquivo .backup mais recente."
 msgid "position"
 msgstr "posição"
 
-#: home/admin.py:80
+#: home/admin.py:82
 msgid "forms"
 msgstr ""
 
-#: home/admin.py:81 home/models.py:91
+#: home/admin.py:83 home/models.py:91
 msgid "slots"
 msgstr ""
 
-#: home/admin.py:181
+#: home/admin.py:205
 msgid "nickname or form"
 msgstr "nickname ou form"
 
-#: home/admin.py:182 home/models.py:132
+#: home/admin.py:206 home/models.py:132
 msgid "gender"
 msgstr "gênero"
 
@@ -482,3 +482,35 @@ msgstr "regiões"
 #: pokedex/models.py:242
 msgid "versions"
 msgstr "versões"
+
+#: templates/admin/submit_line.html:6
+msgid "Save"
+msgstr ""
+
+#: templates/admin/submit_line.html:11
+msgid "Save as new"
+msgstr ""
+
+#: templates/admin/submit_line.html:15
+msgid "Save and add another"
+msgstr ""
+
+#: templates/admin/submit_line.html:20
+msgid "Save and continue editing"
+msgstr ""
+
+#: templates/admin/submit_line.html:20
+msgid "Save and view"
+msgstr ""
+
+#: templates/admin/submit_line.html:25
+msgid "Save and move on"
+msgstr "Salvar e mover para o próximo"
+
+#: templates/admin/submit_line.html:33
+msgid "Close"
+msgstr ""
+
+#: templates/admin/submit_line.html:39
+msgid "Delete"
+msgstr ""
