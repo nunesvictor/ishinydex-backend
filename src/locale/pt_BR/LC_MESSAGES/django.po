@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-10 07:10-0300\n"
+"POT-Creation-Date: 2026-07-16 17:27-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,11 +18,15 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: core/admin_mixins.py:66 home/admin.py:53 home/admin.py:254
+#: core/admin_mixins.py:42
+msgid "free slot"
+msgstr "slot vazio"
+
+#: core/admin_mixins.py:69 home/admin.py:59 home/admin.py:312
 msgid "sprite"
 msgstr ""
 
-#: core/admin_mixins.py:67
+#: core/admin_mixins.py:70
 msgid "types"
 msgstr "tipos"
 
@@ -150,35 +154,35 @@ msgstr "Restaura o banco de dados usando o arquivo .backup mais recente."
 msgid "position"
 msgstr "posição"
 
-#: home/admin.py:69
+#: home/admin.py:75
 msgid "is schema configured"
 msgstr "esquema configurado"
 
-#: home/admin.py:73
+#: home/admin.py:79
 msgid "is schema filled out"
 msgstr "esquema preenchido"
 
-#: home/admin.py:80
+#: home/admin.py:86
 msgid "empty slots"
 msgstr "slots vazios"
 
-#: home/admin.py:116
+#: home/admin.py:121
 msgid "forms"
 msgstr ""
 
-#: home/admin.py:117 home/models.py:91
+#: home/admin.py:122 home/models.py:91
 msgid "slots"
 msgstr ""
 
-#: home/admin.py:162
+#: home/admin.py:167
 msgid "relative position"
 msgstr "posição relativa"
 
-#: home/admin.py:252
+#: home/admin.py:299
 msgid "nickname or form"
 msgstr "nickname ou form"
 
-#: home/admin.py:253 home/models.py:132
+#: home/admin.py:303 home/models.py:132
 msgid "gender"
 msgstr "gênero"
 
@@ -194,9 +198,13 @@ msgstr "registrado"
 msgid "unregistred"
 msgstr "não registrado"
 
+#: home/forms.py:10 home/models.py:130 pokedex/models.py:36
+msgid "ability"
+msgstr "abilidade"
+
 #: home/models.py:15 home/models.py:43 home/models.py:59 pokedex/models.py:8
 #: pokedex/models.py:26 pokedex/models.py:63 pokedex/models.py:106
-#: pokedex/models.py:187 pokedex/models.py:215 pokedex/models.py:237
+#: pokedex/models.py:187 pokedex/models.py:218 pokedex/models.py:240
 msgid "name"
 msgstr "nome"
 
@@ -262,13 +270,9 @@ msgstr ""
 msgid "nickname"
 msgstr ""
 
-#: home/models.py:130 pokedex/models.py:36
-msgid "ability"
-msgstr "abilidade"
-
 #: home/models.py:131 pokedex/models.py:27
 msgid "language"
-msgstr "idoma"
+msgstr "idioma"
 
 #: home/models.py:133
 msgid "nature"
@@ -284,17 +288,21 @@ msgstr "brilhante"
 
 #: home/models.py:136
 msgid "is from Pokémon GO"
-msgstr "originário do Pokémon GO."
+msgstr "é do Pokémon GO."
 
 #: home/models.py:140
 msgid "captured at"
 msgstr "capturado em"
 
-#: home/models.py:143
+#: home/models.py:141
+msgid "observation"
+msgstr "observação"
+
+#: home/models.py:144
 msgid "specimen"
 msgstr ""
 
-#: home/models.py:144
+#: home/models.py:145
 msgid "specimens"
 msgstr ""
 
@@ -343,7 +351,7 @@ msgstr "poder"
 msgid "damage class"
 msgstr "classe de dano"
 
-#: pokedex/models.py:17 pokedex/models.py:133 pokedex/models.py:238
+#: pokedex/models.py:17 pokedex/models.py:133 pokedex/models.py:241
 msgid "game generation"
 msgstr "geração de jogos"
 
@@ -364,7 +372,7 @@ msgid "PokemonAbilities"
 msgstr ""
 
 #: pokedex/models.py:64 pokedex/models.py:102 pokedex/models.py:107
-#: pokedex/models.py:193 pokedex/models.py:239
+#: pokedex/models.py:193 pokedex/models.py:242
 msgid "order"
 msgstr "ordem"
 
@@ -492,23 +500,23 @@ msgstr "peso"
 msgid "cries"
 msgstr "sons"
 
-#: pokedex/models.py:226
+#: pokedex/models.py:229
 msgid "game index"
 msgstr "índice do jogo"
 
-#: pokedex/models.py:230
+#: pokedex/models.py:233
 msgid "VersionGameIndexes"
 msgstr ""
 
-#: pokedex/models.py:240
+#: pokedex/models.py:243
 msgid "pokédexes"
 msgstr ""
 
-#: pokedex/models.py:241
+#: pokedex/models.py:244
 msgid "regions"
 msgstr "regiões"
 
-#: pokedex/models.py:242
+#: pokedex/models.py:245
 msgid "versions"
 msgstr "versões"
 
