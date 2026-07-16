@@ -207,6 +207,9 @@ class Pokemon(TimestampedModel):
     stats = models.ManyToManyField(PokemonStat, related_name="pokemons")
     types = models.ManyToManyField(PokemonType, related_name="pokemons")
 
+    class Meta:
+        ordering = ("order",)
+
     def __str__(self):
         return self.name
 

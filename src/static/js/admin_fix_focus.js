@@ -1,11 +1,39 @@
 (function ($) {
-    ("use strict");
+    "use strict";
 
     function forceInputFocus() {
-        const $btn = $('input[name="_moveon"]');
+        const moveon_btn = $('input[name="_moveon"]');
+        const specimen_repr = $("#id_specimen option:selected").text();
+        const banner_img = $(".custom-help-banner-img").first();
 
-        if ($btn.length) {
-            $btn.focus();
+        if (specimen_repr.length) {
+            let url = banner_img.attr("src");
+
+            if (specimen_repr.indexOf("✨") !== -1) {
+                url = url.replace(/\/home\/(?!shiny\/)/, "/home/shiny/");
+            } else {
+                url = url.replace(/\/home\/shiny\//, "/home/");
+            }
+
+            banner_img.css({
+                opacity: "0.2",
+                transition: "opacity 0.2s ease-in-out",
+            });
+
+            banner_img
+                .one("load", function () {
+                    banner_img.removeClass("status-unregistred");
+                    banner_img.css("opacity", "1");
+                })
+                .attr("src", url);
+
+            if (banner_img[0].complete) {
+                banner_img.trigger("load");
+            }
+        }
+
+        if (moveon_btn.length) {
+            moveon_btn.focus();
         }
     }
 
@@ -13,30 +41,12 @@
         $("#add_id_specimen").focus();
 
         $(document).on(
-            "click",
-            ".related-lookup, .add-related, .change-related, .delete-related",
-            function (e) {
+            "django:update-related",
+            function (e, value, objId, objRepr) {
                 setTimeout(function () {
-                    if (window.active_popup && !window.active_popup.closed) {
-                        linkWindowCloseEvent(window.active_popup);
-                    }
-                }, 200);
+                    forceInputFocus();
+                }, 50);
             },
         );
-
-        const originalOpen = window.open;
-        window.open = function (...args) {
-            const popup = originalOpen.apply(this, args);
-            if (popup) {
-                linkWindowCloseEvent(popup);
-            }
-            return popup;
-        };
-
-        function linkWindowCloseEvent(popupWindow) {
-            popupWindow.addEventListener("unload", function () {
-                setTimeout(forceInputFocus, 50);
-            });
-        }
     });
 })(django.jQuery);

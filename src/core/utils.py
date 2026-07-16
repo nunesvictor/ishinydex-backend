@@ -37,16 +37,15 @@ def get_media_sprite_url(sprite: str) -> str:
     ):
         return sprite
 
-    new_url = urlparse(settings.SPRITES_BASE_URL)
     old_url = urlparse(sprite)
 
     return urlunparse(
         old_url._replace(
-            netloc=new_url.netloc,
-            scheme=new_url.scheme,
+            netloc="",
+            scheme="",
             path=old_url.path.replace(
                 "/PokeAPI/sprites/master/sprites",
-                new_url.path,
+                settings.SPRITES_URL,
             ),
         )
     )

@@ -1,11 +1,16 @@
 from django import forms
+from django.utils.translation import gettext_lazy as _
 
 from core.forms import AdminModelForm
 from home.models import Specimen
 
 
 class SpecimenAdminForm(AdminModelForm):
-    ability = forms.CharField(widget=forms.Select, required=False)
+    ability = forms.CharField(
+        label=_("ability").capitalize(),
+        widget=forms.Select,
+        required=False,
+    )
 
     class Meta:
         model = Specimen

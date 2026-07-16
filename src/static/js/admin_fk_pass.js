@@ -1,21 +1,28 @@
 window.addEventListener("load", function () {
     const $ = django.jQuery;
 
-    const parentField = document.getElementById("id_form");
+    const formField = document.getElementById("id_form");
+    const personalDexField = document.getElementById("id_personal_dex");
     const addButton = document.querySelector(".field-specimen .add-related");
 
-    if (parentField && addButton) {
+    if (formField && addButton) {
         const originalHref = addButton.href;
 
         function updatePopupUrl() {
-            if (parentField.value) {
-                addButton.href = originalHref + "&form_id=" + parentField.value;
+            if (formField.value) {
+                addButton.href =
+                    originalHref +
+                    "&form_id=" +
+                    formField.value +
+                    "&personal_dex_id=" +
+                    personalDexField.value;
             } else {
                 addButton.href = originalHref;
             }
         }
 
-        parentField.addEventListener("change", updatePopupUrl);
+        formField.addEventListener("change", updatePopupUrl);
+        personalDexField.addEventListener("change", updatePopupUrl);
         updatePopupUrl();
     }
 });

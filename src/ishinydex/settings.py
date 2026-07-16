@@ -170,7 +170,4 @@ REST_FRAMEWORK = {
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 3000
 
 # First Party ENVS
-SPRITES_BASE_URL = config(
-    "SPRITES_BASE_URL",
-    default="http://localhost:8000/media/sprites",
-)
+SPRITES_URL = config("SPRITES_URL", default=f"{MEDIA_URL}sprites")

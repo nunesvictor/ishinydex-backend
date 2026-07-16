@@ -138,6 +138,7 @@ class Specimen(TimestampedModel):
         OriginalTrainer, on_delete=models.SET_NULL, blank=True, null=True
     )
     captured_at = models.DateField(_("captured at"), blank=True, null=True)
+    observation = models.TextField(_("observation"), blank=True, null=True)
 
     class Meta:
         verbose_name = _("specimen")
@@ -145,10 +146,13 @@ class Specimen(TimestampedModel):
         ordering = ("form__order",)
 
     def __str__(self):
-        return "{nickname}{shiny_icon}{alpha_icon}{ot_suffix}{go_suffix}".format(
-            shiny_icon="✨" if self.is_shiny else "",
-            alpha_icon="💢" if self.is_alpha else "",
-            go_suffix="📱" if self.is_from_go else "",
-            nickname=f" {self.nickname if self.nickname else self.form.name}",
-            ot_suffix=f" (OT: {self.ot.trainer_id})" if self.ot else "",
+        badges = "%(shiny)s%(alpha)s%(pk_go)s%(obsrv)s" % {
+            "shiny": "✨" if self.is_shiny else "",
+            "alpha": "💢" if self.is_alpha else "",
+            "pk_go": "📱" if self.is_from_go else "",
+            "obsrv": "❗" if self.observation else "",
+        }
+        return "{nickname}{badges}".format(
+            nickname=f"{self.nickname if self.nickname else self.form.name} ",
+            badges=badges,
         )

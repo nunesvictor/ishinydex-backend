@@ -1,7 +1,6 @@
 from typing import Literal
 
 from django.utils.html import format_html, format_html_join
-from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
 import pokebase as pb
@@ -38,7 +37,10 @@ class CustomFieldsRendererMixin:
     ):
         if isinstance(obj, Slot):
             if not obj.form:
-                return mark_safe("⛔")
+                return format_html(
+                    '<div style="margin: 48px auto; font-size: 150%">♻ {}</div>',
+                    _("free slot"),
+                )
 
             obj = obj.form
 

@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib.admin.options import IS_POPUP_VAR
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
@@ -43,13 +44,20 @@ class SlotInline(TabularInlinePaginated, CustomFieldsRendererMixin):
     def render_sprite(self, obj: Slot):
         p_dex = getattr(obj, "personal_dex", None)
         specimen = getattr(obj, "specimen", None)
-        is_shiny = bool(
-            (isinstance(specimen, Specimen) and specimen.is_shiny)
-            or (isinstance(p_dex, PersonalDex) and p_dex.is_shiny_dex)
-        )
-        opt = f"front_{'shiny' if is_shiny else 'default'}"
+        is_registered = False
+        is_shiny = False
 
-        return super().render_sprite(obj, opt, specimen is not None)
+        if isinstance(specimen, Specimen):
+            is_shiny = specimen.is_shiny
+            is_registered = True
+        elif isinstance(p_dex, PersonalDex):
+            is_shiny = p_dex.is_shiny_dex
+
+        return super().render_sprite(
+            opt=f"front_{'shiny' if is_shiny else 'default'}",
+            is_registered=is_registered,
+            obj=obj,
+        )
 
     render_sprite.short_description = _("sprite")
 
@@ -189,31 +197,40 @@ class SlotAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
     def render_sprite(self, obj: Slot):
         p_dex = getattr(obj, "personal_dex", None)
         specimen = getattr(obj, "specimen", None)
-        is_shiny = bool(
-            (isinstance(specimen, Specimen) and specimen.is_shiny)
-            or (isinstance(p_dex, PersonalDex) and p_dex.is_shiny_dex)
-        )
-        opt = f"front_{'shiny' if is_shiny else 'default'}"
+        is_registered = False
+        is_shiny = False
 
-        return super().render_sprite(obj, opt, specimen is not None)
+        if isinstance(specimen, Specimen):
+            is_shiny = specimen.is_shiny
+            is_registered = True
+        elif isinstance(p_dex, PersonalDex):
+            is_shiny = p_dex.is_shiny_dex
+
+        return super().render_sprite(
+            opt=f"front_{'shiny' if is_shiny else 'default'}",
+            is_registered=is_registered,
+            obj=obj,
+        )
 
 
 @admin.register(Specimen)
 class SpecimenAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
     form = SpecimenAdminForm
-    fields = (
+    fields = [
         "form",
         "nickname",
+        "language",
         "gender",
         "nature",
         "ability",
-        "language",
         "ot",
         "is_shiny",
         "is_alpha",
+        "is_from_go",
         "captured_at",
-    )
-    inlines = (SlotInline,)
+        "observation",
+    ]
+    inlines = [SlotInline]
     list_display = (
         "render_sprite",
         "render_label",
@@ -245,12 +262,49 @@ class SpecimenAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
 
         if "form_id" in request.GET:
             initial["form"] = request.GET["form_id"]
+        if "personal_dex_id" in request.GET:
+            personal_dex_id = request.GET["personal_dex_id"]
+            p_dex = PersonalDex.objects.filter(id=personal_dex_id).first()
+
+            initial["is_shiny"] = p_dex and p_dex.is_shiny_dex
 
         return initial
 
+    def get_fields(self, request, obj=None):
+        fields = super().get_fields(request, obj)
+
+        if IS_POPUP_VAR in request.GET:
+            fields = [
+                "form",
+                "nickname",
+                ("gender", "nature"),
+                "ability",
+                "language",
+                "ot",
+                "captured_at",
+                ("is_shiny", "is_alpha", "is_from_go"),
+            ]
+
+            if "nickname" in fields:
+                fields.remove("nickname")
+            if "language" in fields:
+                fields.remove("language")
+
+        return fields
+
+    def get_inlines(self, request, obj=None):
+        inlines = super().get_inlines(request, obj)
+
+        if IS_POPUP_VAR in request.GET:
+            inlines.clear()
+
+        return inlines
+
+    @admin.display(description=_("nickname or form"))
     def render_label(self, obj):
         return obj.nickname if obj.nickname else obj.form.name
 
+    @admin.display(description=_("gender"))
     def render_gender(self, obj):
         if obj.gender == "male":
             return "♂️"
@@ -259,13 +313,10 @@ class SpecimenAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
 
         return "-"
 
+    @admin.display(description=_("sprite"))
     def render_sprite(self, obj: Specimen):
         return super().render_sprite(
             opt=f"front_{'shiny' if obj.is_shiny else 'default'}",
             is_registered=True,
             obj=obj.form,
         )
-
-    render_label.short_description = _("nickname or form")
-    render_gender.short_description = _("gender")
-    render_sprite.short_description = _("sprite")
