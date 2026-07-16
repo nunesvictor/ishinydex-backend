@@ -45,7 +45,6 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     # 3rd party apps
-    "django_admin_inline_paginator_plus",
     "rest_framework",
     "rest_framework.authtoken",
     # local apps

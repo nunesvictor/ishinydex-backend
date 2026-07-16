@@ -4,8 +4,6 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
-from django_admin_inline_paginator_plus.admin import TabularInlinePaginated
-
 from core.admin import TimestampedAdmin
 from core.admin_mixins import CustomFieldsRendererMixin
 
@@ -22,7 +20,7 @@ from .models import (
 from .utils import list_humanize
 
 
-class SlotInline(TabularInlinePaginated, CustomFieldsRendererMixin):
+class SlotInline(admin.TabularInline, CustomFieldsRendererMixin):
     model = Slot
     can_delete = False
     extra = 0
@@ -33,7 +31,6 @@ class SlotInline(TabularInlinePaginated, CustomFieldsRendererMixin):
         "col",
         "specimen",
     )
-    per_page = 30
     raw_id_fields = ("specimen",)
     readonly_fields = ("render_sprite", "position", "row", "col")
     show_change_link = True
@@ -105,7 +102,6 @@ class OriginalTrainerAdmin(admin.ModelAdmin):
 
 @admin.register(PersonalDex)
 class PersonalDexAdmin(admin.ModelAdmin):
-    inlines = (SlotInline,)
     filter_horizontal = ("forms",)
     list_display = (
         "name",

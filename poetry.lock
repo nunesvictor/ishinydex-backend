@@ -663,24 +663,6 @@ argon2 = ["argon2-cffi (>=23.1.0)"]
 bcrypt = ["bcrypt (>=4.1.1)"]
 
 [[package]]
-name = "django-admin-inline-paginator-plus"
-version = "0.1.5"
-description = "The 'Django Admin Inline Paginator Plus' is simple way to paginate your inlines in Django admin"
-optional = false
-python-versions = ">=3.8"
-groups = ["main"]
-files = [
-    {file = "django_admin_inline_paginator_plus-0.1.5-py3-none-any.whl", hash = "sha256:8bc2b4123025a0dcde1f7f6d5d5372a44a593e29da0c6b4c6da8150057d26f76"},
-    {file = "django_admin_inline_paginator_plus-0.1.5.tar.gz", hash = "sha256:8db247e50cd57ce41b071202eb4a4db23879574f436b60ca521a35aa3695877b"},
-]
-
-[package.dependencies]
-django = "*"
-
-[package.extras]
-dev = ["coverage", "mypy", "pytest", "ruff"]
-
-[[package]]
 name = "djangorestframework"
 version = "3.17.1"
 description = "Web APIs for Django, made easy."
@@ -2929,4 +2911,4 @@ test = ["pytest", "websockets"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.14,<3.15"
-content-hash = "e0777d4d89d8a141561ed84a254de09863f84c69e96103697212b6ba2cf04a44"
+content-hash = "e4cd6d2ef6f2ee22884d8abdbdc3e82fcc87857731dba33cf6e4e81a092e623b"
