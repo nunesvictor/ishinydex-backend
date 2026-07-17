@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-16 17:27-0300\n"
+"POT-Creation-Date: 2026-07-17 12:12-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -198,9 +198,9 @@ msgstr "registrado"
 msgid "unregistred"
 msgstr "não registrado"
 
-#: home/forms.py:10 home/models.py:130 pokedex/models.py:36
+#: home/forms.py:35 home/models.py:130 pokedex/models.py:36
 msgid "ability"
-msgstr "abilidade"
+msgstr "habilidade"
 
 #: home/models.py:15 home/models.py:43 home/models.py:59 pokedex/models.py:8
 #: pokedex/models.py:26 pokedex/models.py:63 pokedex/models.py:106
