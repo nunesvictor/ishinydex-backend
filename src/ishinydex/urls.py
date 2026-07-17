@@ -22,6 +22,10 @@ from django.urls import include, path
 from django.views.generic import RedirectView
 
 urlpatterns = [
+    path(
+        "favicon.ico",
+        RedirectView.as_view(url="/static/img/favicon.ico", permanent=True),
+    ),
     path("admin/", admin.site.urls),
     path("api/", include(("api.urls", "api"), namespace="api")),
     path("", RedirectView.as_view(url="/admin/", permanent=True)),
