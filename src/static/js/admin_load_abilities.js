@@ -15,6 +15,8 @@ window.addEventListener("load", function () {
                 return;
             }
 
+            const currentValue = $pokemonAbilitySelect.val();
+
             $.ajax({
                 url: `/api/pokemon/`,
                 data: {
@@ -24,11 +26,12 @@ window.addEventListener("load", function () {
                     let options = '<option value="">---------</option>';
                     data["results"].forEach(function (item) {
                         item.abilities.forEach(function (ability) {
-                            options += `<option value="${ability}">${ability}</option>`;
-                        })
+                            const isSelected =
+                                ability === currentValue ? "selected" : "";
+                            options += `<option value="${ability}" ${isSelected}>${ability}</option>`;
+                        });
                     });
 
-                    // Update DOM and tell Select2 to redraw if necessary
                     $pokemonAbilitySelect.html(options).trigger("change");
                 },
             });

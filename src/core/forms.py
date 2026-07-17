@@ -9,9 +9,8 @@ class AdminModelForm(forms.ModelForm):
             field_slug = field_name.replace("_", "-")
 
         if field_name in self.fields:
-            self.fields[field_name].widget = forms.Select(
-                choices=((n, n) for n in pokebase.APIResourceList(field_slug).names)
-            )
+            choices = tuple((n, n) for n in pokebase.APIResourceList(field_slug).names)
+            self.fields[field_name].widget = forms.Select(choices=choices)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

@@ -6,12 +6,6 @@ from home.models import Specimen
 
 
 class SpecimenAdminForm(AdminModelForm):
-    ability = forms.CharField(
-        label=_("ability").capitalize(),
-        widget=forms.Select,
-        required=False,
-    )
-
     class Meta:
         model = Specimen
         fields = "__all__"
@@ -25,12 +19,22 @@ class SpecimenAdminForm(AdminModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        if self.instance and hasattr(self.instance, "form"):
-            self.fields["ability"].widget.choices = [("", "")] + [
-                (a.ability, f"{a.ability}{' (hidden)' if a.is_hidden else ''}")
-                for a in self.instance.form.pokemon.abilities.all()
-            ]
-
         self._set_select_fields("language")
         self._set_select_fields("nature")
         self._set_select_fields("gender")
+
+        if self.instance and hasattr(self.instance, "form") and self.instance.form:
+            ability_choices = [("", "---------")] + [
+                (str(a.ability), f"{a.ability}{' (hidden)' if a.is_hidden else ''}")
+                for a in self.instance.form.pokemon.abilities.all()
+            ]
+
+            self.fields["ability"] = forms.ChoiceField(
+                choices=ability_choices,
+                widget=forms.Select(),
+                label=_("ability").capitalize(),
+                required=False,
+            )
+
+            if self.instance.ability:
+                self.initial["ability"] = str(self.instance.ability)
