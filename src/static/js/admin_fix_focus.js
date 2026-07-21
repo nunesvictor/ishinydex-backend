@@ -22,7 +22,9 @@
 
             banner_img
                 .one("load", function () {
-                    banner_img.removeClass("status-unregistred");
+                    banner_img.removeClass(
+                        "status-unregistred status-blinking",
+                    );
                     banner_img.css("opacity", "1");
                 })
                 .attr("src", url);

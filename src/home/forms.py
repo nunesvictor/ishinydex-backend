@@ -3,6 +3,7 @@ from django.utils.translation import gettext_lazy as _
 
 from core.forms import AdminModelForm
 from home.models import Specimen
+from pokedex.models import PokemonForm
 
 
 class SpecimenAdminForm(AdminModelForm):
@@ -23,18 +24,34 @@ class SpecimenAdminForm(AdminModelForm):
         self._set_select_fields("nature")
         self._set_select_fields("gender")
 
-        if self.instance and hasattr(self.instance, "form") and self.instance.form:
-            ability_choices = [("", "---------")] + [
-                (str(a.ability), f"{a.ability}{' (hidden)' if a.is_hidden else ''}")
-                for a in self.instance.form.pokemon.abilities.all()
-            ]
+        if "form_id" in self.initial or self.instance:
+            form = None
 
-            self.fields["ability"] = forms.ChoiceField(
-                choices=ability_choices,
-                widget=forms.Select(),
-                label=_("ability").capitalize(),
-                required=False,
-            )
+            if self.instance and isinstance(self.instance, Specimen):
+                instance = self.instance
 
-            if self.instance.ability:
-                self.initial["ability"] = str(self.instance.ability)
+                if hasattr(instance, "form") and isinstance(instance.form, PokemonForm):
+                    form = instance.form
+
+            if form is None and "form_id" in self.initial:
+                form = PokemonForm.objects.filter(pk=self.initial["form_id"]).first()
+
+            if isinstance(form, PokemonForm):
+                self.fields["ability"] = forms.ChoiceField(
+                    choices=[
+                        ("", "---------"),
+                        *[
+                            (
+                                str(a.ability),
+                                f"{a.ability}{' (hidden)' if a.is_hidden else ''}",
+                            )
+                            for a in form.pokemon.abilities.all()
+                        ],
+                    ],
+                    widget=forms.Select(),
+                    label=_("ability").capitalize(),
+                    required=False,
+                )
+
+        if self.instance and self.instance.ability:
+            self.initial["ability"] = str(self.instance.ability)

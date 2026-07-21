@@ -84,15 +84,16 @@ class Command(BaseCommand):
 
                 index += 1
 
-    def __restore_default_scheme(self, boxes: QuerySet[Box]) -> None:
+    def __reset_boxes_scheme(self, boxes: QuerySet[Box], prune=False) -> None:
         self.stdout.write(self.style.WARNING(_("WARNING!")))
+        action = "prune" if prune else "clear"
 
         choice = (
             input(
                 _(
-                    "This action will reset %d boxes to the default configuration. "
+                    "This action will %s %d boxes to the default configuration. "
                     "All previous schemes will be lost!\nTHIS CHANGE IS IRREVERSIBLE. "
-                    "Do you want to continue? [y/N]: " % boxes.count()
+                    "Do you want to continue? [y/N]: " % (action, boxes.count())
                 )
             )
             .lower()
@@ -108,14 +109,17 @@ class Command(BaseCommand):
             for box in boxes:
                 for slot in box.slots.all():
                     slot.form = None
-                    slot.specimen = None
                     slot.personal_dex = None
+
+                    if prune:
+                        slot.specimen = None
 
                     slot.save()
 
             self.stdout.write(self.style.SUCCESS(_("done!")))
         else:
             self.stdout.write(self.style.ERROR(_("aborted!")))
+            exit(1)
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -151,10 +155,23 @@ class Command(BaseCommand):
             ),
             type=int,
         )
-        parser.add_argument(
-            "-o",
-            "--override",
-            help=_("Clear all previous schemes before creating the new one."),
+        cleaning_group = parser.add_mutually_exclusive_group(required=False)
+        cleaning_group.add_argument(
+            "--clear",
+            help=_(
+                "Clear any existing scheme linked to the affected boxes before "
+                "installing the new scheme on them without unlinking the specimen "
+                "previously deposited in the slot."
+            ),
+            action="store_true",
+        )
+        cleaning_group.add_argument(
+            "--prune",
+            help=_(
+                "Prune any existing scheme linked to the affected boxes before "
+                "installing the new scheme on them. This action will also unlink the "
+                "specimen previously deposited in the slot."
+            ),
             action="store_true",
         )
 
@@ -165,7 +182,7 @@ class Command(BaseCommand):
         l_box = self.__get_object_or_none(Box, id=options["last_box_id"])
         boxes = self.__get_boxes(f_box, l_box)
 
-        if options["override"]:
-            self.__restore_default_scheme(boxes)
+        if options["clear"] or options["prune"]:
+            self.__reset_boxes_scheme(boxes, options["prune"])
 
         self.__install_scheme(p_dex, boxes)

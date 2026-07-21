@@ -138,6 +138,9 @@ class SlotAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
     list_filter = (
         "personal_dex",
         RegistrationStatusFilter,
+        "specimen__is_alpha",
+        "specimen__is_shiny",
+        "specimen__is_from_go",
         "row",
         "col",
         "box",

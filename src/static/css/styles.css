@@ -27,3 +27,19 @@
         filter 0.3s ease,
         opacity 0.3s ease;
 }
+
+@keyframes blinkGrayscale {
+    0%,
+    100% {
+        filter: grayscale(100%);
+        opacity: 0.6;
+    }
+    50% {
+        filter: grayscale(0%);
+        opacity: 1;
+    }
+}
+
+.status-blinking {
+    animation: blinkGrayscale 2s ease-in-out infinite;
+}

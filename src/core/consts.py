@@ -3,7 +3,7 @@ GEN_FIRST_FORM_NAMES = (
     "chikorita",
     "treecko",
     "turtwig",
-    "snivy",
+    "victini",
     "chespin",
     "rowlet",
     "grookey",
