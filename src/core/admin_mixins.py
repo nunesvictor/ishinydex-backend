@@ -8,7 +8,7 @@ import pokebase as pb
 from home.models import Slot
 from pokedex.models import Pokemon, PokemonForm
 
-from .utils import get_home_sprite, get_media_sprite_url
+from .utils import get_media_sprite_url, get_sprite_html
 
 type SpriteOption = Literal["front_default", "front_shiny"]
 type SpriteModel = Pokemon | PokemonForm | Slot
@@ -35,7 +35,11 @@ class CustomFieldsRendererMixin:
         opt: SpriteOption = "front_default",
         is_registered: bool = False,
     ):
+        form_specimen_mismatch = False
+
         if isinstance(obj, Slot):
+            form_specimen_mismatch = obj.specimen and obj.specimen.form != obj.form
+
             if not obj.form:
                 return format_html(
                     '<div style="margin: 48px auto; font-size: 150%">♻ {}</div>',
@@ -44,12 +48,15 @@ class CustomFieldsRendererMixin:
 
             obj = obj.form
 
-        return format_html(
-            "<img height='96' src='{}' alt='{}' class='pokemon-sprite {}' />",
-            get_media_sprite_url(get_home_sprite(obj, opt)),
-            obj.name,
-            "status-unregistred" if not is_registered else "",
-        )
+        classes = ["pokemon-sprite"]
+
+        if not is_registered:
+            classes.append("status-unregistred")
+
+        if form_specimen_mismatch:
+            classes.append("status-blinking")
+
+        return get_sprite_html(obj, opt, classes=classes)
 
     def render_types(self, obj: Pokemon | PokemonForm):
         if not obj.types.exists():

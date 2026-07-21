@@ -3,12 +3,6 @@
 {% block form_top %}
   {{ block.super }}
   {% if original %}
-    <div class="custom-help-banner-container">
-      <img src="{% get_sprite_url original %}"
-           class="custom-help-banner-img {% if not original.specimen %}status-unregistred{% endif %} {% if original.form != original.specimen.form %}status-blinking{% endif %}"
-           alt="{{ original }}"
-           height="288"
-           width="288" />
-    </div>
+    <div class="custom-help-banner-container">{% banner_sprite_img original 288 288 %}</div>
   {% endif %}
 {% endblock form_top %}

@@ -61,6 +61,7 @@ class PokemonFormType(TimestampedModel):
 
 class PokemonForm(TimestampedModel):
     name = models.CharField(_("name"), max_length=255)
+    pokeapi_id = models.PositiveIntegerField(_("PokéAPI ID"))
     order = models.PositiveIntegerField(_("order"))
     form_order = models.PositiveIntegerField(_("form order"))
     is_default = models.BooleanField(_("is default"), default=True)
@@ -185,6 +186,7 @@ class PokemonType(TimestampedModel):
 
 class Pokemon(TimestampedModel):
     name = models.CharField(_("name"), max_length=255)
+    pokeapi_id = models.PositiveIntegerField(_("PokéAPI ID"), default=1)
     base_experience = models.PositiveIntegerField(
         _("base experience"), blank=True, null=True
     )

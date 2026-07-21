@@ -48,10 +48,11 @@ services:
     env_file:
       - .env
     environment:
+      APP_CREATE_SUPERUSER: ${APP_CREATE_SUPERUSER:-0}
+      APP_INITDB: ${APP_INITDB:-}
       DJANGO_SUPERUSER_EMAIL: ${DJANGO_SUPERUSER_EMAIL:-admin@localhost}
-      DJANGO_SUPERUSER_USERNAME: ${DJANGO_SUPERUSER_USERNAME:-admin}
       DJANGO_SUPERUSER_PASSWORD: ${DJANGO_SUPERUSER_PASSWORD:-admin}
-      DB_INIT: ${DB_INIT:-0}
+      DJANGO_SUPERUSER_USERNAME: ${DJANGO_SUPERUSER_USERNAME:-admin}
     image: ${APP_NAME:-ishinydex}-backend:${APP_VERSION:-latest}
     ports:
       - "0.0.0.0:8000:8000"
