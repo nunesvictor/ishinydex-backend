@@ -1,6 +1,6 @@
 from django import template
 
-from core.types import SpriteObject, SpriteOption
+from core.typing import SpriteObject, SpriteOption
 from core.utils import get_sprite_html
 from home.models import PersonalDex, Slot, Specimen
 
