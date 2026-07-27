@@ -29,6 +29,7 @@ _DEFAULT_KWARGS_LOOKUPS = (
     {"name__iendswith": "-power-construct"},
     {"name__iendswith": "-starter"},
     {"name__iexact": "eternatus-eternamax"},
+    {"name__iexact": "greninja-battle-bond"},
     {"name__iexact": "minior-red-meteor"},
     {"name__istartswith": "calyrex-"},
     {"name__istartswith": "kyurem-"},
@@ -67,7 +68,7 @@ class Command(BaseCommand):
         )
 
         dex, created = PersonalDex.objects.update_or_create(
-            name=options["dex_name"],
+            name__iexact=options["dex_name"],
             defaults={
                 "force_new_box": options["force_new_box"],
                 "is_shiny_dex": options["shiny_dex"],
@@ -98,5 +99,5 @@ class Command(BaseCommand):
                 "create_home_scheme",
                 personal_dex_id=dex.id,
                 first_box_id=Box.objects.first().id,
-                override=True,
+                clear=True,
             )
