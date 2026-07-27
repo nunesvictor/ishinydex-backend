@@ -1,17 +1,13 @@
-from typing import Literal
-
 from django.utils.html import format_html, format_html_join
 from django.utils.translation import gettext_lazy as _
 
 import pokebase as pb
 
+from core.typing import SpriteObject, SpriteOption
 from home.models import Slot
 from pokedex.models import Pokemon, PokemonForm
 
 from .utils import get_media_sprite_url, get_sprite_html
-
-type SpriteOption = Literal["front_default", "front_shiny"]
-type SpriteModel = Pokemon | PokemonForm | Slot
 
 
 class CustomFieldsRendererMixin:
@@ -31,7 +27,7 @@ class CustomFieldsRendererMixin:
 
     def render_sprite(
         self,
-        obj: SpriteModel,
+        obj: SpriteObject,
         opt: SpriteOption = "front_default",
         is_registered: bool = False,
     ):

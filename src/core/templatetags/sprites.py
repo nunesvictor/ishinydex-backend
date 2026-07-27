@@ -1,23 +1,21 @@
 from django import template
 
+from core.types import SpriteObject, SpriteOption
 from core.utils import get_sprite_html
 from home.models import PersonalDex, Slot, Specimen
-from pokedex.models import Pokemon, PokemonForm
-
-type SpriteModel = Pokemon | PokemonForm | Slot
 
 register = template.Library()
 
 
 @register.simple_tag
-def banner_sprite_img(obj: SpriteModel, width=96, height=96) -> str:
-    personal_dex = getattr(obj, "personal_dex", None)
-    is_shiny = False
+def banner_sprite_img(obj: SpriteObject, width=96, height=96) -> str:
+    opt: SpriteOption = "front_default"
 
-    if isinstance(obj, Slot) and isinstance(obj.specimen, Specimen):
-        is_shiny = obj.specimen.is_shiny
-    elif isinstance(personal_dex, PersonalDex):
-        is_shiny = personal_dex.is_shiny_dex
+    if isinstance(obj, Slot):
+        if isinstance(obj.specimen, Specimen):
+            opt = "front_shiny" if obj.specimen.is_shiny else "front_default"
+        elif isinstance(obj.personal_dex, PersonalDex):
+            opt = "front_shiny" if obj.personal_dex.is_shiny_dex else "front_default"
 
     extra_classes = {
         "custom-help-banner-img": True,
@@ -37,8 +35,8 @@ def banner_sprite_img(obj: SpriteModel, width=96, height=96) -> str:
 
     return get_sprite_html(
         obj,
+        opt,
         classes=[k for k, v in extra_classes.items() if v],
-        is_shiny=is_shiny,
         height=height,
         width=width,
     )
