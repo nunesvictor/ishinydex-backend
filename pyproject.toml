@@ -25,10 +25,12 @@ package-mode = false
 [dependency-groups]
 dev = [
     "black[jupyter] (>=26.5.1,<27.0.0)",
+    "django-stubs (>=6.0.7,<7.0.0)",
+    "djlint (>=1.40.4,<2.0.0)",
     "flake8 (>=7.3.0,<8.0.0)",
     "isort (>=8.0.1,<9.0.0)",
     "jupyterlab (>=4.5.6,<5.0.0)",
-    "djlint (>=1.40.4,<2.0.0)"
+    "mypy (>=2.3.0,<3.0.0)",
 ]
 prod = [
     "uwsgi (>=2.0.31,<3.0.0)"
@@ -46,6 +48,26 @@ extend-exclude = '''
   | migrations
 )/
 '''
+
+[tool.mypy]
+python_version = "3.14"
+
+plugins = [
+    "mypy_django_plugin.main"
+]
+
+strict = false
+check_untyped_defs = true
+ignore_missing_imports = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+
+[[tool.mypy.overrides]]
+module = "*.migrations.*"
+ignore_errors = true
+
+[tool.django-stubs]
+django_settings_module = "ishinydex.settings"
 
 [tool.isort]
 profile = "black"
