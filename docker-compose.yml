@@ -29,13 +29,14 @@ services:
       - .env
     environment:
       JUPYTER_TOKEN: ${JUPYTER_TOKEN:-}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     image: ${APP_NAME:-ishinydex}-backend:${APP_VERSION:-latest}
     ports:
       - "0.0.0.0:8088:8088"
     pull_policy: never
     volumes:
       - .:${APP_HOME}
-      - .cache/pokebase:/home/guest/.cache/pokebase
 
   web:
     build:
@@ -48,11 +49,11 @@ services:
     env_file:
       - .env
     environment:
-      APP_CREATE_SUPERUSER: ${APP_CREATE_SUPERUSER:-0}
-      APP_INITDB: ${APP_INITDB:-}
       DJANGO_SUPERUSER_EMAIL: ${DJANGO_SUPERUSER_EMAIL:-admin@localhost}
       DJANGO_SUPERUSER_PASSWORD: ${DJANGO_SUPERUSER_PASSWORD:-admin}
       DJANGO_SUPERUSER_USERNAME: ${DJANGO_SUPERUSER_USERNAME:-admin}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     image: ${APP_NAME:-ishinydex}-backend:${APP_VERSION:-latest}
     ports:
       - "0.0.0.0:8000:8000"

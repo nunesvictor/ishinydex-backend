@@ -1,0 +1,146 @@
+{% extends "admin/change_list.html" %}
+{% load admin_urls_extra %}
+{% block content %}
+  <style>
+  .box-container {
+    background: var(--darkened-bg, #f8f9fa);
+    border: 1px solid var(--border-color, #ccc);
+    border-radius: 8px;
+    padding: 14px;
+    margin-bottom: 16px;
+  }
+  .box-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .panel-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .tab-btn {
+    background: var(--body-bg, #fff);
+    border: 1px solid var(--border-color, #b0b0b0);
+    padding: 6px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--body-fg, #444);
+  }
+  .tab-btn:hover {
+    background: #e2e8f0;
+  }
+  .tab-btn.active {
+    background: #417690;
+    color: #fff;
+    border-color: #205067;
+  }
+  .panel-content {
+    display: none;
+    grid-template-columns: repeat(auto-fill, minmax(75px, 1fr));
+    gap: 8px;
+  }
+  .panel-content.active {
+    display: grid;
+  }
+  .box-item-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 4px;
+    background: var(--body-bg, #fff);
+    border: 1px solid var(--border-color, #ccc);
+    border-radius: 6px;
+    text-decoration: none;
+    color: var(--body-fg, #333);
+    font-size: 12px;
+    font-weight: 500;
+  }
+  .box-item-btn:hover {
+    background: #417690;
+    color: white;
+  }
+  .box-item-btn.active {
+    background: #205067;
+    color: white;
+    font-weight: bold;
+    border-color: #102a36;
+    box-shadow: 0 0 0 2px rgba(65, 118, 144, 0.4);
+  }
+  .box-header select {
+    padding: 4px 8px;
+  }
+  </style>
+  <div class="box-container">
+    <div class="box-header">
+      <strong>📦 Navegação de Boxes</strong>
+      <select onchange="if (this.value) window.location.href=this.value;">
+        <option value="">-- Ir para Box Específica --</option>
+        {% for panel in panels %}
+          <optgroup label="{{ panel.label }}">
+            {% for b in panel.boxes %}
+              <option value="?{% preserve_get_params box__id__exact=b.id %}"
+                      {% if selected_box_id == b.id|stringformat:"s" %}selected{% endif %}>
+                {{ b.name|default:b.id }}
+              </option>
+            {% endfor %}
+          </optgroup>
+        {% endfor %}
+      </select>
+    </div>
+    <!-- Abas de Painel -->
+    <div class="panel-tabs">
+      {% for panel in panels %}
+        <button type="button"
+                class="tab-btn {% if forloop.first %}active{% endif %}"
+                onclick="switchPanel({{ forloop.counter0 }}, this)">{{ panel.label }}</button>
+      {% endfor %}
+    </div>
+    {% for panel in panels %}
+      <div class="panel-content panel-block-{{ forloop.counter0 }} {% if forloop.first %}active{% endif %}">
+        {% for b in panel.boxes %}
+          <a href="?{% preserve_get_params box__id__exact=b.id %}"
+             class="box-item-btn {% if selected_box_id == b.id|stringformat:'s' %}active{% endif %}">
+            {{ b.name|default:b.id }}
+          </a>
+        {% endfor %}
+      </div>
+    {% endfor %}
+  </div>
+  <script>
+  function switchPanel(panelIndex, btnElement) {
+    document.querySelectorAll('.panel-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+    document.querySelector('.panel-block-' + panelIndex).classList.add('active');
+    btnElement.classList.add('active');
+  }
+
+  document.addEventListener("DOMContentLoaded", function() {
+    const activeBoxBtn = document.querySelector('.box-item-btn.active');
+    if (activeBoxBtn) {
+      const parentPanel = activeBoxBtn.closest('.panel-content');
+      if (parentPanel) {
+        document.querySelectorAll('.panel-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+        parentPanel.classList.add('active');
+
+        const panelClasses = Array.from(parentPanel.classList);
+        const match = panelClasses.find(c => c.startsWith('panel-block-'));
+        if (match) {
+          const index = match.replace('panel-block-', '');
+          const tabs = document.querySelectorAll('.tab-btn');
+          if (tabs[index]) tabs[index].classList.add('active');
+        }
+      }
+    }
+  });
+  </script>
+  {{ block.super }}
+{% endblock content %}
