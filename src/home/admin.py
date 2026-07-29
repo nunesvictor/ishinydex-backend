@@ -6,6 +6,7 @@ from django.utils.translation import gettext_lazy as _
 
 from core.admin import TimestampedAdmin
 from core.admin_mixins import CustomFieldsRendererMixin
+from pokedex.renderers import HomeSpriteRenderer
 
 from .admin_filters import RegistrationStatusFilter
 from .forms import SpecimenAdminForm
@@ -51,7 +52,8 @@ class SlotInline(admin.TabularInline, CustomFieldsRendererMixin):
             is_shiny = p_dex.is_shiny_dex
 
         return super().render_sprite(
-            opt=f"front_{'shiny' if is_shiny else 'default'}",
+            opt="shiny" if is_shiny else "default",
+            renderer=HomeSpriteRenderer,
             is_registered=is_registered,
             obj=obj,
         )
@@ -78,7 +80,7 @@ class BoxAdmin(TimestampedAdmin):
 
     @admin.display(boolean=True, description=_("is schema filled out"))
     def is_schema_filled_out(self, obj):
-        if obj.slots.count() == 0:
+        if not self.is_schema_configured(obj) or obj.slots.count() == 0:
             return False
 
         return not obj.slots.filter(form__isnull=False, specimen__isnull=True).exists()
@@ -143,7 +145,6 @@ class SlotAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
         "specimen__is_from_go",
         "row",
         "col",
-        "box",
     )
     list_per_page = 30
     readonly_fields = (
@@ -170,6 +171,44 @@ class SlotAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
     @admin.display(description=_("relative position"))
     def relative_position(self, obj):
         return (obj.position - 1) % BOX_SIZE + 1
+
+    def changelist_view(self, request, extra_context=None):
+        boxes = list(Box.objects.all().order_by("id"))
+        extra_context = extra_context or {}
+        chunk_size = 30
+        panels = []
+
+        for i in range(0, len(boxes), chunk_size):
+            panel_boxes = boxes[i : i + chunk_size]
+            start_num = i + 1
+            end_num = i + len(panel_boxes)
+            panels.append(
+                {"label": f"Boxes {start_num}-{end_num}", "boxes": panel_boxes}
+            )
+
+        selected_box_id = request.GET.get("box__id__exact")
+        extra_context["panels"] = panels
+
+        if not selected_box_id and boxes:
+            selected_box_id = str(boxes[0].id)
+
+        extra_context["selected_box_id"] = selected_box_id
+
+        return super().changelist_view(request, extra_context=extra_context)
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        selected_box_id = request.GET.get("box__id__exact")
+
+        if not selected_box_id:
+            first_box = Box.objects.first()
+            if first_box:
+                selected_box_id = first_box.id
+
+        if selected_box_id:
+            return qs.filter(box_id=selected_box_id)
+
+        return qs
 
     def render_change_form(
         self, request, context, add=False, change=False, form_url="", obj=None
@@ -206,7 +245,8 @@ class SlotAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
             is_shiny = p_dex.is_shiny_dex
 
         return super().render_sprite(
-            opt=f"front_{'shiny' if is_shiny else 'default'}",
+            opt="shiny" if is_shiny else "default",
+            renderer=HomeSpriteRenderer,
             is_registered=is_registered,
             obj=obj,
         )
@@ -315,7 +355,8 @@ class SpecimenAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
     @admin.display(description=_("sprite"))
     def render_sprite(self, obj: Specimen):
         return super().render_sprite(
-            opt=f"front_{'shiny' if obj.is_shiny else 'default'}",
+            opt="shiny" if obj.is_shiny else "default",
+            renderer=HomeSpriteRenderer,
             is_registered=True,
             obj=obj.form,
         )

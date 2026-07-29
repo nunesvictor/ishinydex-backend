@@ -169,4 +169,16 @@ REST_FRAMEWORK = {
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 3000
 
 # First Party ENVS
-SPRITES_URL = config("SPRITES_URL", default=f"{MEDIA_URL}sprites")
+SPRITE_RENDERERS = {
+    "default": "pokedex.renderers.DefaultSpriteRenderer",
+    "pokemon": "pokedex.renderers.HomeSpriteRenderer",
+    "slot": "pokedex.renderers.HomeSpriteRenderer",
+}
+
+POKEMON_SPRITES_ROOT = MEDIA_ROOT / "sprites/pokemon"
+POKEMON_SPRITES_URL = Path(MEDIA_URL) / "sprites/pokemon"
+
+TYPE_SPRITES_DEFAULT_GAME = "sword-shield"
+TYPE_SPRITES_DEFAULT_GEN = "generation-viii"
+TYPE_SPRITES_ROOT = MEDIA_ROOT / "sprites/types"
+TYPE_SPRITES_URL: Path = Path(MEDIA_URL) / "sprites/types"

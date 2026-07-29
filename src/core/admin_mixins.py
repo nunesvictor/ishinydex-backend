@@ -1,34 +1,33 @@
+from pathlib import Path
+
+from django.conf import settings
+from django.contrib import admin
 from django.utils.html import format_html, format_html_join
 from django.utils.translation import gettext_lazy as _
 
-import pokebase as pb
-
+from core.consts import (
+    TYPES_DICT,
+)
 from core.typing import SpriteObject, SpriteOption
 from home.models import Slot
 from pokedex.models import Pokemon, PokemonForm
-
-from .utils import get_media_sprite_url, get_sprite_html
+from pokedex.renderers import DefaultSpriteRenderer, PokemonSpriteRenderer
 
 
 class CustomFieldsRendererMixin:
-    def __get_type_sprite_tuple(self, type: str) -> tuple[str, str]:
-        sprite = getattr(
-            getattr(
-                getattr(
-                    pb.type_(type).sprites,
-                    "generation-viii",
-                ),
-                "sword-shield",
-            ),
-            "name_icon",
-        )
+    def get_type_sprite(self, type_: str, *args, **kwargs) -> Path:
+        gen = kwargs.get("generation", settings.TYPE_SPRITES_DEFAULT_GEN)
+        game = kwargs.get("game_version", settings.TYPE_SPRITES_DEFAULT_GAME)
+        type_id = TYPES_DICT[type_]
 
-        return get_media_sprite_url(sprite), type
+        return Path(settings.TYPE_SPRITES_URL / gen / game / f"{type_id}.png")
 
+    @admin.display(description=_("sprite"))
     def render_sprite(
         self,
         obj: SpriteObject,
-        opt: SpriteOption = "front_default",
+        opt: SpriteOption = "default",
+        renderer: type[PokemonSpriteRenderer] = DefaultSpriteRenderer,
         is_registered: bool = False,
     ):
         form_specimen_mismatch = False
@@ -52,8 +51,9 @@ class CustomFieldsRendererMixin:
         if form_specimen_mismatch:
             classes.append("status-blinking")
 
-        return get_sprite_html(obj, opt, classes=classes)
+        return renderer(obj, opt).as_html(classes=classes)
 
+    @admin.display(description=_("types"))
     def render_types(self, obj: Pokemon | PokemonForm):
         if not obj.types.exists():
             return "-"
@@ -63,11 +63,11 @@ class CustomFieldsRendererMixin:
             format_html_join(
                 "\n",
                 "<img height='20' src='{}' alt='{}' />",
-                (self.__get_type_sprite_tuple(t.type) for t in obj.types.all()),
+                (
+                    (self.get_type_sprite(t.type).as_posix(), t.type)
+                    for t in obj.types.all()
+                ),
             ),
         )
 
         return safe_html
-
-    render_sprite.short_description = _("sprite")
-    render_types.short_description = _("types")
