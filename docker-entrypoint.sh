@@ -19,36 +19,4 @@ if [[ "${REPLICA:-0}" == "1" ]] ; then
     /usr/sbin/cron -f &
 fi
 
-db_init_action="${APP_INITDB:-0}"
-
-if [[ "$db_init_action" != "0" ]]; then
-    case "$db_init_action" in
-        "recreate")
-            echo "[${APP_NAME}] Recreating database..."
-            python manage.py recreatedb
-
-            echo "[${APP_NAME}] Recreating migrations..."
-            for app in $PROJECT_APPS; do
-                rm -rf "$app/migrations"
-            done
-            python manage.py makemigrations $PROJECT_APPS
-
-            echo "[${APP_NAME}] Migrating database..."
-            python manage.py migrate
-
-            if [[ "${APP_CREATE_SUPERUSER:-0}" == "1" ]] ; then
-                echo "[${APP_NAME}] Check superuser credentials..."
-                python manage.py createsuperuser --no-input 2> /dev/null
-            fi
-            ;;
-        "restore")
-            echo "[${APP_NAME}] Restoring database..."
-            python manage.py restoredb
-            ;;
-        *)
-            echo "[${APP_NAME}] Invalid value for env APP_INITDB ('$db_init_action'), values must be [recreate|restore], aborting..."
-            ;;
-    esac
-fi
-
 exec "$@"

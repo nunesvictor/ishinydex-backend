@@ -1,6 +1,7 @@
 import os
 
 from django.conf import settings
+from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.db import connections
 
@@ -42,6 +43,9 @@ class Command(BaseCommand):
 
             cursor.close()
             conn.close()
+
+            call_command("migrate")
+            call_command("createsuperuser", interactive=False)
 
         except Exception as e:
             self.stdout.write(self.style.ERROR(f"Erro ao recriar banco: {e}"))
