@@ -18,6 +18,10 @@ class Move(TimestampedModel):
     target = models.CharField(_("target"), max_length=255)
     type = models.CharField(_("type"), max_length=255)
 
+    class Meta:
+        verbose_name = _("move")
+        verbose_name_plural = _("moves")
+
     def __str__(self):
         return self.name
 
@@ -25,6 +29,10 @@ class Move(TimestampedModel):
 class Name(TimestampedModel):
     name = models.CharField(_("name"), max_length=255)
     language = models.CharField(_("language"), max_length=255, default="en")
+
+    class Meta:
+        verbose_name = _("name")
+        verbose_name_plural = _("names")
 
     def __str__(self):
         return self.name
@@ -36,8 +44,9 @@ class PokemonAbility(TimestampedModel):
     ability = models.CharField(_("ability"), max_length=255)
 
     class Meta:
+        verbose_name = _("pokémon ability")
+        verbose_name_plural = _("pokémon abilities")
         unique_together = ("slot", "ability", "is_hidden")
-        verbose_name_plural = _("PokemonAbilities")
 
     def __str__(self):
         _str = self.ability
@@ -53,6 +62,8 @@ class PokemonFormType(TimestampedModel):
     type = models.CharField(_("type"), max_length=255)
 
     class Meta:
+        verbose_name = _("pokémon form type")
+        verbose_name_plural = _("pokémon form types")
         ordering = ("slot",)
 
     def __str__(self):
@@ -80,6 +91,8 @@ class PokemonForm(TimestampedModel):
     )
 
     class Meta:
+        verbose_name = _("pokémon form")
+        verbose_name_plural = _("pokémon forms")
         ordering = ("pokemon__species__order", "order")
 
     def __str__(self):
@@ -92,6 +105,10 @@ class PokemonMove(TimestampedModel):
         "PokemonMoveVersion", related_name="moves"
     )
 
+    class Meta:
+        verbose_name = _("pokémon move")
+        verbose_name_plural = _("pokémon moves")
+
     def __str__(self):
         return self.move.name
 
@@ -101,6 +118,10 @@ class PokemonMoveVersion(TimestampedModel):
     version_group = models.ForeignKey("VersionGroup", on_delete=models.CASCADE)
     level_learned_at = models.PositiveIntegerField(_("level learned at"))
     order = models.PositiveIntegerField(_("order"), blank=True, null=True)
+
+    class Meta:
+        verbose_name = _("pokémon move version")
+        verbose_name_plural = _("pokémon move versions")
 
 
 class PokemonSpecies(TimestampedModel):
@@ -138,7 +159,8 @@ class PokemonSpecies(TimestampedModel):
     )
 
     class Meta:
-        verbose_name_plural = _("PokemonSpecies")
+        verbose_name = _("pokémon species")
+        verbose_name_plural = _("pokémon species")
 
     def __str__(self):
         return self.name
@@ -150,6 +172,10 @@ class PokemonSpeciesVariety(TimestampedModel):
         "Pokemon", on_delete=models.CASCADE, related_name="pokemon_species_varieties"
     )
 
+    class Meta:
+        verbose_name = _("pokémon species variety")
+        verbose_name_plural = _("pokémon species varieties")
+
     def __str__(self):
         return (
             f"{self.pokemon.name} (default)" if self.is_default else self.pokemon.name
@@ -160,6 +186,10 @@ class PokemonSpeciesDexEntry(TimestampedModel):
     entry_number = models.PositiveIntegerField(_("entry number"))
     pokedex = models.CharField(_("pokédex"), max_length=255)
 
+    class Meta:
+        verbose_name = _("pokémon species dex entry")
+        verbose_name_plural = _("pokémon species dex entries")
+
     def __str__(self):
         return f"{self.pokedex}#{self.entry_number}"
 
@@ -168,6 +198,10 @@ class PokemonStat(TimestampedModel):
     stat = models.CharField(_("stat"), max_length=255)
     effort = models.PositiveIntegerField(_("effort"))
     base_stat = models.PositiveIntegerField(_("base stat"))
+
+    class Meta:
+        verbose_name = _("pokémon stat")
+        verbose_name_plural = _("pokémon stats")
 
     def __str__(self):
         return f"{self.stat}: {self.base_stat}"
@@ -178,6 +212,8 @@ class PokemonType(TimestampedModel):
     type = models.CharField(_("type"), max_length=255)
 
     class Meta:
+        verbose_name = _("pokémon type")
+        verbose_name_plural = _("pokémon types")
         ordering = ("slot",)
 
     def __str__(self):
@@ -210,6 +246,8 @@ class Pokemon(TimestampedModel):
     types = models.ManyToManyField(PokemonType, related_name="pokemons")
 
     class Meta:
+        verbose_name = _("pokémon")
+        verbose_name_plural = _("pokémons")
         ordering = ("order",)
 
     def __str__(self):
@@ -221,6 +259,8 @@ class Version(TimestampedModel):
     version_group = models.ForeignKey("VersionGroup", on_delete=models.CASCADE)
 
     class Meta:
+        verbose_name = _("version")
+        verbose_name_plural = _("versions")
         ordering = ("version_group__order",)
 
     def __str__(self):
@@ -232,7 +272,8 @@ class VersionGameIndex(TimestampedModel):
     version = models.ForeignKey(Version, on_delete=models.CASCADE)
 
     class Meta:
-        verbose_name_plural = _("VersionGameIndexes")
+        verbose_name = _("version game index")
+        verbose_name_plural = _("version game indexes")
 
     def __str__(self):
         return f"{self.version}#{self.game_index}"
@@ -247,6 +288,8 @@ class VersionGroup(TimestampedModel):
     versions = models.JSONField(_("versions"), default=list)
 
     class Meta:
+        verbose_name = _("version group")
+        verbose_name_plural = _("version groups")
         ordering = ("order",)
 
     def __str__(self):

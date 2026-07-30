@@ -1,6 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.utils.translation import gettext
+from django.utils.translation import gettext as __
 from django.utils.translation import gettext_lazy as _
 
 from core.models import OrderedModel, TimestampedModel
@@ -62,8 +62,8 @@ class PersonalDex(TimestampedModel):
     force_new_box = models.BooleanField(_("force new Box for each gen"), default=False)
 
     class Meta:
-        verbose_name = _("PersonalDex")
-        verbose_name_plural = _("PersonalDexes")
+        verbose_name = _("personal dex")
+        verbose_name_plural = _("personal dexes")
 
     def __str__(self):
         return self.name
@@ -113,13 +113,24 @@ class Slot(OrderedModel, TimestampedModel):
             )
 
     def __str__(self):
-        return gettext(
-            "[{box}: {row},{col}] ({form}): {specimen}".format(
+        if self.form:
+            specimen = self.specimen if self.specimen else __("no specimen deposited")
+
+            return __(
+                "[{box}: {row},{col}] ({form}): {specimen}".format(
+                    box=self.box,
+                    form=self.form,
+                    row=self.row + 1,
+                    col=self.col + 1,
+                    specimen=specimen,
+                )
+            )
+
+        return __(
+            "[{box}: {row},{col}] free slot".format(
                 box=self.box,
                 row=self.row + 1,
                 col=self.col + 1,
-                form=self.form if self.form else gettext("no form defined"),
-                specimen=self.specimen if self.specimen else gettext("empty slot"),
             )
         )
 

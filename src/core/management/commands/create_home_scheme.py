@@ -86,14 +86,16 @@ class Command(BaseCommand):
 
     def __reset_boxes_scheme(self, boxes: QuerySet[Box], prune=False) -> None:
         self.stdout.write(self.style.WARNING(_("WARNING!")))
-        action = "prune" if prune else "clear"
+        action = _("prune") if prune else _("clear")
 
         choice = (
             input(
                 _(
-                    "This action will %s %d boxes to the default configuration. "
-                    "All previous schemes will be lost!\nTHIS CHANGE IS IRREVERSIBLE. "
-                    "Do you want to continue? [y/N]: " % (action, boxes.count())
+                    "This action will %(action)s %(boxes_count)d boxes to the default "
+                    "configuration. All previous schemes will be lost!"
+                    "\n\n!!! THIS CHANGE IS IRREVERSIBLE !!!\n\n"
+                    "Do you want to continue? [y/N]: ",
+                    {"action": action, "boxes_count": boxes.count()},
                 )
             )
             .lower()

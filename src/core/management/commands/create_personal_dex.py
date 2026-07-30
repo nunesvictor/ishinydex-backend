@@ -91,7 +91,7 @@ class Command(BaseCommand):
         dex.forms.add(*forms)
 
         self.stdout.write(
-            self.style.SUCCESS(_("%s" % "created!" if created else "updated!"))
+            self.style.SUCCESS(_("created!") if created else _("updated!"))
         )
 
         if options["install_scheme"]:

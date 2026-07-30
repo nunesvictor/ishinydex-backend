@@ -4,7 +4,6 @@ from pathlib import Path
 
 from django.conf import settings
 from django.utils.html import format_html
-from django.utils.translation import gettext_lazy as _
 
 from core.typing import SpriteObject, SpriteOption
 from home.models import Slot
@@ -32,14 +31,15 @@ class PokemonSpriteRenderer(metaclass=ABCMeta):
     def sprites_url(self, url: str | Path):
         if not isinstance(url, str) and not isinstance(url, Path):
             raise AttributeError(
-                _("Attribute 'url' must be 'str' or 'Path', found: '%s'" % type(url))
+                "Attribute 'url' must be '%r' or '%r', found: '%s'"
+                % (str, Path, type(url))
             )
 
         _url = Path(url)
         _path = Path(settings.BASE_DIR / _url.relative_to("/"))
 
         if not _path.is_dir():
-            raise AttributeError(_("Sprites URL path is invalid: %s" % _path))
+            raise AttributeError("URL path is invalid: %s" % _path.as_posix())
 
         self._sprites_url = _url
 
@@ -95,26 +95,19 @@ class PokemonSpriteRenderer(metaclass=ABCMeta):
         return False
 
     def _setup_pokemon_and_form(self, object: SpriteObject) -> PokemonAndForm:
+        missing_related_warn = "%r doesn't have a %r instance associated with it."
+        no_default_form_warn = "%r has no default form."
+
         if isinstance(object, Slot):
             if not hasattr(object, "form") or object.form is None:
-                logger.warning(
-                    _(
-                        "%s doesn't have a PokemonForm instance associate with it."
-                        % type(object)
-                    )
-                )
+                logger.warning(missing_related_warn, object, PokemonForm)
                 return None, None
 
             return self._setup_pokemon_and_form(object.form)
 
         elif isinstance(object, PokemonForm):
             if not hasattr(object, "pokemon") or object.pokemon is None:
-                logger.warning(
-                    _(
-                        "%s doesn't have a Pokemon instance associate with it."
-                        % type(object)
-                    )
-                )
+                logger.warning(missing_related_warn, object, Pokemon)
                 return None, None
 
             return object.pokemon, object
@@ -123,14 +116,12 @@ class PokemonSpriteRenderer(metaclass=ABCMeta):
             form = object.forms.filter(is_default=True).first()
 
             if not form:
-                logger.warning(
-                    _("Couldn't find a default form for Pokemon: %s" % object)
-                )
+                logger.warning(no_default_form_warn, object)
                 return None, None
 
             return object, form
 
-        raise ValueError(_("Setup error for '%s' object" % type(object)))
+        raise ValueError("%r: failure parsing object into %r" % (object, PokemonForm))
 
     def __init__(self, object: SpriteObject, option: SpriteOption = None):
         self._is_shiny_sprite = self._set_shiny_sprite(object, option)
@@ -148,15 +139,15 @@ class DefaultSpriteRenderer(PokemonSpriteRenderer):
         sprite_path = Path(settings.BASE_DIR / sprite_url.relative_to("/"))
 
         if not sprite_path.exists() or not sprite_path.is_file():
+            sprite_resolution_error = "Sprite resolution failed for Pokémon: '%s'"
+
             if not default:
-                raise FileNotFoundError(
-                    _("Sprite resolution failed for Pokémon: '%s'" % self.pokemon)
-                )
+                raise FileNotFoundError(sprite_resolution_error % self.pokemon)
 
             default_path = Path(settings.BASE_DIR / default.relative_to("/"))
 
             if not default_path.exists() or not default_path.is_file():
-                raise FileNotFoundError(_("Sprite not found: %s" % default_path))
+                raise FileNotFoundError(sprite_resolution_error % self.pokemon)
 
             return default
 
