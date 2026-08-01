@@ -1,5 +1,5 @@
 {% extends "admin/change_list.html" %}
-{% load admin_urls_extra %}
+{% load admin_urls_extra admin_list %}
 {% block content %}
   <style>
   .box-container {
@@ -32,9 +32,7 @@
     font-weight: 600;
     color: var(--body-fg, #444);
   }
-  .tab-btn:hover {
-    background: #e2e8f0;
-  }
+  .tab-btn:hover { background: #e2e8f0; }
   .tab-btn.active {
     background: #417690;
     color: #fff;
@@ -45,9 +43,7 @@
     grid-template-columns: repeat(auto-fill, minmax(75px, 1fr));
     gap: 8px;
   }
-  .panel-content.active {
-    display: grid;
-  }
+  .panel-content.active { display: grid; }
   .box-item-btn {
     display: flex;
     align-items: center;
@@ -61,10 +57,7 @@
     font-size: 12px;
     font-weight: 500;
   }
-  .box-item-btn:hover {
-    background: #417690;
-    color: white;
-  }
+  .box-item-btn:hover { background: #417690; color: white; }
   .box-item-btn.active {
     background: #205067;
     color: white;
@@ -72,13 +65,90 @@
     border-color: #102a36;
     box-shadow: 0 0 0 2px rgba(65, 118, 144, 0.4);
   }
-  .box-header select {
-    padding: 4px 8px;
+
+  /* ESTILOS DA GRID DE 30 SLOTS */
+  .slot-grid-container {
+    background: var(--body-bg, #fff);
+    border: 1px solid var(--border-color, #ccc);
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 12px;
+  }
+  .slot-grid-header {
+    margin-bottom: 12px;
+  }
+  .slots-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 10px;
+  }
+  .slot-card {
+    background: var(--darkened-bg, #fdfdfd);
+    border: 1px solid var(--border-color, #e0e0e0);
+    border-radius: 6px;
+    padding: 8px;
+    min-height: 90px; /* Aumentado suavemente de 85px para acomodar a margem extra */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    text-decoration: none;
+    color: var(--body-fg, #333);
+    transition: all 0.15s ease-in-out;
+    position: relative;
+  }
+  .slot-card:hover {
+    border-color: #417690;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+  .slot-card .slot-pos {
+    position: absolute;
+    top: 3px;
+    left: 5px;
+    font-size: 9px;
+    color: #888;
+  }
+  .slot-card .sprite-wrapper {
+    margin-top: 6px;
+    margin-bottom: 6px; /* Adicionado respiro sutil na parte inferior do sprite */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 48px;
+  }
+  .slot-card .slot-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+    margin-top: 2px; /* Pequeno ajuste de margem superior para o texto */
+  }
+
+  /* Estado padrão sem registro (apagado e P&B) */
+  .badge-unregistered,
+  .status-unregistered {
+    opacity: 0.35;
+    filter: grayscale(100%);
+    transition: opacity 0.2s ease, filter 0.2s ease;
+  }
+
+  /* Quando o mouse estiver SOBRE o card do slot (ou sobre o próprio sprite), restabelece o visual original */
+  .slot-card:hover .badge-unregistered,
+  .slot-card:hover .status-unregistered,
+  .badge-unregistered:hover,
+  .status-unregistered:hover {
+    opacity: 1 !important;
+    filter: grayscale(0%) !important;
   }
   </style>
+  <!-- Componente Superior de Navegação de Boxes -->
   <div class="box-container">
     <div class="box-header">
-      <strong>📦 Navegação de Boxes</strong>
+      <strong>📦 Pokémon HOME Boxes Mirror</strong>
       <select onchange="if (this.value) window.location.href=this.value;">
         <option value="">-- Ir para Box Específica --</option>
         {% for panel in panels %}
@@ -112,6 +182,8 @@
       </div>
     {% endfor %}
   </div>
+  <!-- Renderiza o conteúdo original do Admin (Busca, Filtros e Conteúdo Principal) -->
+  {{ block.super }}
   <script>
   function switchPanel(panelIndex, btnElement) {
     document.querySelectorAll('.panel-content').forEach(el => el.classList.remove('active'));
@@ -142,5 +214,42 @@
     }
   });
   </script>
-  {{ block.super }}
 {% endblock content %}
+{% block result_list %}
+  {% if is_filtered %}
+    {{ block.super }}
+  {% else %}
+    <div class="slot-grid-container">
+      <div class="slot-grid-header">
+        <h3>Exibindo Box {{ selected_box_id }} (30 Slots)</h3>
+      </div>
+      <div class="slots-grid">
+        {% for slot in grid_slots %}
+          <a href="{% url 'admin:home_slot_change' slot.id %}" class="slot-card">
+            <span class="slot-pos">#{{ forloop.counter }}</span>
+            <div class="sprite-wrapper {% if not slot.specimen %}badge-unregistered{% endif %}">
+              {{ slot.rendered_sprite|safe }}
+            </div>
+            <span class="slot-title">
+              {% if slot.specimen %}
+                {{ slot.specimen }}
+              {% elif slot.form %}
+                {{ slot.form.name }}
+              {% else %}
+                <span style="color: #aaa;">Vazio</span>
+              {% endif %}
+            </span>
+          </a>
+        {% empty %}
+          <p>Nenhum slot encontrado para esta Box.</p>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+{% endblock result_list %}
+{# Oculta a paginação padrão se não houver filtro/busca ativo #}
+{% block pagination %}
+  {% if is_filtered %}
+    {{ block.super }}
+  {% endif %}
+{% endblock pagination %}

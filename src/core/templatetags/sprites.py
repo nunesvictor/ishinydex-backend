@@ -1,18 +1,16 @@
 from django import template
-from django.conf import settings
-from django.utils.module_loading import import_string
 
 from core.typing import SpriteObject, SpriteOption
 from home.models import PersonalDex, Slot, Specimen
-from pokedex.renderers import DefaultSpriteRenderer
+from pokedex.renderers import get_renderer
 
 register = template.Library()
 
 
 @register.simple_tag
 def banner_sprite_img(obj: SpriteObject, width=96, height=96) -> str:
+    SpriteRenderer = get_renderer(type(obj))
     opt: SpriteOption = "default"
-    renderer = import_string(settings.SPRITE_RENDERERS["slot"]) or DefaultSpriteRenderer
 
     if isinstance(obj, Slot):
         if isinstance(obj.specimen, Specimen):
@@ -36,7 +34,7 @@ def banner_sprite_img(obj: SpriteObject, width=96, height=96) -> str:
         ),
     }
 
-    return renderer(obj, opt).as_html(
+    return SpriteRenderer(obj, opt).as_html(
         classes=[k for k, v in extra_classes.items() if v],
         height=height,
         width=width,

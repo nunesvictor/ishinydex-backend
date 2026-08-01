@@ -1,9 +1,9 @@
 import logging
-from abc import ABCMeta, abstractmethod
 from pathlib import Path
 
 from django.conf import settings
 from django.utils.html import format_html
+from django.utils.module_loading import import_string
 
 from core.typing import SpriteObject, SpriteOption
 from home.models import Slot
@@ -15,7 +15,7 @@ type PokemonAndForm = tuple[Pokemon | None, PokemonForm | None]
 logger = logging.getLogger(__name__)
 
 
-class PokemonSpriteRenderer(metaclass=ABCMeta):
+class PokemonSpriteRenderer:
     _sprites_url = settings.POKEMON_SPRITES_URL
     _is_shiny_sprite = False
 
@@ -43,46 +43,68 @@ class PokemonSpriteRenderer(metaclass=ABCMeta):
 
         self._sprites_url = _url
 
-    def as_html(self, alt: str = None, classes: list[str] = [], width=96, height=96):
+    def as_html(self, alt=None, classes=[], width=96, height=96, **kwargs):
         return format_html(
             '<img src="{img_src}"'
             'class="{img_class}"'
             'alt="{img_alt}" '
             'height="{img_height}" '
             'width="{img_width}" />',
-            img_src=self._get_sprite_url(),
+            img_src=self.get_sprite_url(**kwargs),
             img_class=" ".join(classes),
             img_alt=alt or self.pokemon.__repr__(),
             img_height=height,
             img_width=width,
         )
 
-    @abstractmethod
-    def _get_sprite_url(self, default: Path = None) -> Path:
-        pass
+    def get_sprite_url(self, **kwargs) -> Path:
+        sprite_url = self._resolve_sprite_path(self.sprites_url)
+        sprite_path = Path(settings.BASE_DIR / sprite_url.relative_to("/"))
+        default = kwargs.get("default")
+
+        if not sprite_path.exists() or not sprite_path.is_file():
+            sprite_error = "%r:%r sprite file not found: %s"
+
+            if not default or not isinstance(default, Path):
+                raise FileNotFoundError(
+                    sprite_error % (self.pokemon, self.form, sprite_path.as_posix())
+                )
+
+            default_path = Path(settings.BASE_DIR / default.relative_to("/"))
+
+            if not default_path.exists() or not default_path.is_file():
+                raise FileNotFoundError(
+                    sprite_error % (self.pokemon, self.form, default_path.as_posix())
+                )
+
+            return default
+
+        return sprite_url
 
     def _resolve_female_path(self):
         if self.pokemon is None or self.form is None:
             return Path()
 
-        if self.pokemon.species.has_gender_differences and self.form.name.endswith(
-            "-female"
-        ):
+        if self.pokemon.species.has_gender_differences and not self.form.is_default:
             return Path("female")
 
         return Path()
 
-    def _resolve_image_path(self):
-        is_female_sprite = self._resolve_female_path() == "female"
-
-        if self.pokemon.name != self.form.name and not is_female_sprite:
-            suffix = self.form.name.removeprefix(self.pokemon.name)
-            return Path(f"{self.pokemon.pokeapi_id}{suffix}.png")
-
-        return Path(f"{self.pokemon.pokeapi_id}.png")
-
     def _resolve_shiny_path(self) -> Path:
         return Path("shiny" if self.is_shiny_sprite else "")
+
+    def _resolve_sprite_path(self, sprite_path: Path):
+        sprite_path /= self._resolve_shiny_path()
+        sprite_path /= self._resolve_female_path()
+
+        if self.form.is_default:
+            return sprite_path / f"{self.pokemon.pokeapi_id}.png"
+
+        if not sprite_path.name == "female" and self.pokemon.name != self.form.name:
+            suffix = self.form.name.removeprefix(self.pokemon.name)
+            return sprite_path / f"{self.pokemon.pokeapi_id}{suffix}.png"
+
+        return sprite_path / f"{self.pokemon.pokeapi_id}.png"
 
     def _set_shiny_sprite(self, object: SpriteObject, option: SpriteOption) -> bool:
         if option == "shiny":
@@ -128,40 +150,37 @@ class PokemonSpriteRenderer(metaclass=ABCMeta):
         self.pokemon, self.form = self._setup_pokemon_and_form(object)
 
 
-class DefaultSpriteRenderer(PokemonSpriteRenderer):
-    def _get_sprite_url(self, default: Path = None) -> Path:
-        sprite_url = self.sprites_url
-
-        sprite_url /= self._resolve_shiny_path()
-        sprite_url /= self._resolve_female_path()
-        sprite_url /= self._resolve_image_path()
-
-        sprite_path = Path(settings.BASE_DIR / sprite_url.relative_to("/"))
-
-        if not sprite_path.exists() or not sprite_path.is_file():
-            sprite_resolution_error = "Sprite resolution failed for Pokémon: '%s'"
-
-            if not default:
-                raise FileNotFoundError(sprite_resolution_error % self.pokemon)
-
-            default_path = Path(settings.BASE_DIR / default.relative_to("/"))
-
-            if not default_path.exists() or not default_path.is_file():
-                raise FileNotFoundError(sprite_resolution_error % self.pokemon)
-
-            return default
-
-        return sprite_url
-
-
-class HomeSpriteRenderer(DefaultSpriteRenderer):
+class HomeSpriteRenderer(PokemonSpriteRenderer):
     @property
     def sprites_url(self) -> Path:
         return super().sprites_url / "other/home"
 
-    def _get_sprite_url(self, default: Path = None) -> Path:
-        _default_url = super().sprites_url
-        return super()._get_sprite_url(default or _default_url / "0.png")
-
     def __init__(self, object: SpriteObject, option: SpriteOption = None):
         super().__init__(object, option)
+
+
+def get_renderer(obj_type: type[SpriteObject]) -> type[PokemonSpriteRenderer]:
+    slug = obj_type.__name__.lower().strip()
+
+    if not hasattr(settings, "SPRITE_RENDERERS"):
+        raise AttributeError(
+            "'SPRITE_RENDERERS' must be set in your DJANGO_SETTINGS_MODULE"
+        )
+
+    if not isinstance(settings.SPRITE_RENDERERS, dict):
+        raise AttributeError("'SPRITE_RENDERERS' must be a dict")
+
+    if "default" not in settings.SPRITE_RENDERERS:
+        raise AttributeError("'SPRITE_RENDERERS' must have a 'default' key set")
+
+    try:
+        renderer = import_string(settings.SPRITE_RENDERERS[slug])
+    except KeyError:
+        renderer = import_string(settings.SPRITE_RENDERERS["default"])
+
+    if not (isinstance(renderer, type) and issubclass(renderer, PokemonSpriteRenderer)):
+        raise ValueError(
+            f"{renderer!r} must be a subclass of {PokemonSpriteRenderer.__name__}."
+        )
+
+    return renderer

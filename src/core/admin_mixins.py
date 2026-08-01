@@ -11,7 +11,7 @@ from core.consts import (
 from core.typing import SpriteObject, SpriteOption
 from home.models import Slot
 from pokedex.models import Pokemon, PokemonForm
-from pokedex.renderers import DefaultSpriteRenderer, PokemonSpriteRenderer
+from pokedex.renderers import get_renderer
 
 
 class CustomFieldsRendererMixin:
@@ -23,13 +23,11 @@ class CustomFieldsRendererMixin:
         return Path(settings.TYPE_SPRITES_URL / gen / game / f"{type_id}.png")
 
     @admin.display(description=_("sprite"))
-    def render_sprite(
-        self,
-        obj: SpriteObject,
-        opt: SpriteOption = "default",
-        renderer: type[PokemonSpriteRenderer] = DefaultSpriteRenderer,
-        is_registered: bool = False,
-    ):
+    def render_sprite(self, obj: SpriteObject, **kwargs):
+        SpriteRenderer = kwargs.get("renderer", get_renderer(type(obj)))
+        is_registered: bool = kwargs.get("is_registered", False)
+        opt: SpriteOption = kwargs.get("opt", "default")
+
         form_specimen_mismatch = False
 
         if isinstance(obj, Slot):
@@ -51,7 +49,7 @@ class CustomFieldsRendererMixin:
         if form_specimen_mismatch:
             classes.append("status-blinking")
 
-        return renderer(obj, opt).as_html(classes=classes)
+        return SpriteRenderer(obj, opt).as_html(classes=classes)
 
     @admin.display(description=_("types"))
     def render_types(self, obj: Pokemon | PokemonForm):

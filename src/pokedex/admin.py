@@ -2,7 +2,6 @@ from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 
 from core.admin_mixins import CustomFieldsRendererMixin
-from pokedex.renderers import HomeSpriteRenderer
 
 from .admin_filters import EggGroupFilter
 from .forms import PokemonSpeciesAdminForm
@@ -175,7 +174,7 @@ class PokemonSpeciesAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
 
     def render_sprite(self, obj: PokemonSpecies):
         pokemon = obj.varieties.filter(is_default=True).first().pokemon
-        return super().render_sprite(obj=pokemon, renderer=HomeSpriteRenderer)
+        return super().render_sprite(obj=pokemon)
 
     def render_types(self, obj: PokemonSpecies):
         pokemon = obj.varieties.filter(is_default=True).first().pokemon

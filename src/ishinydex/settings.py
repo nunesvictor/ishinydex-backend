@@ -170,8 +170,9 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 3000
 
 # First Party ENVS
 SPRITE_RENDERERS = {
-    "default": "pokedex.renderers.DefaultSpriteRenderer",
+    "default": "pokedex.renderers.PokemonSpriteRenderer",
     "pokemon": "pokedex.renderers.HomeSpriteRenderer",
+    "pokemonform": "pokedex.renderers.PokemonSpriteRenderer",
     "slot": "pokedex.renderers.HomeSpriteRenderer",
 }
 

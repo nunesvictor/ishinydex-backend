@@ -43,20 +43,15 @@ class SlotInline(admin.TabularInline, CustomFieldsRendererMixin):
         p_dex = getattr(obj, "personal_dex", None)
         specimen = getattr(obj, "specimen", None)
         is_registered = False
-        is_shiny = False
+        opt = "default"
 
         if isinstance(specimen, Specimen):
-            is_shiny = specimen.is_shiny
+            opt = "shiny" if specimen.is_shiny else "default"
             is_registered = True
         elif isinstance(p_dex, PersonalDex):
-            is_shiny = p_dex.is_shiny_dex
+            opt = "shiny" if p_dex.is_shiny_dex else "default"
 
-        return super().render_sprite(
-            opt="shiny" if is_shiny else "default",
-            renderer=HomeSpriteRenderer,
-            is_registered=is_registered,
-            obj=obj,
-        )
+        return super().render_sprite(obj, opt=opt, is_registered=is_registered)
 
     render_sprite.short_description = _("sprite")
 
@@ -173,11 +168,12 @@ class SlotAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
         return (obj.position - 1) % BOX_SIZE + 1
 
     def changelist_view(self, request, extra_context=None):
-        boxes = list(Box.objects.all().order_by("id"))
         extra_context = extra_context or {}
+
+        # 1. Carrega as boxes para o menu superior
+        boxes = list(Box.objects.only("id", "name").order_by("id"))
         chunk_size = 30
         panels = []
-
         for i in range(0, len(boxes), chunk_size):
             panel_boxes = boxes[i : i + chunk_size]
             start_num = i + 1
@@ -187,12 +183,48 @@ class SlotAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
             )
 
         selected_box_id = request.GET.get("box__id__exact")
-        extra_context["panels"] = panels
-
         if not selected_box_id and boxes:
             selected_box_id = str(boxes[0].id)
 
+        # 2. Identifica se há qualquer busca (q=) ou filtro ativo real
+        get_params = request.GET.copy()
+
+        # Parâmetros de infraestrutura do Django/Admin que DEVEM ser ignorados
+        ignored_params = [
+            "box__id__exact",
+            "p",  # Paginação
+            "o",  # Ordenação
+            "ot",  # Direção da ordenação
+            "_facets",  # Contagem de facets do Django Admin / Filtros
+            "q",  # Removemos se for string vazia
+        ]
+
+        for param in ignored_params:
+            if param == "q":
+                # Se 'q' estiver presente mas vazio (ex: ?q=), não conta como busca
+                if not get_params.get("q"):
+                    get_params.pop("q", None)
+            else:
+                get_params.pop(param, None)
+
+        # Se restou qualquer parâmetro (como q=termo, ou filtros de list_filter)
+        is_filtered = bool(get_params)
+
+        extra_context["panels"] = panels
         extra_context["selected_box_id"] = selected_box_id
+        extra_context["is_filtered"] = is_filtered
+
+        # 3. Se NÃO houver filtros/buscas ativas, preparamos a Grid de 30 Slots
+        if not is_filtered and selected_box_id:
+            slots = list(
+                Slot.objects.filter(box_id=selected_box_id)
+                .select_related("form", "specimen", "personal_dex", "box")
+                .order_by("position")[:30]
+            )
+            for slot in slots:
+                slot.rendered_sprite = self.render_sprite(slot)
+
+            extra_context["grid_slots"] = slots
 
         return super().changelist_view(request, extra_context=extra_context)
 
@@ -236,20 +268,15 @@ class SlotAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
         p_dex = getattr(obj, "personal_dex", None)
         specimen = getattr(obj, "specimen", None)
         is_registered = False
-        is_shiny = False
+        opt = "default"
 
         if isinstance(specimen, Specimen):
-            is_shiny = specimen.is_shiny
+            opt = "shiny" if specimen.is_shiny else "default"
             is_registered = True
         elif isinstance(p_dex, PersonalDex):
-            is_shiny = p_dex.is_shiny_dex
+            opt = "shiny" if p_dex.is_shiny_dex else "default"
 
-        return super().render_sprite(
-            opt="shiny" if is_shiny else "default",
-            renderer=HomeSpriteRenderer,
-            is_registered=is_registered,
-            obj=obj,
-        )
+        return super().render_sprite(obj, opt=opt, is_registered=is_registered)
 
 
 @admin.register(Specimen)
@@ -277,19 +304,26 @@ class SpecimenAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
         "language",
         "render_gender",
         "nature",
-        "is_alpha",
         "is_shiny",
+        "is_alpha",
         "ot",
         "captured_at",
     )
-    list_filter = ("language", "gender", "is_alpha", "is_shiny", "ot")
+    list_filter = (
+        "ot",
+        "gender",
+        "nature",
+        "is_alpha",
+        "is_shiny",
+        "is_from_go",
+    )
     search_fields = (
         "form__name",
         "nickname",
         "ability",
         "nature",
         "ot__trainer_id",
-        "captured_at",
+        "=captured_at",
     )
     show_facets = admin.ShowFacets.ALWAYS
 
@@ -354,9 +388,8 @@ class SpecimenAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
 
     @admin.display(description=_("sprite"))
     def render_sprite(self, obj: Specimen):
+        opt = "shiny" if obj.is_shiny else "default"
+
         return super().render_sprite(
-            opt="shiny" if obj.is_shiny else "default",
-            renderer=HomeSpriteRenderer,
-            is_registered=True,
-            obj=obj.form,
+            obj.form, opt=opt, is_registered=True, renderer=HomeSpriteRenderer
         )
