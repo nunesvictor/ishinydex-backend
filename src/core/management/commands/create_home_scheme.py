@@ -94,8 +94,8 @@ class Command(BaseCommand):
                     "This action will %(action)s %(boxes_count)d boxes to the default "
                     "configuration. All previous schemes will be lost!"
                     "\n\n!!! THIS CHANGE IS IRREVERSIBLE !!!\n\n"
-                    "Do you want to continue? [y/N]: ",
-                    {"action": action, "boxes_count": boxes.count()},
+                    "Do you want to continue? [y/N]: "
+                    % {"action": action, "boxes_count": boxes.count()},
                 )
             )
             .lower()

@@ -68,7 +68,7 @@ class Command(BaseCommand):
         )
 
         dex, created = PersonalDex.objects.update_or_create(
-            name__iexact=options["dex_name"],
+            name=options["dex_name"],
             defaults={
                 "force_new_box": options["force_new_box"],
                 "is_shiny_dex": options["shiny_dex"],
@@ -95,6 +95,25 @@ class Command(BaseCommand):
         )
 
         if options["install_scheme"]:
+            if not Box.objects.exists():
+                choice = (
+                    input(
+                        _(
+                            "You have to create the Pokémon HOME mirror boxes before "
+                            "installing a scheme.\n"
+                            "Do you want to do it now? [y/N]: "
+                        )
+                    )
+                    .lower()
+                    .strip()
+                )
+
+                if choice not in ("y", "yes"):
+                    self.stdout.write(self.style.ERROR(_("aborted!")))
+                    exit(1)
+
+                call_command("create_home_boxes")
+
             call_command(
                 "create_home_scheme",
                 personal_dex_id=dex.id,
