@@ -49,12 +49,7 @@ class PokemonAbility(TimestampedModel):
         unique_together = ("slot", "ability", "is_hidden")
 
     def __str__(self):
-        _str = self.ability
-
-        if self.is_hidden:
-            _str += " (hidden)"
-
-        return _str
+        return self.ability
 
 
 class PokemonFormType(TimestampedModel):

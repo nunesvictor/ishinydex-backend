@@ -10,6 +10,58 @@ GEN_FIRST_FORM_NAMES = (
     "sprigatito",
 )
 
+GENDER_CHOICES = (
+    ("male", "male"),
+    ("female", "female"),
+    ("genderless", "genderless"),
+)
+
+LANGUAGES_CHOICES = (
+    ("cs", "cs"),
+    ("de", "de"),
+    ("en", "en"),
+    ("es-419", "es-419"),
+    ("es", "es"),
+    ("fr", "fr"),
+    ("it", "it"),
+    ("ja-hrkt", "ja-hrkt"),
+    ("ja-roma", "ja-roma"),
+    ("ja", "ja"),
+    ("ko", "ko"),
+    ("pt-br", "pt-br"),
+    ("zh-hans", "zh-hans"),
+    ("zh-hant", "zh-hant"),
+)
+
+NATURE_CHOICES = [
+    ("adamant", "adamant"),
+    ("bashful", "bashful"),
+    ("bold", "bold"),
+    ("brave", "brave"),
+    ("calm", "calm"),
+    ("careful", "careful"),
+    ("docile", "docile"),
+    ("gentle", "gentle"),
+    ("hardy", "hardy"),
+    ("hasty", "hasty"),
+    ("impish", "impish"),
+    ("jolly", "jolly"),
+    ("lax", "lax"),
+    ("lonely", "lonely"),
+    ("mild", "mild"),
+    ("modest", "modest"),
+    ("naive", "naive"),
+    ("naughty", "naughty"),
+    ("quiet", "quiet"),
+    ("quirky", "quirky"),
+    ("rash", "rash"),
+    ("relaxed", "relaxed"),
+    ("sassy", "sassy"),
+    ("serious", "serious"),
+    ("timid", "timid"),
+]
+
+
 TYPES_DICT = {
     "normal": 1,
     "fighting": 2,
@@ -33,3 +85,20 @@ TYPES_DICT = {
     "unknown": 10001,
     "shadow": 10002,
 }
+
+LANGUAGES_CHOICES = (
+    ("ja-hrkt", "ja-hrkt"),
+    ("ja-roma", "ja-roma"),
+    ("ko", "ko"),
+    ("zh-hant", "zh-hant"),
+    ("fr", "fr"),
+    ("de", "de"),
+    ("es", "es"),
+    ("it", "it"),
+    ("en", "en"),
+    ("cs", "cs"),
+    ("ja", "ja"),
+    ("zh-hans", "zh-hans"),
+    ("pt-br", "pt-br"),
+    ("es-419", "es-419"),
+)

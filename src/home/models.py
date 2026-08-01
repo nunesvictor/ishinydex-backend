@@ -3,6 +3,7 @@ from django.db import models
 from django.utils.translation import gettext as __
 from django.utils.translation import gettext_lazy as _
 
+from core.consts import GENDER_CHOICES, LANGUAGES_CHOICES, NATURE_CHOICES
 from core.models import OrderedModel, TimestampedModel
 from pokedex.models import PokemonForm, Version
 
@@ -52,7 +53,7 @@ class OriginalTrainer(TimestampedModel):
 
     def __str__(self):
         version_suffix = f" ({self.version})" if self.version else ""
-        return f"{self.trainer_id} {self.name}{version_suffix}"
+        return f"{self.trainer_id}:{self.name}{version_suffix}"
 
 
 class PersonalDex(TimestampedModel):
@@ -139,9 +140,9 @@ class Specimen(TimestampedModel):
     form = models.ForeignKey(PokemonForm, on_delete=models.CASCADE)
     nickname = models.CharField(_("nickname"), max_length=255, blank=True, null=True)
     ability = models.CharField(_("ability"), max_length=255, blank=True, null=True)
-    language = models.CharField(_("language"), max_length=255, default="en")
-    gender = models.CharField(_("gender"), max_length=255, default="male")
-    nature = models.CharField(_("nature"), max_length=255, default="hardy")
+    language = models.CharField(_("language"), choices=LANGUAGES_CHOICES, default="en")
+    gender = models.CharField(_("gender"), choices=GENDER_CHOICES, default="male")
+    nature = models.CharField(_("nature"), choices=NATURE_CHOICES, default="hardy")
     is_alpha = models.BooleanField(_("is alpha"), default=False)
     is_shiny = models.BooleanField(_("is shiny"), default=False)
     is_from_go = models.BooleanField(_("is from Pokémon GO"), default=False)
