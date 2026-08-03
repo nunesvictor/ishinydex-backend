@@ -18,6 +18,7 @@ _DEFAULT_FORM_ONLY_LIST = [
     "miraidon",
     "mothim",
     "pichu",
+    "rockruff",
     "scatterbug",
     "silvally",
     "spewpa",

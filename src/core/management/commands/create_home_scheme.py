@@ -1,35 +1,33 @@
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
-from django.db.models import QuerySet
+from django.db.models import Prefetch, QuerySet
 from django.utils.translation import gettext_lazy as _
 
 from core.consts import GEN_FIRST_FORM_NAMES
-from home.models import Box, PersonalDex
+from home.models import Box, PersonalDex, Slot
 from pokedex.models import PokemonForm
 
 
 class Command(BaseCommand):
     help = _(
-        (
-            "Creates a distribution scheme for `PokemonForm` objects linked to the "
-            "`PersonalDex` across Pokémon Home's mirror boxes."
-        )
+        "Creates a distribution scheme for `PokemonForm` objects linked to the "
+        "`PersonalDex` across Pokémon Home's mirror boxes."
     )
 
     def __get_boxes(self, f_box: Box, l_box: Box | None = None) -> QuerySet[Box]:
-        boxes = Box.objects.filter(position__gte=f_box.position)
+        boxes = Box.objects.filter(position__gte=f_box.position).order_by("position")
 
         if l_box:
             boxes = boxes.filter(position__lte=l_box.position)
 
-        return boxes
+        return boxes.prefetch_related(
+            Prefetch("slots", queryset=Slot.objects.order_by("position"))
+        )
 
-    def __get_forms(
-        self, p_dex: PersonalDex, boxes: QuerySet[Box]
-    ) -> QuerySet[PokemonForm]:
-        forms = p_dex.forms.all()
+    def __get_forms(self, p_dex: PersonalDex, capacity: int) -> list[PokemonForm]:
+        forms = list(p_dex.forms.all())
 
-        if forms.count() > sum([b.slots.count() for b in boxes]):
+        if len(forms) > capacity:
             raise CommandError(
                 _(
                     "There isn't enough space in the boxes for all the forms linked to "
@@ -39,50 +37,63 @@ class Command(BaseCommand):
 
         return forms
 
-    def __get_object[T](
-        self, model: type[T], raise_exc: bool, *args, **kwargs
-    ) -> T | None:
+    def __get_object[T](self, model: type[T], raise_exc: bool, **kwargs) -> T | None:
         try:
-            return model.objects.get(*args, **kwargs)
+            return model.objects.get(**kwargs)
         except model.DoesNotExist as e:
             if raise_exc:
                 raise CommandError(e)
-
             return None
 
-    def __get_object_or_raise[T](self, model: type[T], *args, **kwargs) -> T:
-        return self.__get_object(model, raise_exc=True, *args, **kwargs)
+    def __get_object_or_raise[T](self, model: type[T], **kwargs) -> T:
+        return self.__get_object(model, raise_exc=True, **kwargs)
 
-    def __get_object_or_none[T](self, model: type[T], *args, **kwargs) -> T | None:
-        return self.__get_object(model, raise_exc=False, *args, **kwargs)
+    def __get_object_or_none[T](self, model: type[T], **kwargs) -> T | None:
+        return self.__get_object(model, raise_exc=False, **kwargs)
 
     def __install_scheme(self, p_dex: PersonalDex, boxes: QuerySet[Box]):
-        forms = self.__get_forms(p_dex, boxes)
+        slots_by_box = [list(box.slots.all()) for box in boxes]
+        total_capacity = sum(len(slots) for slots in slots_by_box)
+
+        forms = self.__get_forms(p_dex, total_capacity)
+
+        if not forms:
+            self.stdout.write(self.style.WARNING(_("No forms to install.")))
+            return
+
         index = 0
+        total_forms = len(forms)
+        slots_to_update = []
 
         self.stdout.write(
             self.style.MIGRATE_LABEL(_("Installing scheme... ")),
             ending="",
         )
 
-        for box in boxes:
-            for slot in box.slots.all():
-                try:
-                    is_gen_first_form = forms[index].name in GEN_FIRST_FORM_NAMES[1:]
+        for slots in slots_by_box:
+            for slot in slots:
+                if index >= total_forms:
+                    break
 
-                    if is_gen_first_form and not slot.is_first and p_dex.force_new_box:
-                        # break the loop to start at a new box
-                        break
+                current_form = forms[index]
+                is_gen_first_form = current_form.name in GEN_FIRST_FORM_NAMES[1:]
 
-                    slot.form = forms[index]
-                    slot.personal_dex = p_dex
+                if is_gen_first_form and not slot.is_first and p_dex.force_new_box:
+                    break
 
-                    slot.save()
-                except IndexError:
-                    self.stdout.write(self.style.SUCCESS(_("done!")))
-                    return
+                slot.form = current_form
+                slot.personal_dex = p_dex
+                slots_to_update.append(slot)
 
                 index += 1
+
+            if index >= total_forms:
+                break
+
+        if slots_to_update:
+            Slot.objects.bulk_update(slots_to_update, fields=["form", "personal_dex"])
+
+        self.stdout.write(self.style.SUCCESS(_("done!")))
 
     def __reset_boxes_scheme(self, boxes: QuerySet[Box], prune=False) -> None:
         self.stdout.write(self.style.WARNING(_("WARNING!")))
@@ -95,8 +106,11 @@ class Command(BaseCommand):
                     "configuration. All previous schemes will be lost!"
                     "\n\n!!! THIS CHANGE IS IRREVERSIBLE !!!\n\n"
                     "Do you want to continue? [y/N]: "
-                    % {"action": action, "boxes_count": boxes.count()},
                 )
+                % {
+                    "action": action,
+                    "boxes_count": boxes.count(),
+                }
             )
             .lower()
             .strip()
@@ -104,24 +118,27 @@ class Command(BaseCommand):
 
         if choice in ("y", "yes"):
             self.stdout.write(
-                self.style.MIGRATE_LABEL(_("Clearing previus scheme... ")),
+                self.style.MIGRATE_LABEL(
+                    _("%(action)s previous scheme from %(f_box)s to %(l_box)s... ")
+                    % {
+                        "action": _("Pruning") if prune else _("Clearing"),
+                        "f_box": boxes.first().name,
+                        "l_box": boxes.last().name,
+                    }
+                ),
                 ending="",
             )
 
-            for box in boxes:
-                for slot in box.slots.all():
-                    slot.form = None
-                    slot.personal_dex = None
+            update_kwargs = {"form": None, "personal_dex": None}
 
-                    if prune:
-                        slot.specimen = None
+            if prune:
+                update_kwargs["specimen"] = None
 
-                    slot.save()
+            Slot.objects.filter(box__in=boxes).update(**update_kwargs)
 
             self.stdout.write(self.style.SUCCESS(_("done!")))
         else:
-            self.stdout.write(self.style.ERROR(_("aborted!")))
-            exit(1)
+            raise CommandError(_("Operation aborted by user."))
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -152,8 +169,8 @@ class Command(BaseCommand):
             help=_(
                 "The ID of the last box that the scheme is allowed to use. Use only "
                 "if you have multiples PersonalDexes using different ranges of boxes. "
-                "Note that if the range of boxes did't have enough space to acommodate "
-                "all the forms of the PersonalDex, the command will fail."
+                "Note that if the range of boxes didn't have enough space to "
+                "accommodate all the forms of the PersonalDex, the command will fail."
             ),
             type=int,
         )
@@ -178,7 +195,7 @@ class Command(BaseCommand):
         )
 
     @transaction.atomic()
-    def handle(self, *args, **options):
+    def handle(self, **options):
         p_dex = self.__get_object_or_raise(PersonalDex, id=options["personal_dex_id"])
         f_box = self.__get_object_or_raise(Box, id=options["first_box_id"])
         l_box = self.__get_object_or_none(Box, id=options["last_box_id"])
