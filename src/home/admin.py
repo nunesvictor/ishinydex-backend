@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.admin import ShowFacets
 from django.contrib.admin.options import IS_POPUP_VAR
+from django.db.models import Max
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
@@ -252,7 +253,21 @@ class SlotAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
     ):
         context["show_save_as_new"] = False
         context["show_save_and_add_another"] = False
-        context["show_save_and_move_on"] = True
+
+        show_move_on = False
+
+        if change and obj and obj.box_id:
+            last_slot = (
+                obj.__class__.objects.filter(box_id=obj.box_id, form__isnull=False)
+                .aggregate(max_pos=Max("position"))
+                .get("max_pos")
+            )
+
+            if last_slot is not None and obj.position < last_slot:
+                show_move_on = True
+
+        context["show_save_and_move_on"] = show_move_on
+
         return super().render_change_form(request, context, add, change, form_url, obj)
 
     def response_change(self, request, obj):
