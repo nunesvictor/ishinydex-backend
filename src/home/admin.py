@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib.admin import ShowFacets
 from django.contrib.admin.options import IS_POPUP_VAR
 from django.http import HttpResponseRedirect
 from django.urls import reverse
@@ -152,7 +153,6 @@ class SlotAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
         "col",
         "form__name",
     )
-    show_facets = admin.ShowFacets.ALWAYS
 
     class Media:
         css = {"all": ("css/styles.css",)}
@@ -167,10 +167,29 @@ class SlotAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
     def relative_position(self, obj):
         return (obj.position - 1) % BOX_SIZE + 1
 
+    def _is_filtered_request(self, request):
+        get_params = request.GET.copy()
+
+        ignored_params = ["box__id__exact", "p", "o", "ot", "_facets", "q"]
+
+        for param in ignored_params:
+            if param == "q":
+                if not get_params.get("q"):
+                    get_params.pop("q", None)
+            else:
+                get_params.pop(param, None)
+
+        return bool(get_params)
+
+    def _is_list_request(self, request):
+        if not request.resolver_match:
+            return False
+
+        return request.resolver_match.url_name.endswith("_changelist")
+
     def changelist_view(self, request, extra_context=None):
         extra_context = extra_context or {}
 
-        # 1. Carrega as boxes para o menu superior
         boxes = list(Box.objects.only("id", "name").order_by("id"))
         chunk_size = 30
         panels = []
@@ -186,35 +205,12 @@ class SlotAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
         if not selected_box_id and boxes:
             selected_box_id = str(boxes[0].id)
 
-        # 2. Identifica se há qualquer busca (q=) ou filtro ativo real
-        get_params = request.GET.copy()
-
-        # Parâmetros de infraestrutura do Django/Admin que DEVEM ser ignorados
-        ignored_params = [
-            "box__id__exact",
-            "p",  # Paginação
-            "o",  # Ordenação
-            "ot",  # Direção da ordenação
-            "_facets",  # Contagem de facets do Django Admin / Filtros
-            "q",  # Removemos se for string vazia
-        ]
-
-        for param in ignored_params:
-            if param == "q":
-                # Se 'q' estiver presente mas vazio (ex: ?q=), não conta como busca
-                if not get_params.get("q"):
-                    get_params.pop("q", None)
-            else:
-                get_params.pop(param, None)
-
-        # Se restou qualquer parâmetro (como q=termo, ou filtros de list_filter)
-        is_filtered = bool(get_params)
+        is_filtered = self._is_filtered_request(request)
 
         extra_context["panels"] = panels
         extra_context["selected_box_id"] = selected_box_id
         extra_context["is_filtered"] = is_filtered
 
-        # 3. Se NÃO houver filtros/buscas ativas, preparamos a Grid de 30 Slots
         if not is_filtered and selected_box_id:
             slots = list(
                 Slot.objects.filter(box_id=selected_box_id)
@@ -226,16 +222,25 @@ class SlotAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
 
             extra_context["grid_slots"] = slots
 
+        self.show_facets = ShowFacets.ALWAYS if is_filtered else ShowFacets.NEVER
         return super().changelist_view(request, extra_context=extra_context)
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
+
+        if not self._is_list_request(request):
+            return qs
+
         selected_box_id = request.GET.get("box__id__exact")
+        is_filtered = self._is_filtered_request(request)
+
+        if is_filtered:
+            return qs
 
         if not selected_box_id:
-            first_box = Box.objects.first()
+            first_box = Box.objects.order_by("id").values_list("id", flat=True).first()
             if first_box:
-                selected_box_id = first_box.id
+                selected_box_id = str(first_box)
 
         if selected_box_id:
             return qs.filter(box_id=selected_box_id)
@@ -254,26 +259,48 @@ class SlotAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
         response = super().response_change(request, obj)
 
         if "_moveon" in request.POST:
-            next_obj = Slot.objects.filter(id__gt=obj.id).order_by("id").first()
+            next_obj = (
+                Slot.objects.filter(box=obj.box, position__gt=obj.position)
+                .order_by("position")
+                .first()
+            )
+
+            if not next_obj:
+                next_obj = (
+                    Slot.objects.filter(box_id__gt=obj.box_id)
+                    .order_by("box_id", "position")
+                    .first()
+                )
+
+            if next_obj:
+                opts = self.opts
+                redirect_url = reverse(
+                    f"admin:{opts.app_label}_{opts.model_name}_change",
+                    args=[next_obj.id],
+                )
+                return HttpResponseRedirect(redirect_url)
+
             return HttpResponseRedirect(
-                reverse("admin:home_slot_change", args=[next_obj.id])
+                reverse(
+                    f"admin:{self.opts.app_label}_{self.opts.model_name}_changelist"
+                )
             )
 
         return response
 
     def registration_status(self, obj):
-        return obj.specimen is not None
+        return obj.specimen_id is not None
 
     def render_sprite(self, obj: Slot):
-        p_dex = getattr(obj, "personal_dex", None)
         specimen = getattr(obj, "specimen", None)
+        p_dex = getattr(obj, "personal_dex", None)
         is_registered = False
         opt = "default"
 
-        if isinstance(specimen, Specimen):
+        if specimen:
             opt = "shiny" if specimen.is_shiny else "default"
             is_registered = True
-        elif isinstance(p_dex, PersonalDex):
+        elif p_dex:
             opt = "shiny" if p_dex.is_shiny_dex else "default"
 
         return super().render_sprite(obj, opt=opt, is_registered=is_registered)

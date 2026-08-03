@@ -24,6 +24,9 @@ class CustomFieldsRendererMixin:
 
     @admin.display(description=_("sprite"))
     def render_sprite(self, obj: SpriteObject, **kwargs):
+        if not obj:
+            return "-"
+
         SpriteRenderer = kwargs.get("renderer", get_renderer(type(obj)))
         is_registered: bool = kwargs.get("is_registered", False)
         opt: SpriteOption = kwargs.get("opt", "default")
@@ -31,11 +34,15 @@ class CustomFieldsRendererMixin:
         form_specimen_mismatch = False
 
         if isinstance(obj, Slot):
-            form_specimen_mismatch = obj.specimen and obj.specimen.form != obj.form
+            form_specimen_mismatch = bool(
+                obj.specimen and obj.specimen.form != obj.form
+            )
 
             if not obj.form:
                 return format_html(
-                    '<div style="margin: 48px auto; font-size: 150%">♻ {}</div>',
+                    '<div style="margin: 0 auto; font-size: 130%; text-align: center;">'
+                    "♻ {}"
+                    "</div>",
                     _("free slot"),
                 )
 

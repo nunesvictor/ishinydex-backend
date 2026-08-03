@@ -19,30 +19,33 @@ class SpecimenAdminForm(AdminModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        if "form_id" in self.initial or self.instance:
-            choices = [("", "---------")]
-            form = None
+        form = None
 
-            if self.instance.pk and isinstance(self.instance, Specimen):
-                instance = self.instance
+        if self.instance and self.instance.pk and hasattr(self.instance, "form"):
+            form = getattr(self.instance, "form", None)
 
-                if hasattr(instance, "form") and isinstance(instance.form, PokemonForm):
-                    form = instance.form
+        form_id = (
+            self.data.get("form")
+            or self.data.get("form_id")
+            or self.initial.get("form_id")
+        )
 
-            if not form and "form_id" in self.initial:
-                form = PokemonForm.objects.filter(pk=self.initial["form_id"]).first()
+        if not form and form_id:
+            form = PokemonForm.objects.filter(pk=form_id).first()
 
-            if isinstance(form, PokemonForm):
-                choices.extend(
-                    form.pokemon.abilities.values_list("ability", "ability").order_by(
-                        "ability"
-                    )
+        choices = [("", "---------")]
+
+        if isinstance(form, PokemonForm):
+            choices.extend(
+                form.pokemon.abilities.values_list("ability", "ability").order_by(
+                    "ability"
                 )
-
-            self.fields["ability"] = forms.TypedChoiceField(
-                label=self.fields["ability"].label,
-                empty_value=None,
-                choices=choices,
-                required=False,
-                coerce=str,
             )
+
+        self.fields["ability"] = forms.TypedChoiceField(
+            label=self.fields["ability"].label,
+            empty_value=None,
+            choices=choices,
+            required=False,
+            coerce=str,
+        )
