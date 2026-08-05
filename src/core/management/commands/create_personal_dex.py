@@ -18,7 +18,6 @@ _DEFAULT_FORM_ONLY_LIST = [
     "miraidon",
     "mothim",
     "pichu",
-    "rockruff",
     "scatterbug",
     "silvally",
     "spewpa",
@@ -37,6 +36,7 @@ _DEFAULT_KWARGS_LOOKUPS = (
     {"name__istartswith": "necrozma-"},
     {"name__istartswith": "ogerpon-"},
     {"name__istartswith": "pikachu-"},
+    {"name__istartswith": "rockruff-"},
 )
 
 _DEFAULT_EXTRA_ARGS = (

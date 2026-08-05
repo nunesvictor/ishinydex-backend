@@ -150,6 +150,7 @@ class SlotAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
     )
     list_per_page = 30
     readonly_fields = (
+        "box",
         "row",
         "col",
     )

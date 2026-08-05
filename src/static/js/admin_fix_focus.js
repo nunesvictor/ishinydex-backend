@@ -3,6 +3,7 @@
 
     function forceInputFocus() {
         const moveon_btn = $('input[name="_moveon"]');
+        const save_btn = $('input[name="_save"]');
         const specimen_repr = $("#id_specimen option:selected").text();
         const banner_img = $(".custom-help-banner-img").first();
 
@@ -36,6 +37,8 @@
 
         if (moveon_btn.length) {
             moveon_btn.focus();
+        } else if (save_btn.length) {
+            save_btn.focus();
         }
     }
 
