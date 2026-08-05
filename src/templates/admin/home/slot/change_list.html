@@ -86,8 +86,9 @@
     background: var(--darkened-bg, #fdfdfd);
     border: 1px solid var(--border-color, #e0e0e0);
     border-radius: 6px;
-    padding: 8px;
-    min-height: 90px; /* Aumentado suavemente de 85px para acomodar a margem extra */
+    padding: 8px 4px;
+    height: auto; /* Deixa o card crescer naturalmente conforme o tamanho real da imagem */
+    min-height: 110px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -110,13 +111,24 @@
     color: #888;
   }
   .slot-card .sprite-wrapper {
-    margin-top: 6px;
-    margin-bottom: 6px; /* Adicionado respiro sutil na parte inferior do sprite */
+    margin-top: 8px;
+    margin-bottom: 6px;
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 48px;
+    width: 100%;
+    height: auto; /* Remove trava fixa de altura */
   }
+
+  /* Exibe o sprite na resolução/tamanho original sem espremer */
+  .slot-card .sprite-wrapper img,
+  .slot-card .sprite-wrapper svg {
+    max-width: 100% !important;
+    height: auto !important;
+    display: block;
+    image-rendering: auto;
+  }
+
   .slot-card .slot-title {
     font-size: 11px;
     font-weight: 600;
@@ -125,10 +137,9 @@
     overflow: hidden;
     text-overflow: ellipsis;
     width: 100%;
-    margin-top: 2px; /* Pequeno ajuste de margem superior para o texto */
+    margin-top: 4px;
   }
 
-  /* Estado padrão sem registro (apagado e P&B) */
   .badge-unregistered,
   .status-unregistered {
     opacity: 0.35;
@@ -136,13 +147,16 @@
     transition: opacity 0.2s ease, filter 0.2s ease;
   }
 
-  /* Quando o mouse estiver SOBRE o card do slot (ou sobre o próprio sprite), restabelece o visual original */
   .slot-card:hover .badge-unregistered,
   .slot-card:hover .status-unregistered,
   .badge-unregistered:hover,
   .status-unregistered:hover {
     opacity: 1 !important;
     filter: grayscale(0%) !important;
+  }
+
+  .slot-empty-text {
+    color: #aaa;
   }
   </style>
   <!-- Componente Superior de Navegação de Boxes -->
@@ -236,7 +250,7 @@
               {% elif slot.form %}
                 {{ slot.form.name }}
               {% else %}
-                <span style="color: #aaa;">Vazio</span>
+                <span class="slot-empty-text">Vazio</span>
               {% endif %}
             </span>
           </a>

@@ -137,7 +137,8 @@ class Slot(OrderedModel, TimestampedModel):
 
 
 class Specimen(TimestampedModel):
-    form = models.ForeignKey(PokemonForm, on_delete=models.CASCADE)
+    form = models.ForeignKey(PokemonForm, on_delete=models.PROTECT)
+    form_name = models.CharField(_("form name"), max_length=255, blank=True, null=True)
     nickname = models.CharField(_("nickname"), max_length=255, blank=True, null=True)
     ability = models.CharField(_("ability"), max_length=255, blank=True, null=True)
     language = models.CharField(_("language"), choices=LANGUAGES_CHOICES, default="en")
@@ -156,6 +157,13 @@ class Specimen(TimestampedModel):
         verbose_name = _("specimen")
         verbose_name_plural = _("specimens")
         ordering = ("form__order",)
+
+    def save(self, *args, **kwargs):
+        if self.form and not self.form_name:
+            print("setting form_name to %s" % self.form.name.strip())
+            self.form_name = self.form.name.strip()
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
         badges = "%(shiny)s%(alpha)s%(pk_go)s%(obsrv)s" % {

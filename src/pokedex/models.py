@@ -88,7 +88,7 @@ class PokemonForm(TimestampedModel):
     class Meta:
         verbose_name = _("pokémon form")
         verbose_name_plural = _("pokémon forms")
-        ordering = ("pokemon__species__order", "order")
+        # ordering = ("pokemon__species__order", "order")
 
     def __str__(self):
         return self.name

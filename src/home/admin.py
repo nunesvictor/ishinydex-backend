@@ -1,3 +1,5 @@
+from urllib.parse import parse_qs, urlparse
+
 from django.contrib import admin
 from django.contrib.admin import ShowFacets
 from django.contrib.admin.options import IS_POPUP_VAR
@@ -70,6 +72,9 @@ class BoxAdmin(TimestampedAdmin):
     search_fields = ("name",)
     ordering = ("position",)
     inlines = (SlotInline,)
+
+    def has_add_permission(self, request):
+        return False
 
     @admin.display(boolean=True, description=_("is schema configured"))
     def is_schema_configured(self, obj):
@@ -164,6 +169,9 @@ class SlotAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
             "js/admin_fix_focus.js",
         )
 
+    def has_add_permission(self, request):
+        return False
+
     @admin.display(description=_("relative position"))
     def relative_position(self, obj):
         return (obj.position - 1) % BOX_SIZE + 1
@@ -248,6 +256,16 @@ class SlotAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
 
         return qs
 
+    def _get_box_id(self, request):
+        referer = request.META.get("HTTP_REFERER", "")
+        if referer:
+            parsed = urlparse(referer)
+            query_params = parse_qs(parsed.query)
+            box_ids = query_params.get("box__id__exact")
+            if box_ids:
+                return box_ids[0]
+        return None
+
     def render_change_form(
         self, request, context, add=False, change=False, form_url="", obj=None
     ):
@@ -268,10 +286,20 @@ class SlotAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
 
         context["show_save_and_move_on"] = show_move_on
 
+        box_id = request.GET.get("box__id__exact") or self._get_box_id(request)
+
+        context["selected_box_id"] = box_id
+
         return super().render_change_form(request, context, add, change, form_url, obj)
 
     def response_change(self, request, obj):
-        response = super().response_change(request, obj)
+        box_id = (
+            request.POST.get("_box_id_filter")
+            or request.GET.get("box__id__exact")
+            or self._get_box_id(request)
+        )
+
+        box_param = f"?box__id__exact={box_id}" if box_id else ""
 
         if "_moveon" in request.POST:
             next_obj = (
@@ -289,17 +317,37 @@ class SlotAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
 
             if next_obj:
                 opts = self.opts
-                redirect_url = reverse(
-                    f"admin:{opts.app_label}_{opts.model_name}_change",
-                    args=[next_obj.id],
+                redirect_url = (
+                    reverse(
+                        f"admin:{opts.app_label}_{opts.model_name}_change",
+                        args=[next_obj.id],
+                    )
+                    + box_param
                 )
                 return HttpResponseRedirect(redirect_url)
 
-            return HttpResponseRedirect(
+            changelist_url = (
                 reverse(
                     f"admin:{self.opts.app_label}_{self.opts.model_name}_changelist"
                 )
+                + box_param
             )
+            return HttpResponseRedirect(changelist_url)
+
+        response = super().response_change(request, obj)
+
+        if (
+            isinstance(response, HttpResponseRedirect)
+            and not response.url.endswith("/change/")
+            and "_continue" not in request.POST
+        ):
+            changelist_url = (
+                reverse(
+                    f"admin:{self.opts.app_label}_{self.opts.model_name}_changelist"
+                )
+                + box_param
+            )
+            return HttpResponseRedirect(changelist_url)
 
         return response
 

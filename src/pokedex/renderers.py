@@ -8,6 +8,7 @@ from django.utils.module_loading import import_string
 from core.typing import SpriteObject, SpriteOption
 from home.models import Slot
 from pokedex.models import Pokemon, PokemonForm
+from pokedex.resolvers import PokemonSpriteResolver
 
 type PokemonAndForm = tuple[Pokemon | None, PokemonForm | None]
 
@@ -57,8 +58,31 @@ class PokemonSpriteRenderer:
             img_width=width,
         )
 
+    def get_sprite_resolver(self) -> PokemonSpriteResolver:
+        if not hasattr(settings, "SPRITE_RESOLVERS"):
+            raise AttributeError(
+                "'SPRITE_RESOLVERS' must be set in your DJANGO_SETTINGS_MODULE"
+            )
+
+        if "default" not in settings.SPRITE_RESOLVERS:
+            raise AttributeError("'SPRITE_RESOLVERS' must have a 'default' key set")
+
+        r_module = settings.SPRITE_RESOLVERS.get("default")
+
+        if self.pokemon.name in settings.SPRITE_RESOLVERS:
+            r_module = settings.SPRITE_RESOLVERS[self.pokemon.name]
+
+        r_type = import_string(r_module)
+
+        if not (isinstance(r_type, type) and issubclass(r_type, PokemonSpriteResolver)):
+            raise ValueError(
+                f"{r_type!r} must be a subclass of {PokemonSpriteResolver.__name__}."
+            )
+
+        return r_type(self.pokemon, self.form, self.is_shiny_sprite)
+
     def get_sprite_url(self, **kwargs) -> Path:
-        sprite_url = self._resolve_sprite_path(self.sprites_url)
+        sprite_url = self.get_sprite_resolver().resolve(self.sprites_url)
         sprite_path = Path(settings.BASE_DIR / sprite_url.relative_to("/"))
         default = kwargs.get("default")
 
@@ -80,31 +104,6 @@ class PokemonSpriteRenderer:
             return default
 
         return sprite_url
-
-    def _resolve_female_path(self):
-        if self.pokemon is None or self.form is None:
-            return Path()
-
-        if self.pokemon.species.has_gender_differences and not self.form.is_default:
-            return Path("female")
-
-        return Path()
-
-    def _resolve_shiny_path(self) -> Path:
-        return Path("shiny" if self.is_shiny_sprite else "")
-
-    def _resolve_sprite_path(self, sprite_path: Path):
-        sprite_path /= self._resolve_shiny_path()
-        sprite_path /= self._resolve_female_path()
-
-        if self.form.is_default:
-            return sprite_path / f"{self.pokemon.pokeapi_id}.png"
-
-        if not sprite_path.name == "female" and self.pokemon.name != self.form.name:
-            suffix = self.form.name.removeprefix(self.pokemon.name)
-            return sprite_path / f"{self.pokemon.pokeapi_id}{suffix}.png"
-
-        return sprite_path / f"{self.pokemon.pokeapi_id}.png"
 
     def _set_shiny_sprite(self, object: SpriteObject, option: SpriteOption) -> bool:
         if option == "shiny":

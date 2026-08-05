@@ -60,6 +60,9 @@ class MoveAdmin(admin.ModelAdmin):
     )
     show_facets = admin.ShowFacets.ALWAYS
 
+    def has_add_permission(self, request):
+        return False
+
 
 @admin.register(Pokemon)
 class PokemonAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
@@ -99,6 +102,9 @@ class PokemonAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
     )
     show_facets = admin.ShowFacets.ALWAYS
 
+    def has_add_permission(self, request):
+        return False
+
 
 @admin.register(PokemonForm)
 class PokemonFormAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
@@ -130,6 +136,9 @@ class PokemonFormAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
         "pokemon__species__generation",
     )
     show_facets = admin.ShowFacets.ALWAYS
+
+    def has_add_permission(self, request):
+        return False
 
 
 @admin.register(PokemonSpecies)
@@ -169,6 +178,9 @@ class PokemonSpeciesAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
     )
     show_facets = admin.ShowFacets.ALWAYS
 
+    def has_add_permission(self, request):
+        return False
+
     def render_national_pokedex_id(self, obj: PokemonSpecies):
         return obj.pokedex_numbers.filter(pokedex="national").first().entry_number
 
@@ -190,6 +202,9 @@ class VersionAdmin(admin.ModelAdmin):
         "version_group",
     )
 
+    def has_add_permission(self, request):
+        return False
+
 
 @admin.register(VersionGroup)
 class VersionGroupAdmin(admin.ModelAdmin):
@@ -199,3 +214,6 @@ class VersionGroupAdmin(admin.ModelAdmin):
         "order",
     )
     list_filter = ("generation",)
+
+    def has_add_permission(self, request):
+        return False

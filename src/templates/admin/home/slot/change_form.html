@@ -2,6 +2,9 @@
 {% load sprites %}
 {% block form_top %}
   {{ block.super }}
+  {% if selected_box_id %}
+    <input type="hidden" name="_box_id_filter" value="{{ selected_box_id }}">
+  {% endif %}
   {% if original %}
     <div class="custom-help-banner-container">{% banner_sprite_img original 288 288 %}</div>
   {% endif %}

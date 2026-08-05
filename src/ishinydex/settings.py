@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     # 3rd party apps
     "rest_framework",
     "rest_framework.authtoken",
+    "debug_toolbar",
     # local apps
     "core",
     "home",
@@ -58,6 +59,7 @@ MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
@@ -97,7 +99,15 @@ DATABASES = {
         "PASSWORD": config("POSTGRES_PASSWORD"),
         "HOST": config("POSTGRES_HOST", default="db"),
         "PORT": config("POSTGRES_PORT", cast=int, default=5432),
-    }
+    },
+    "backup": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "%s_backup" % config("POSTGRES_DB", default="ishinydex"),
+        "USER": config("POSTGRES_USER", default="postgres"),
+        "PASSWORD": config("POSTGRES_PASSWORD"),
+        "HOST": config("POSTGRES_HOST", default="db"),
+        "PORT": config("POSTGRES_PORT", cast=int, default=5432),
+    },
 }
 
 
@@ -176,6 +186,14 @@ SPRITE_RENDERERS = {
     "slot": "pokedex.renderers.HomeSpriteRenderer",
 }
 
+SPRITE_RESOLVERS = {
+    "default": "pokedex.resolvers.PokemonSpriteResolver",
+    "sinistea": "pokedex.resolvers.SingleSpriteResolver",
+    "polteageist": "pokedex.resolvers.SingleSpriteResolver",
+    "poltchageist": "pokedex.resolvers.SingleSpriteResolver",
+    "sinistcha": "pokedex.resolvers.SingleSpriteResolver",
+}
+
 POKEMON_SPRITES_ROOT = MEDIA_ROOT / "sprites/pokemon"
 POKEMON_SPRITES_URL = Path(MEDIA_URL) / "sprites/pokemon"
 
@@ -183,3 +201,9 @@ TYPE_SPRITES_DEFAULT_GAME = "sword-shield"
 TYPE_SPRITES_DEFAULT_GEN = "generation-viii"
 TYPE_SPRITES_ROOT = MEDIA_ROOT / "sprites/types"
 TYPE_SPRITES_URL: Path = Path(MEDIA_URL) / "sprites/types"
+
+DEBUG_TOOLBAR_CONFIG = {
+    "SHOW_TOOLBAR_CALLBACK": lambda _: config(
+        "DEBUG_TOOLBAR", default=False, cast=bool
+    ),
+}
