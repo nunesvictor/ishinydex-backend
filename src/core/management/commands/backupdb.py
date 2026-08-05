@@ -15,11 +15,11 @@ POSTGRES_PORT = os.getenv("POSTGRES_PORT", "5432")
 POSTGRES_USER = os.getenv("POSTGRES_USER", "postgres")
 
 timestamp = datetime.now().strftime("%Y%m%d%H%M")
-dump_file = f"{APP_HOME}/backups/data-{POSTGRES_DB}-{timestamp}.sql"
+backup_filename = f"{APP_HOME}/backups/dump-{POSTGRES_DB}-{timestamp}.backup"
 
 
 class Command(BaseCommand):
-    help = _("Dumps the app's data only on the backups folder.")
+    help = _("Backup the app's database on the backups folder.")
 
     def handle(self, *args, **options):
         command = [
@@ -32,15 +32,16 @@ class Command(BaseCommand):
             POSTGRES_USER,
             "-d",
             POSTGRES_DB,
-            "-Fp",
-            "-a",
-            "--inserts",
-            "--column-inserts",
+            "-Fc",
+            "-Z",
+            "8",
             "-f",
-            dump_file,
+            backup_filename,
         ]
 
-        self.stdout.write(f"[{APP_NAME}] Creating data dump for `{POSTGRES_DB}`...")
+        self.stdout.write(
+            f"[{APP_NAME}] Creating custom backup (comp: 8) for `{POSTGRES_DB}`..."
+        )
 
         env_config = os.environ.copy()
         env_config["PGPASSWORD"] = POSTGRES_PASSWORD
@@ -49,7 +50,7 @@ class Command(BaseCommand):
             # Clear old auth sessions before dumping the database
             call_command("clearsessions")
 
-            # Create the data dump
+            # Dumps the database
             result = subprocess.run(
                 command,
                 capture_output=True,
@@ -59,11 +60,11 @@ class Command(BaseCommand):
 
             if result.returncode == 0:
                 self.stdout.write(
-                    f"[{APP_NAME}] Data from `{POSTGRES_DB}` dumped: {dump_file}"
+                    f"[{APP_NAME}] Database `{POSTGRES_DB}` dumped to {backup_filename}"
                 )
             else:
                 self.stderr.write(
-                    f"[{APP_NAME}] Failed to dump data from `{POSTGRES_DB}`"
+                    f"[{APP_NAME}] Failed to dump database `{POSTGRES_DB}`"
                 )
 
                 self.stderr.write(f"Error:\n{result.stderr}")
