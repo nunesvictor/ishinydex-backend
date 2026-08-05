@@ -16,21 +16,23 @@ def _custom_get(url, *args, **kwargs):
         p_result = urlparse(pokeapi_url)
 
         try:
-            if requests.head(pokeapi_url, timeout=3).ok:
+            if requests.head(f"{pokeapi_url}/api/v2", timeout=3).ok:
                 url = urlunparse(
                     urlparse(url)._replace(
                         netloc=p_result.netloc,
                         scheme=p_result.scheme,
                     )
                 )
-        except requests.RequestException:
+            else:
+                raise requests.RequestException(
+                    "POKEAPI_URL is set but the server is unreachable. Falling back "
+                    "to the default PokeAPI server."
+                )
+        except requests.RequestException as e:
             if settings.DEBUG:
                 raise
 
-            logger.warning(
-                "POKEAPI_URL is set but the server is unreachable. Falling back "
-                "to the default PokeAPI server."
-            )
+            logger.warning(str(e))
 
     return _original_get(url, *args, **kwargs)
 
