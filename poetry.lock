@@ -707,6 +707,22 @@ argon2 = ["argon2-cffi (>=23.1.0)"]
 bcrypt = ["bcrypt (>=4.1.1)"]
 
 [[package]]
+name = "django-debug-toolbar"
+version = "7.0.0"
+description = "A configurable set of panels that display various debug information about the current request/response."
+optional = false
+python-versions = ">=3.10"
+groups = ["dev"]
+files = [
+    {file = "django_debug_toolbar-7.0.0-py3-none-any.whl", hash = "sha256:656161388ce48384276342eeb16d532113ec670816fa1546cc3753730aa51b3d"},
+    {file = "django_debug_toolbar-7.0.0.tar.gz", hash = "sha256:ef7494c5b459c149e87cc2da88d86e944064945e86bd7b2d879093586b5fefbf"},
+]
+
+[package.dependencies]
+django = ">=5.2"
+sqlparse = ">=0.2"
+
+[[package]]
 name = "django-stubs"
 version = "6.0.7"
 description = "Mypy stubs for Django"
@@ -3178,4 +3194,4 @@ test = ["pytest", "websockets"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.14,<3.15"
-content-hash = "636109a1bef0e3ca9967d7dc150386b6aede393b2273f7c140641cb61b0d200b"
+content-hash = "e9e7b350b6c3755df7b6615eb8b3d5e580d9a908e725b23b849fc1261a3761a9"
