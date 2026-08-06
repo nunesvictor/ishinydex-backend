@@ -85,13 +85,33 @@ class PokemonForm(TimestampedModel):
         "Pokemon", on_delete=models.CASCADE, related_name="forms", blank=True, null=True
     )
 
+    @property
+    def is_distro_only(self):
+        return self.shinylocks.filter(
+            lock_type=ShinyLock.LockTypeChoices.DISTRO_ONLY
+        ).exists()
+
+    @property
+    def is_shinylocked(self):
+        return self.shinylocks.filter(
+            lock_type=ShinyLock.LockTypeChoices.UNOBTAINABLE
+        ).exists()
+
     class Meta:
         verbose_name = _("pokémon form")
         verbose_name_plural = _("pokémon forms")
         ordering = ("pokemon__species", "form_order")
 
     def __str__(self):
-        return self.name
+        match self.shinylocks.filter(active=True).first():
+            case ShinyLock(lock_type=ShinyLock.LockTypeChoices.DISTRO_ONLY):
+                suffix = "🎁"
+            case ShinyLock(lock_type=ShinyLock.LockTypeChoices.UNOBTAINABLE):
+                suffix = "🔒"
+            case _:
+                suffix = ""
+
+        return f"{self.name}{suffix}"
 
 
 class PokemonMove(TimestampedModel):
@@ -247,6 +267,25 @@ class Pokemon(TimestampedModel):
 
     def __str__(self):
         return self.name
+
+
+class ShinyLock(TimestampedModel):
+    class LockTypeChoices(models.TextChoices):
+        DISTRO_ONLY = "distro-only", _("distro only")
+        UNOBTAINABLE = "unobtainable", _("unobtainable")
+
+    caption = models.CharField(_("caption"), max_length=50, unique=True)
+    description = models.TextField(_("description"), blank=True, null=True)
+    lock_type = models.CharField(
+        _("lock type"),
+        choices=LockTypeChoices.choices,
+        default=LockTypeChoices.UNOBTAINABLE,
+    )
+    forms = models.ManyToManyField(PokemonForm, related_name="shinylocks")
+    active = models.BooleanField(_("active"), default=True)
+
+    def __str__(self):
+        return self.caption
 
 
 class Version(TimestampedModel):

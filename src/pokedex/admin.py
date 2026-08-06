@@ -5,7 +5,15 @@ from core.admin_mixins import CustomFieldsRendererMixin
 
 from .admin_filters import EggGroupFilter
 from .forms import PokemonSpeciesAdminForm
-from .models import Move, Pokemon, PokemonForm, PokemonSpecies, Version, VersionGroup
+from .models import (
+    Move,
+    Pokemon,
+    PokemonForm,
+    PokemonSpecies,
+    ShinyLock,
+    Version,
+    VersionGroup,
+)
 
 
 class PokemonFormInline(admin.TabularInline, CustomFieldsRendererMixin):
@@ -193,6 +201,26 @@ class PokemonSpeciesAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
         return super().render_types(pokemon)
 
     render_national_pokedex_id.short_description = _("national pokedex id")
+
+
+@admin.register(ShinyLock)
+class ShinyLockAdmin(admin.ModelAdmin):
+    filter_horizontal = ("forms",)
+    list_display = (
+        "caption",
+        "description",
+        "lock_type",
+        "active",
+    )
+    list_filter = (
+        "lock_type",
+        "active",
+    )
+    search_fields = (
+        "caption",
+        "description",
+        "forms__name",
+    )
 
 
 @admin.register(Version)
