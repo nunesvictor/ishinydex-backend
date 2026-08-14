@@ -12,7 +12,7 @@ services:
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-ishinydex}
+      POSTGRES_DB: ${POSTGRES_DB:-django-pokedex}
     ports:
       - "0.0.0.0:${POSTGRES_PORT:-5432}:5432"
     restart: always
@@ -31,7 +31,7 @@ services:
       JUPYTER_TOKEN: ${JUPYTER_TOKEN:-}
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    image: ${APP_NAME:-ishinydex}-backend:${APP_VERSION:-latest}
+    image: ${APP_NAME:-django-pokedex}:${APP_VERSION:-latest}
     ports:
       - "0.0.0.0:8088:8088"
     pull_policy: never
@@ -54,7 +54,7 @@ services:
       DJANGO_SUPERUSER_USERNAME: ${DJANGO_SUPERUSER_USERNAME:-admin}
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    image: ${APP_NAME:-ishinydex}-backend:${APP_VERSION:-latest}
+    image: ${APP_NAME:-django-pokedex}:${APP_VERSION:-latest}
     ports:
       - "0.0.0.0:8000:8000"
     restart: always

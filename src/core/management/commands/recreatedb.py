@@ -7,7 +7,7 @@ from django.db import connections
 
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
-POSTGRES_DB = os.environ.get("POSTGRES_DB", "ishinydex")
+POSTGRES_DB = os.environ.get("POSTGRES_DB", "django-pokedex")
 
 
 class Command(BaseCommand):

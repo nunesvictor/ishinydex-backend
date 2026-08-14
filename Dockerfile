@@ -16,11 +16,11 @@ RUN git clone --filter=blob:none --no-checkout https://github.com/PokeAPI/sprite
 FROM python:3.14-slim
 
 # 1. Define Arguments and Environment Variables
-ARG APP_NAME="ishinydex-backend"
+ARG APP_NAME="django-pokedex"
 ARG APP_HOME="/home/guest/${APP_NAME}"
 
 ENV HOME=/home/guest \
-    DJANGO_SETTINGS_MODULE=ishinydex.settings \
+    DJANGO_SETTINGS_MODULE=django_pokedex.settings \
     LANG=pt_BR.UTF-8 \
     LANGUAGE=pt_BR:en \
     LC_ALL=pt_BR.UTF-8 \
@@ -105,4 +105,4 @@ RUN python manage.py compilemessages && \
     python manage.py collectstatic --clear --no-input
 
 ENTRYPOINT ["bash", "../docker-entrypoint.sh"]
-CMD ["uwsgi", "--ini", "uwsgi/ishinydex.ini"]
+CMD ["uwsgi", "--ini", "uwsgi/django-pokedex.ini"]

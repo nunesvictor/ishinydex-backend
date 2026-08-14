@@ -391,12 +391,12 @@ class SpecimenAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
     list_display = (
         "render_sprite",
         "render_label",
-        "ability",
-        "language",
         "render_gender",
         "nature",
+        "ability",
         "is_shiny",
         "is_alpha",
+        "language",
         "ot",
         "captured_at",
     )

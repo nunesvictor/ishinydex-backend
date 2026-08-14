@@ -5,8 +5,8 @@ import subprocess
 from django.core.management.base import BaseCommand
 from django.utils.translation import gettext_lazy as _
 
-APP_HOME = os.getenv("APP_HOME", "/home/guest/ishinydex-backend")
-APP_NAME = os.getenv("APP_NAME", "ishinydex")
+APP_HOME = os.getenv("APP_HOME", "/home/guest/django-pokedex")
+APP_NAME = os.getenv("APP_NAME", "django-pokedex")
 POSTGRES_DB = os.getenv("POSTGRES_DB", APP_NAME)
 POSTGRES_HOST = os.getenv("POSTGRES_HOST", "db")
 POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "postgres")
