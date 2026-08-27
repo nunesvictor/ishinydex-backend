@@ -5,7 +5,7 @@ volumes:
 
 services:
   db:
-    image: postgres:17
+    image: postgres:${POSTGRES_VERSION:-latest}
     env_file:
       - .env
     environment:
@@ -13,14 +13,14 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-django-pokedex}
     ports:
-      - "0.0.0.0:${POSTGRES_PORT:-5432}:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     restart: always
     volumes:
       - data:/var/lib/postgresql/data
       - ./backups:/var/lib/postgresql/backups
 
   jupyter:
-    command: jupyter lab --ServerApp.token='${JUPYTER_TOKEN:-}' --ip=0.0.0.0 --port=8088 --allow-root --no-browser --notebook-dir=notebooks
+    command: jupyter lab --ServerApp.token='${JUPYTER_TOKEN:-}' --ip=0.0.0.0 --port=8888 --allow-root --no-browser --notebook-dir=notebooks
     depends_on:
       - db
       - web
@@ -32,7 +32,7 @@ services:
       - "host.docker.internal:host-gateway"
     image: ${APP_NAME:-django-pokedex}:${APP_VERSION:-latest}
     ports:
-      - "0.0.0.0:8088:8088"
+      - "${JUPYTER_PORT:-8888}:8888"
     pull_policy: never
     volumes:
       - .:${APP_HOME}
@@ -56,7 +56,7 @@ services:
       - "host.docker.internal:host-gateway"
     image: ${APP_NAME:-django-pokedex}:${APP_VERSION:-latest}
     ports:
-      - "0.0.0.0:8000:8000"
+      - "${WEB_PORT:-8000}:8000"
     restart: always
     volumes:
       - .:${APP_HOME}
