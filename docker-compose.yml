@@ -13,7 +13,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-django-pokedex}
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "${X_POSTGRES_PORT:-5432}:5432"
     restart: always
     volumes:
       - data:/var/lib/postgresql/data
@@ -32,7 +32,7 @@ services:
       - "host.docker.internal:host-gateway"
     image: ${APP_NAME:-django-pokedex}:${APP_VERSION:-latest}
     ports:
-      - "${JUPYTER_PORT:-8888}:8888"
+      - "${X_JUPYTER_PORT:-8888}:8888"
     pull_policy: never
     volumes:
       - .:${APP_HOME}
@@ -56,7 +56,7 @@ services:
       - "host.docker.internal:host-gateway"
     image: ${APP_NAME:-django-pokedex}:${APP_VERSION:-latest}
     ports:
-      - "${WEB_PORT:-8000}:8000"
+      - "${X_WEB_PORT:-8000}:8000"
     restart: always
     volumes:
       - .:${APP_HOME}
