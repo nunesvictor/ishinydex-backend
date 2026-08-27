@@ -1,4 +1,5 @@
 import logging
+from abc import ABC, abstractmethod
 from pathlib import Path
 
 from django.conf import settings
@@ -6,23 +7,18 @@ from django.utils.html import format_html
 from django.utils.module_loading import import_string
 
 from core.typing import SpriteObject, SpriteOption
+from home.choices import Pokeball
 from home.models import Slot
 from pokedex.models import Pokemon, PokemonForm
 from pokedex.resolvers import PokemonSpriteResolver
 
 type PokemonAndForm = tuple[Pokemon | None, PokemonForm | None]
 
-
 logger = logging.getLogger(__name__)
 
 
-class PokemonSpriteRenderer:
-    _sprites_url = settings.POKEMON_SPRITES_URL
-    _is_shiny_sprite = False
-
-    @property
-    def is_shiny_sprite(self):
-        return self._is_shiny_sprite
+class SpriteRenderer(ABC):
+    _sprites_url = settings.SPRITES_URL
 
     @property
     def sprites_url(self) -> Path:
@@ -44,45 +40,44 @@ class PokemonSpriteRenderer:
 
         self._sprites_url = _url
 
-    def as_html(self, alt=None, classes=[], width=96, height=96, **kwargs):
-        return format_html(
-            '<img src="{img_src}"'
-            'class="{img_class}"'
-            'alt="{img_alt}" '
-            'height="{img_height}" '
-            'width="{img_width}" />',
-            img_src=self.get_sprite_url(**kwargs),
-            img_class=" ".join(classes),
-            img_alt=alt or self.pokemon.__repr__(),
-            img_height=height,
-            img_width=width,
-        )
+    @abstractmethod
+    def get_sprite_url(self, **kwargs) -> Path:
+        pass
 
-    def get_sprite_resolver(self) -> PokemonSpriteResolver:
-        if not hasattr(settings, "SPRITE_RESOLVERS"):
-            raise AttributeError(
-                "'SPRITE_RESOLVERS' must be set in your DJANGO_SETTINGS_MODULE"
+
+class ItemSpriteRenderer(SpriteRenderer):
+    _sprites_url = settings.ITEM_SPRITES_URL
+
+    def get_sprite_url(self, **kwargs):
+        sprite_url = self.sprites_url / f"{self.name}.png"
+        sprite_path = Path(settings.BASE_DIR / sprite_url.relative_to("/"))
+
+        if not sprite_path.exists() or not sprite_path.is_file():
+            raise FileNotFoundError(
+                "%s: sprite file not found: %s" % (self.name, sprite_path.as_posix())
             )
 
-        if "default" not in settings.SPRITE_RESOLVERS:
-            raise AttributeError("'SPRITE_RESOLVERS' must have a 'default' key set")
+        return sprite_url
 
-        r_module = settings.SPRITE_RESOLVERS.get("default")
+    def __init__(self, name: str):
+        self.name = name
 
-        if self.pokemon.name in settings.SPRITE_RESOLVERS:
-            r_module = settings.SPRITE_RESOLVERS[self.pokemon.name]
 
-        r_type = import_string(r_module)
+class PokeballSpriteRenderer(ItemSpriteRenderer):
+    def __init__(self, name: Pokeball):
+        super().__init__(name)
 
-        if not (isinstance(r_type, type) and issubclass(r_type, PokemonSpriteResolver)):
-            raise ValueError(
-                f"{r_type!r} must be a subclass of {PokemonSpriteResolver.__name__}."
-            )
 
-        return r_type(self.pokemon, self.form, self.is_shiny_sprite)
+class PokemonSpriteRenderer(SpriteRenderer):
+    _sprites_url = settings.POKEMON_SPRITES_URL
+    _is_shiny_sprite = False
+
+    @property
+    def is_shiny_sprite(self):
+        return self._is_shiny_sprite
 
     def get_sprite_url(self, **kwargs) -> Path:
-        sprite_url = self.get_sprite_resolver().resolve(self.sprites_url)
+        sprite_url = self._get_sprite_resolver().resolve(self.sprites_url)
         sprite_path = Path(settings.BASE_DIR / sprite_url.relative_to("/"))
         default = kwargs.get("default")
 
@@ -104,6 +99,45 @@ class PokemonSpriteRenderer:
             return default
 
         return sprite_url
+
+    def as_html(self, alt=None, classes=[], width=96, height=96, **kwargs):
+        return format_html(
+            '<img src="{img_src}"'
+            'class="{img_class}"'
+            'alt="{img_alt}" '
+            'height="{img_height}" '
+            'width="{img_width}" />',
+            img_src=self.get_sprite_url(**kwargs),
+            img_class=" ".join(classes),
+            img_alt=alt or self.pokemon.__repr__(),
+            img_height=height,
+            img_width=width,
+        )
+
+    def _get_sprite_resolver(self) -> PokemonSpriteResolver:
+        if not hasattr(settings, "POKEMON_SPRITE_RESOLVERS"):
+            raise AttributeError(
+                "'POKEMON_SPRITE_RESOLVERS' must be set in your DJANGO_SETTINGS_MODULE"
+            )
+
+        if "default" not in settings.POKEMON_SPRITE_RESOLVERS:
+            raise AttributeError(
+                "'POKEMON_SPRITE_RESOLVERS' must have a 'default' key set"
+            )
+
+        r_module = settings.POKEMON_SPRITE_RESOLVERS.get("default")
+
+        if self.pokemon.name in settings.POKEMON_SPRITE_RESOLVERS:
+            r_module = settings.POKEMON_SPRITE_RESOLVERS[self.pokemon.name]
+
+        r_type = import_string(r_module)
+
+        if not (isinstance(r_type, type) and issubclass(r_type, PokemonSpriteResolver)):
+            raise ValueError(
+                f"{r_type!r} must be a subclass of {PokemonSpriteResolver.__name__}."
+            )
+
+        return r_type(self.pokemon, self.form, self.is_shiny_sprite)
 
     def _set_shiny_sprite(self, object: SpriteObject, option: SpriteOption) -> bool:
         if option == "shiny":

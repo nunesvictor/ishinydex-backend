@@ -1,10 +1,16 @@
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils.formats import date_format
 from django.utils.translation import gettext as __
 from django.utils.translation import gettext_lazy as _
 
-from core.consts import GENDER_CHOICES, LANGUAGES_CHOICES, NATURE_CHOICES
+from core.consts import (
+    GENDER_CHOICES,
+    LANGUAGES_CHOICES,
+    NATURE_CHOICES,
+)
 from core.models import OrderedModel, TimestampedModel
+from home.choices import Pokeball
 from pokedex.models import PokemonForm, Version
 
 from .utils import col_choices, row_choices
@@ -151,6 +157,9 @@ class Specimen(TimestampedModel):
         OriginalTrainer, on_delete=models.SET_NULL, blank=True, null=True
     )
     captured_at = models.DateField(_("captured at"), blank=True, null=True)
+    pokeball = models.CharField(
+        _("pokéball"), choices=Pokeball.choices, max_length=255, blank=True, null=True
+    )
     observation = models.TextField(_("observation"), blank=True, null=True)
 
     class Meta:
@@ -173,6 +182,6 @@ class Specimen(TimestampedModel):
             "obsrv": "❗" if self.observation else "",
         }
         return "{nickname}{badges}".format(
-            nickname=f"{self.nickname if self.nickname else self.form.name} ",
+            nickname=f"{self.nickname if self.nickname else self.form_name} ",
             badges=badges,
         )

@@ -1,8 +1,7 @@
 volumes:
   data:
-  pokemon_sprites:
+  sprites:
   staticfiles:
-  type_sprites:
 
 services:
   db:
@@ -37,6 +36,7 @@ services:
     pull_policy: never
     volumes:
       - .:${APP_HOME}
+      - sprites:${APP_HOME}/src/media/sprites
 
   web:
     build:
@@ -60,6 +60,5 @@ services:
     restart: always
     volumes:
       - .:${APP_HOME}
-      - pokemon_sprites:${APP_HOME}/src/media/sprites/pokemon
+      - sprites:${APP_HOME}/src/media/sprites
       - staticfiles:${APP_HOME}/src/media/staticfiles
-      - type_sprites:${APP_HOME}/src/media/sprites/types

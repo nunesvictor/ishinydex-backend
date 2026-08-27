@@ -5,11 +5,12 @@ from django.contrib.admin import ShowFacets
 from django.contrib.admin.options import IS_POPUP_VAR
 from django.db.models import Max
 from django.http import HttpResponseRedirect
-from django.urls import reverse
+from django.urls import path, reverse
 from django.utils.translation import gettext_lazy as _
 
 from core.admin import TimestampedAdmin
 from core.admin_mixins import CustomFieldsRendererMixin
+from home.views import SpecimenBulkUpdateView
 from pokedex.renderers import HomeSpriteRenderer
 
 from .admin_filters import RegistrationStatusFilter
@@ -385,6 +386,7 @@ class SpecimenAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
         "is_alpha",
         "is_from_go",
         "captured_at",
+        "pokeball",
         "observation",
     ]
     inlines = [SlotInline]
@@ -419,7 +421,16 @@ class SpecimenAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
     show_facets = admin.ShowFacets.ALWAYS
 
     class Media:
-        js = ("js/admin_load_abilities.js",)
+        css = {
+            "all": ("admin/css/vendor/select2/select2.min.css",),
+        }
+        js = (
+            "admin/js/vendor/jquery/jquery.min.js",
+            "admin/js/jquery.init.js",
+            "admin/js/vendor/select2/select2.full.min.js",
+            "js/image_select.js",
+            "js/admin_load_abilities.js",
+        )
 
     def get_changeform_initial_data(self, request):
         initial = super().get_changeform_initial_data(request)
@@ -445,7 +456,7 @@ class SpecimenAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
                 "ability",
                 "language",
                 "ot",
-                "captured_at",
+                ("captured_at", "pokeball"),
                 ("is_shiny", "is_alpha", "is_from_go"),
             ]
 
@@ -463,6 +474,20 @@ class SpecimenAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
             inlines.clear()
 
         return inlines
+
+    def get_urls(self):
+        urls = super().get_urls()
+        info = self.opts.app_label, self.opts.model_name
+
+        custom_urls = [
+            path(
+                "bulk-update/",
+                self.admin_site.admin_view(SpecimenBulkUpdateView.as_view()),
+                name="%s_%s_bulk_update" % info,
+            ),
+        ]
+
+        return custom_urls + urls
 
     @admin.display(description=_("nickname or form"))
     def render_label(self, obj):

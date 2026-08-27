@@ -186,7 +186,7 @@ SPRITE_RENDERERS = {
     "slot": "pokedex.renderers.HomeSpriteRenderer",
 }
 
-SPRITE_RESOLVERS = {
+POKEMON_SPRITE_RESOLVERS = {
     "default": "pokedex.resolvers.PokemonSpriteResolver",
     "sinistea": "pokedex.resolvers.SingleSpriteResolver",
     "polteageist": "pokedex.resolvers.SingleSpriteResolver",
@@ -194,13 +194,19 @@ SPRITE_RESOLVERS = {
     "sinistcha": "pokedex.resolvers.SingleSpriteResolver",
 }
 
-POKEMON_SPRITES_ROOT = MEDIA_ROOT / "sprites/pokemon"
-POKEMON_SPRITES_URL = Path(MEDIA_URL) / "sprites/pokemon"
+SPRITES_ROOT = MEDIA_ROOT / "sprites"
+SPRITES_URL = Path(MEDIA_URL) / "sprites"
+
+ITEM_SPRITES_ROOT = SPRITES_ROOT / "items"
+ITEM_SPRITES_URL = SPRITES_URL / "items"
+
+POKEMON_SPRITES_ROOT = SPRITES_ROOT / "pokemon"
+POKEMON_SPRITES_URL = SPRITES_URL / "pokemon"
 
 TYPE_SPRITES_DEFAULT_GAME = "sword-shield"
 TYPE_SPRITES_DEFAULT_GEN = "generation-viii"
-TYPE_SPRITES_ROOT = MEDIA_ROOT / "sprites/types"
-TYPE_SPRITES_URL: Path = Path(MEDIA_URL) / "sprites/types"
+TYPE_SPRITES_ROOT = SPRITES_ROOT / "types"
+TYPE_SPRITES_URL = SPRITES_URL / "types"
 
 DEBUG_TOOLBAR_CONFIG = {
     "SHOW_TOOLBAR_CALLBACK": lambda _: config(

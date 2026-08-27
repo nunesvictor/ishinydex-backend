@@ -7,7 +7,7 @@ WORKDIR /tmp/sprites
 
 RUN git clone --filter=blob:none --no-checkout https://github.com/PokeAPI/sprites.git . && \
     git sparse-checkout init --cone && \
-    git sparse-checkout set sprites/pokemon sprites/types && \
+    git sparse-checkout set sprites/items sprites/pokemon sprites/types && \
     git checkout
 
 # ==========================================
@@ -79,6 +79,7 @@ RUN cp /etc/skel/.bashrc ${HOME}/.bashrc && \
     esac
 
 # 5. Copy Sprites from Builder Stage
+COPY --from=sprite-builder --chown=1000:1000 /tmp/sprites/sprites/items/ ${APP_HOME}/src/media/sprites/items/
 COPY --from=sprite-builder --chown=1000:1000 /tmp/sprites/sprites/pokemon/ ${APP_HOME}/src/media/sprites/pokemon/
 COPY --from=sprite-builder --chown=1000:1000 /tmp/sprites/sprites/types/ ${APP_HOME}/src/media/sprites/types/
 

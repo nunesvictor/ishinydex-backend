@@ -1,0 +1,79 @@
+{% extends "admin/change_form.html" %}
+{% load i18n static %}
+{% block extrahead %}
+  {{ block.super }}
+  {{ form.media }}
+  <style>
+    .bulk-help-text {
+      padding: 10px 0 0 10px;
+      margin: 0;
+    }
+  </style>
+{% endblock %}
+{% block breadcrumbs %}
+  <div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">{% translate "Home" %}</a>
+    › <a href="{% url 'admin:app_list' app_label='home' %}">Home</a>
+    › <a href="{% url 'admin:home_specimen_changelist' %}">{% translate "Specimens" %}</a>
+    › {% translate "Bulk Update" %}
+  </div>
+{% endblock %}
+{% block content %}
+  <div id="content-main">
+    <form method="post" id="specimen_form" novalidate>
+      {% csrf_token %}
+      {% if form.errors %}
+        <p class="errornote">
+          {% if form.errors|length == 1 %}
+            {% translate "Please correct the error below." %}
+          {% else %}
+            {% translate "Please correct the errors below." %}
+          {% endif %}
+        </p>
+        {{ form.non_field_errors }}
+      {% endif %}
+      <div>
+        <!-- Seção 1: Seleção dos Objetos -->
+        <fieldset class="module aligned">
+          <h2>{% translate "1. Select Specimens" %}</h2>
+          <div class="form-row{% if form.specimens.errors %} errors{% endif %} field-specimens">
+            <div>
+              {{ form.specimens.errors }}
+              <label for="{{ form.specimens.id_for_label }}" class="required">{{ form.specimens.label }}:</label>
+              {{ form.specimens }}
+              {% if form.specimens.help_text %}
+                <div class="help">{{ form.specimens.help_text }}</div>
+              {% endif %}
+            </div>
+          </div>
+        </fieldset>
+        <!-- Seção 2: Campos para Atualização -->
+        <fieldset class="module aligned">
+          <h2>{% translate "2. Fields to Update" %}</h2>
+          <p class="help bulk-help-text">{% translate "Only filled fields will be updated across all selected specimens." %}</p>
+          {% for field in form %}
+            {% if field.name != 'specimens' %}
+              <div class="form-row{% if field.errors %} errors{% endif %} field-{{ field.name }}">
+                <div>
+                  {{ field.errors }}
+                  <label for="{{ field.id_for_label }}">{{ field.label }}:</label>
+                  {{ field }}
+                  {% if field.help_text %}
+                    <div class="help">{{ field.help_text }}</div>
+                  {% endif %}
+                </div>
+              </div>
+            {% endif %}
+          {% endfor %}
+        </fieldset>
+        <!-- Barra de Ações Nativa -->
+        <div class="submit-row">
+          <input type="submit"
+                 value="{% translate 'Apply Bulk Update' %}"
+                 class="default"
+                 name="_save">
+        </div>
+      </div>
+    </form>
+  </div>
+{% endblock %}
