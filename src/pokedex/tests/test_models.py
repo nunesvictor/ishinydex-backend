@@ -34,10 +34,16 @@ class PokemonFormTests(TestCase):
         self.assertTrue(self.form.is_distro_only)
         self.assertFalse(self.form.is_shinylocked)
 
-    def test_inactive_lock_has_no_suffix(self):
-        f.make_shinylock(self.form, active=False)
+    def test_inactive_locks_are_ignored(self):
+        for lock_type in ShinyLock.LockTypeChoices:
+            with self.subTest(lock_type=lock_type):
+                lock = f.make_shinylock(self.form, lock_type=lock_type, active=False)
 
-        self.assertEqual(str(self.form), "zarude")
+                self.assertEqual(str(self.form), "zarude")
+                self.assertFalse(self.form.is_shinylocked)
+                self.assertFalse(self.form.is_distro_only)
+
+                lock.delete()
 
     def test_str_of_unsaved_form(self):
         """Regressão: str() de forma não salva gerava RecursionError."""

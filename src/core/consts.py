@@ -16,23 +16,6 @@ GENDER_CHOICES = (
     ("genderless", "genderless"),
 )
 
-LANGUAGES_CHOICES = (
-    ("cs", "cs"),
-    ("de", "de"),
-    ("en", "en"),
-    ("es-419", "es-419"),
-    ("es", "es"),
-    ("fr", "fr"),
-    ("it", "it"),
-    ("ja-hrkt", "ja-hrkt"),
-    ("ja-roma", "ja-roma"),
-    ("ja", "ja"),
-    ("ko", "ko"),
-    ("pt-br", "pt-br"),
-    ("zh-hans", "zh-hans"),
-    ("zh-hant", "zh-hant"),
-)
-
 NATURE_CHOICES = [
     ("adamant", "adamant"),
     ("bashful", "bashful"),

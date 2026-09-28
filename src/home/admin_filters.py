@@ -13,7 +13,10 @@ class RegistrationStatusFilter(admin.SimpleListFilter):
         )
 
     def queryset(self, request, queryset):
-        if self.value() is not None:
-            return queryset.filter(specimen__isnull=int(self.value()) == 0)
+        match self.value():
+            case "1":
+                return queryset.filter(specimen__isnull=False)
+            case "0":
+                return queryset.filter(specimen__isnull=True)
 
         return queryset

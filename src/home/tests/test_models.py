@@ -113,6 +113,17 @@ class SlotTests(TestCase):
             )
             self.assertEqual(str(self.slot), "[HOME 1: 1,1] (bulbasaur): Bulba ✨")
 
+    def test_str_is_translated(self):
+        """Regressão: a tradução era aplicada depois do format() e nunca batia."""
+        with translation.override("pt-br"):
+            self.assertEqual(str(self.slot), "[HOME 1: 1,1] slot livre")
+
+            self.slot.form = self.form
+            self.assertEqual(
+                str(self.slot),
+                "[HOME 1: 1,1] (bulbasaur): nenhum espécime depositado",
+            )
+
 
 class SpecimenTests(TestCase):
     def setUp(self):

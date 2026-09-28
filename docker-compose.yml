@@ -110,4 +110,5 @@ services:
       - "${X_PROD_PORT:-8080}:8000"
     restart: unless-stopped
     volumes:
+      - ./backups:${APP_HOME}/backups
       - sprites:${APP_HOME}/src/media/sprites:ro

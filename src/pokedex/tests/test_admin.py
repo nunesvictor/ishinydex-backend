@@ -1,3 +1,5 @@
+from unittest import mock
+
 from django.contrib.admin.sites import site
 from django.contrib.auth import get_user_model
 from django.test import RequestFactory, TestCase
@@ -94,6 +96,22 @@ class PokedexAdminViewsTests(TempSpritesMixin, TestCase):
         self.assertFalse(
             response.context["inline_admin_formsets"][0].has_add_permission
         )
+
+    def test_species_changelist_tolerates_missing_data(self):
+        f.make_species(name="incomplete")
+
+        response = self.client.get(reverse("admin:pokedex_pokemonspecies_changelist"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "incomplete")
+
+    @mock.patch("requests.get", side_effect=AssertionError("network access"))
+    def test_species_change_view_works_offline(self, _get):
+        response = self.client.get(
+            reverse("admin:pokedex_pokemonspecies_change", args=[self.species.pk])
+        )
+
+        self.assertEqual(response.status_code, 200)
 
     def test_add_is_disabled_for_pokeapi_models(self):
         for model in ("pokemon", "pokemonform", "pokemonspecies", "move"):

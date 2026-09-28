@@ -718,3 +718,15 @@ msgstr "Excluir"
 #: home/forms.py
 msgid "— keep current —"
 msgstr "— manter atual —"
+
+#: home/models.py
+msgid "[{box}: {row},{col}] ({form}): {specimen}"
+msgstr "[{box}: {row},{col}] ({form}): {specimen}"
+
+#: home/models.py
+msgid "[{box}: {row},{col}] free slot"
+msgstr "[{box}: {row},{col}] slot livre"
+
+#: home/models.py
+msgid "no specimen deposited"
+msgstr "nenhum espécime depositado"

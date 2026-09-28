@@ -1,6 +1,5 @@
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.utils.formats import date_format
 from django.utils.translation import gettext as __
 from django.utils.translation import gettext_lazy as _
 
@@ -123,22 +122,18 @@ class Slot(OrderedModel, TimestampedModel):
         if self.form:
             specimen = self.specimen if self.specimen else __("no specimen deposited")
 
-            return __(
-                "[{box}: {row},{col}] ({form}): {specimen}".format(
-                    box=self.box,
-                    form=self.form,
-                    row=self.row + 1,
-                    col=self.col + 1,
-                    specimen=specimen,
-                )
-            )
-
-        return __(
-            "[{box}: {row},{col}] free slot".format(
+            return __("[{box}: {row},{col}] ({form}): {specimen}").format(
                 box=self.box,
+                form=self.form,
                 row=self.row + 1,
                 col=self.col + 1,
+                specimen=specimen,
             )
+
+        return __("[{box}: {row},{col}] free slot").format(
+            box=self.box,
+            row=self.row + 1,
+            col=self.col + 1,
         )
 
 
@@ -169,7 +164,6 @@ class Specimen(TimestampedModel):
 
     def save(self, *args, **kwargs):
         if self.form and not self.form_name:
-            print("setting form_name to %s" % self.form.name.strip())
             self.form_name = self.form.name.strip()
 
         super().save(*args, **kwargs)

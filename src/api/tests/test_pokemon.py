@@ -35,6 +35,19 @@ class PokemonViewSetTests(APITestCase):
         self.assertNotIn("moves", response.data)
         self.assertNotIn("game_indices", response.data)
 
+    def test_list_query_count_does_not_grow_with_page_size(self):
+        for i in range(8):
+            _, pokemon, _ = f.make_full_pokemon(
+                f"extra-{i}", 100 + i, types=("water", "ice"), abilities=("swim",)
+            )
+            f.make_stat(pokemon, "hp", 50)
+
+        # count + página + 1 prefetch por relação (abilities, stats, types)
+        with self.assertNumQueries(5):
+            response = self.client.get(reverse("api:pokemon-list"))
+
+        self.assertEqual(len(response.data["results"]), 10)
+
     def test_filter_by_form_id(self):
         response = self.client.get(
             reverse("api:pokemon-list"), {"form_id": self.bulbasaur_form.pk}

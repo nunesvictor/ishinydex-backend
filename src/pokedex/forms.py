@@ -12,6 +12,6 @@ class PokemonSpeciesAdminForm(AdminModelForm):
         super().__init__(*args, **kwargs)
 
         self._set_select_fields("growth_rate")
-        self._set_select_fields("color", "pokemon-color")
-        self._set_select_fields("shape", "pokemon-shape")
+        self._set_select_fields("color")
+        self._set_select_fields("shape")
         self._set_select_fields("generation")

@@ -88,13 +88,13 @@ class PokemonForm(TimestampedModel):
     @property
     def is_distro_only(self):
         return self.shinylocks.filter(
-            lock_type=ShinyLock.LockTypeChoices.DISTRO_ONLY
+            active=True, lock_type=ShinyLock.LockTypeChoices.DISTRO_ONLY
         ).exists()
 
     @property
     def is_shinylocked(self):
         return self.shinylocks.filter(
-            lock_type=ShinyLock.LockTypeChoices.UNOBTAINABLE
+            active=True, lock_type=ShinyLock.LockTypeChoices.UNOBTAINABLE
         ).exists()
 
     class Meta:

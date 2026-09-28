@@ -94,23 +94,46 @@ class SpeciesForm(AdminModelForm):
         fields = ("name", "color", "growth_rate")
 
 
-class AdminModelFormTests(SimpleTestCase):
-    @mock.patch("core.forms.pb.APIResourceList")
-    def test_set_select_fields_uses_pokeapi_resource_names(self, resource_mock):
-        resource_mock.return_value.names = ["black", "blue"]
+class AdminModelFormTests(TestCase):
+    def setUp(self):
+        f.make_species(color="green", growth_rate="medium-slow")
+        f.make_species(color="red", growth_rate="medium-slow")
+        f.make_species(color="green", growth_rate="slow")
+
+    def _choices(self, form, field_name):
+        return list(form.fields[field_name].widget.choices)
+
+    def test_choices_come_from_existing_values(self):
         form = SpeciesForm()
 
-        form._set_select_fields("color", "pokemon-color")
+        form._set_select_fields("color")
         form._set_select_fields("growth_rate")
         form._set_select_fields("not_a_field")
 
-        resource_mock.assert_any_call("pokemon-color")
-        resource_mock.assert_any_call("growth-rate")
-        self.assertEqual(resource_mock.call_count, 2)
         self.assertEqual(
-            list(form.fields["color"].widget.choices),
-            [("black", "black"), ("blue", "blue")],
+            self._choices(form, "color"),
+            [("", "---------"), ("green", "green"), ("red", "red")],
         )
+        self.assertEqual(
+            self._choices(form, "growth_rate"),
+            [("", "---------"), ("medium-slow", "medium-slow"), ("slow", "slow")],
+        )
+
+    def test_current_value_is_always_an_option(self):
+        species = PokemonSpecies(color="purple")
+
+        form = SpeciesForm(instance=species)
+        form._set_select_fields("color")
+
+        self.assertIn(("purple", "purple"), self._choices(form, "color"))
+
+    @mock.patch("requests.get", side_effect=AssertionError("network access"))
+    def test_species_admin_form_works_offline(self, _get):
+        from pokedex.forms import PokemonSpeciesAdminForm
+
+        form = PokemonSpeciesAdminForm()
+
+        self.assertIn(("red", "red"), self._choices(form, "color"))
 
 
 class SpriteTemplateTagTests(TempSpritesMixin, TestCase):

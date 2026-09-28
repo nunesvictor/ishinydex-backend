@@ -50,6 +50,10 @@ class RegistrationStatusFilterTests(TestCase):
     def test_no_value(self):
         self.assertEqual(self._qs(None).count(), 30)
 
+    def test_invalid_value_is_ignored(self):
+        """Regressão: valor não numérico gerava erro 500 (int())."""
+        self.assertEqual(self._qs("abc").count(), 30)
+
 
 class BoxAdminTests(AdminTestCase):
     def test_changelist_columns(self):
@@ -235,6 +239,13 @@ class SlotAdminTests(AdminTestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertIn("specimen", response.context["adminform"].form.errors)
+
+    def test_changelist_with_invalid_filter_value(self):
+        response = self.client.get(
+            reverse("admin:home_slot_changelist"), {"is_registered": "abc"}
+        )
+
+        self.assertEqual(response.status_code, 200)
 
     def test_add_is_disabled(self):
         response = self.client.get(reverse("admin:home_slot_add"))

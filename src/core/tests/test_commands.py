@@ -1,4 +1,5 @@
 import os
+import shutil
 import subprocess
 import tempfile
 import time
@@ -9,7 +10,7 @@ from unittest import mock
 from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import CommandError
-from django.test import SimpleTestCase, TestCase
+from django.test import SimpleTestCase, TestCase, override_settings
 from django.utils import translation
 
 from psycopg2 import sql
@@ -291,26 +292,75 @@ class RecreateDbTests(SimpleTestCase):
         )
 
 
-class BackupDbTests(TestCase):
-    @mock.patch.object(backupdb, "call_command")
-    @mock.patch.object(backupdb.subprocess, "run")
-    def test_runs_pg_dump(self, run_mock, clearsessions_mock):
+DB_SETTINGS = {
+    "NAME": "django-pokedex",
+    "USER": "pokeuser",
+    "PASSWORD": "secret",
+    "HOST": "db",
+    "PORT": 5432,
+}
+
+
+class BackupTestCase(TestCase):
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
+
+        db_patch = mock.patch.dict(settings.DATABASES["default"], DB_SETTINGS)
+        db_patch.start()
+        self.addCleanup(db_patch.stop)
+
+        backups_dir = override_settings(BACKUPS_DIR=self.tmp)
+        backups_dir.enable()
+        self.addCleanup(backups_dir.disable)
+
+    def assert_connection_args(self, run_mock):
+        cmd = run_mock.call_args.args[0]
+        for flag, value in (
+            ("-h", "db"),
+            ("-p", "5432"),
+            ("-U", "pokeuser"),
+            ("-d", "django-pokedex"),
+        ):
+            self.assertEqual(cmd[cmd.index(flag) + 1], value)
+        self.assertEqual(run_mock.call_args.kwargs["env"]["PGPASSWORD"], "secret")
+
+
+@mock.patch.object(backupdb, "call_command")
+@mock.patch.object(backupdb.subprocess, "run")
+class BackupDbTests(BackupTestCase):
+    def test_runs_pg_dump_with_settings_connection(self, run_mock, clearsessions):
         run_mock.return_value = subprocess.CompletedProcess([], 0, "", "")
 
         output = run("backupdb")
 
-        clearsessions_mock.assert_called_once_with("clearsessions")
+        clearsessions.assert_called_once_with("clearsessions")
         cmd = run_mock.call_args.args[0]
         self.assertEqual(cmd[0], "pg_dump")
         self.assertIn("-Fc", cmd)
-        self.assertEqual(cmd[cmd.index("-f") + 1], backupdb.backup_filename)
-        self.assertEqual(
-            run_mock.call_args.kwargs["env"]["PGPASSWORD"], backupdb.POSTGRES_PASSWORD
-        )
+        self.assert_connection_args(run_mock)
+        backup_file = Path(cmd[cmd.index("-f") + 1])
+        self.assertEqual(backup_file.parent, self.tmp)
+        self.assertRegex(backup_file.name, r"^dump-django-pokedex-\d{12}\.backup$")
         self.assertIn("dumped to", output)
 
-    @mock.patch.object(backupdb, "call_command")
-    @mock.patch.object(backupdb.subprocess, "run")
+    def test_timestamp_is_computed_on_each_run(self, run_mock, _clearsessions):
+        run_mock.return_value = subprocess.CompletedProcess([], 0, "", "")
+
+        for minute in ("202609281200", "202609281201"):
+            with mock.patch.object(backupdb, "datetime") as dt_mock:
+                dt_mock.now.return_value.strftime.return_value = minute
+                run("backupdb")
+
+        names = [Path(c.args[0][-1]).name for c in run_mock.call_args_list]
+        self.assertEqual(
+            names,
+            [
+                "dump-django-pokedex-202609281200.backup",
+                "dump-django-pokedex-202609281201.backup",
+            ],
+        )
+
     def test_reports_failure(self, run_mock, _clearsessions):
         run_mock.return_value = subprocess.CompletedProcess([], 1, "", "boom")
 
@@ -319,35 +369,27 @@ class BackupDbTests(TestCase):
         self.assertIn("Failed to dump", output)
         self.assertIn("boom", output)
 
-    @mock.patch.object(backupdb, "call_command")
-    @mock.patch.object(backupdb.subprocess, "run", side_effect=FileNotFoundError)
-    def test_pg_dump_not_installed(self, _run, _clearsessions):
+    def test_pg_dump_not_installed(self, run_mock, _clearsessions):
+        run_mock.side_effect = FileNotFoundError
+
         self.assertIn("'pg_dump' not found", run("backupdb"))
 
 
-class RestoreDbTests(TestCase):
-    def setUp(self):
-        self.tmp = tempfile.TemporaryDirectory()
-        self.addCleanup(self.tmp.cleanup)
-        patcher = mock.patch.object(restoredb, "BACKUPS_DIR", self.tmp.name)
-        patcher.start()
-        self.addCleanup(patcher.stop)
-
+@mock.patch.object(restoredb.subprocess, "run")
+class RestoreDbTests(BackupTestCase):
     def _backup(self, name, age):
-        path = Path(self.tmp.name) / name
+        path = self.tmp / name
         path.touch()
         mtime = time.time() - age
         os.utime(path, (mtime, mtime))
         return path
 
-    def test_no_backups(self):
-        with mock.patch.object(restoredb.subprocess, "run") as run_mock:
-            output = run("restoredb")
+    def test_no_backups(self, run_mock):
+        output = run("restoredb")
 
         run_mock.assert_not_called()
         self.assertIn("No .backup files", output)
 
-    @mock.patch.object(restoredb.subprocess, "run")
     def test_restores_newest_backup(self, run_mock):
         run_mock.return_value = subprocess.CompletedProcess([], 0, "", "")
         self._backup("old.backup", age=3600)
@@ -360,11 +402,17 @@ class RestoreDbTests(TestCase):
         self.assertEqual(cmd[0], "pg_restore")
         self.assertEqual(cmd[-1], str(newest))
         self.assertIn("--if-exists", cmd)
+        self.assert_connection_args(run_mock)
         self.assertIn("successfully restored", output)
 
-    @mock.patch.object(restoredb.subprocess, "run")
     def test_reports_failure(self, run_mock):
         run_mock.return_value = subprocess.CompletedProcess([], 1, "", "boom")
         self._backup("a.backup", age=0)
 
         self.assertIn("Failed to restore", run("restoredb"))
+
+    def test_pg_restore_not_installed(self, run_mock):
+        run_mock.side_effect = FileNotFoundError
+        self._backup("a.backup", age=0)
+
+        self.assertIn("'pg_restore' not found", run("restoredb"))
