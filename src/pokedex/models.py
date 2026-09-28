@@ -103,6 +103,11 @@ class PokemonForm(TimestampedModel):
         ordering = ("pokemon__species", "form_order")
 
     def __str__(self):
+        # Sem pk não há como consultar M2M; consultar geraria um erro cuja
+        # mensagem chama __str__ de novo (RecursionError).
+        if self.pk is None:
+            return self.name
+
         match self.shinylocks.filter(active=True).first():
             case ShinyLock(lock_type=ShinyLock.LockTypeChoices.DISTRO_ONLY):
                 suffix = "🎁"

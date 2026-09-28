@@ -12,13 +12,8 @@ class SpecimenBulkUpdateView(FormView):
     template_name = "admin/home/specimen/bulk_change_form.html"
 
     def form_valid(self, form):
-        specimens_queryset = form.cleaned_data.pop("specimens")
-
-        update_fields = {
-            field_name: form.cleaned_data[field_name]
-            for field_name in form.changed_data
-            if field_name != "specimens"
-        }
+        specimens_queryset = form.cleaned_data["specimens"]
+        update_fields = form.get_updates()
 
         if update_fields:
             updated_count = specimens_queryset.update(**update_fields)

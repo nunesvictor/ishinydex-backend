@@ -1,12 +1,13 @@
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _lazy
 
 from home.models import Box
 
 
 class Command(BaseCommand):
-    help = _(
+    help = _lazy(
         (
             "Create mirror boxes for Pokémon Home. This will create the number of "
             "boxes passed in the `box_count` argument (default: 200) with 30 slots "

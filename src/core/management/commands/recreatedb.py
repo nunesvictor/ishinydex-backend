@@ -1,13 +1,10 @@
-import os
-
 from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.db import connections
 
+from psycopg2 import sql
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
-
-POSTGRES_DB = os.environ.get("POSTGRES_DB", "django-pokedex")
 
 
 class Command(BaseCommand):
@@ -26,6 +23,9 @@ class Command(BaseCommand):
         db_connection = connections["default"]
         psycopg2_module = db_connection.Database
 
+        # A conexão do próprio Django com o banco impediria o DROP.
+        db_connection.close()
+
         try:
             conn = psycopg2_module.connect(
                 dbname="postgres",
@@ -38,8 +38,15 @@ class Command(BaseCommand):
             conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
             cursor = conn.cursor()
 
-            cursor.execute(f"DROP DATABASE IF EXISTS {db_name};")
-            cursor.execute(f"CREATE DATABASE {db_name};")
+            # Identifier: nomes como "django-pokedex" precisam de aspas.
+            # WITH (FORCE) encerra conexões remanescentes (PostgreSQL 13+).
+            db_identifier = sql.Identifier(db_name)
+            cursor.execute(
+                sql.SQL("DROP DATABASE IF EXISTS {} WITH (FORCE);").format(
+                    db_identifier
+                )
+            )
+            cursor.execute(sql.SQL("CREATE DATABASE {};").format(db_identifier))
 
             cursor.close()
             conn.close()

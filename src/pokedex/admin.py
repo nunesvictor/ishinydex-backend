@@ -40,6 +40,10 @@ class PokemonFormInline(admin.TabularInline, CustomFieldsRendererMixin):
         "order",
     )
 
+    def has_add_permission(self, request, obj=None):
+        # Formas vêm da PokéAPI, assim como em PokemonFormAdmin.
+        return False
+
 
 @admin.register(Move)
 class MoveAdmin(admin.ModelAdmin):

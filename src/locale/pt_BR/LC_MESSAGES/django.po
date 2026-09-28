@@ -714,3 +714,7 @@ msgstr "Fechar"
 #: templates/admin/submit_line.html:36
 msgid "Delete"
 msgstr "Excluir"
+
+#: home/forms.py
+msgid "— keep current —"
+msgstr "— manter atual —"

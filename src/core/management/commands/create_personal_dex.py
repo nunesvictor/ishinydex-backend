@@ -2,10 +2,11 @@ from functools import reduce
 from operator import or_
 
 from django.core.management import call_command
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.db.models import Q
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _lazy
 
 from home.models import Box, PersonalDex
 from pokedex.models import PokemonForm
@@ -45,7 +46,7 @@ _DEFAULT_EXTRA_ARGS = (
 
 
 class Command(BaseCommand):
-    help = _(("Create a personal dex with the default settings."))
+    help = _lazy(("Create a personal dex with the default settings."))
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -63,7 +64,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write(
             self.style.MIGRATE_LABEL(
-                _("Working on PersonalDex: `%s`... " % options["dex_name"])
+                _("Working on PersonalDex: `%s`... ") % options["dex_name"]
             ),
             ending="",
         )
@@ -110,14 +111,17 @@ class Command(BaseCommand):
                 )
 
                 if choice not in ("y", "yes"):
-                    self.stdout.write(self.style.ERROR(_("aborted!")))
-                    exit(1)
+                    raise CommandError(_("aborted!"))
 
-                call_command("create_home_boxes")
+                call_command(
+                    "create_home_boxes", stdout=self.stdout, stderr=self.stderr
+                )
 
             call_command(
                 "create_home_scheme",
                 personal_dex_id=dex.id,
                 first_box_id=Box.objects.first().id,
                 clear=True,
+                stdout=self.stdout,
+                stderr=self.stderr,
             )

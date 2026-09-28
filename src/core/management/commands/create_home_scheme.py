@@ -1,7 +1,8 @@
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.db.models import Prefetch, QuerySet
-from django.utils.translation import gettext_lazy as _
+from django.utils.translation import gettext as _
+from django.utils.translation import gettext_lazy as _lazy
 
 from core.consts import GEN_FIRST_FORM_NAMES
 from home.models import Box, PersonalDex, Slot
@@ -9,7 +10,7 @@ from pokedex.models import PokemonForm
 
 
 class Command(BaseCommand):
-    help = _(
+    help = _lazy(
         "Creates a distribution scheme for `PokemonForm` objects linked to the "
         "`PersonalDex` across Pokémon Home's mirror boxes."
     )
