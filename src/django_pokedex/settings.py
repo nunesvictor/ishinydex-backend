@@ -47,7 +47,6 @@ INSTALLED_APPS = [
     # 3rd party apps
     "rest_framework",
     "rest_framework.authtoken",
-    "debug_toolbar",
     # local apps
     "core",
     "home",
@@ -59,7 +58,6 @@ MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
-    "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
@@ -208,8 +206,14 @@ TYPE_SPRITES_DEFAULT_GEN = "generation-viii"
 TYPE_SPRITES_ROOT = SPRITES_ROOT / "types"
 TYPE_SPRITES_URL = SPRITES_URL / "types"
 
-DEBUG_TOOLBAR_CONFIG = {
-    "SHOW_TOOLBAR_CALLBACK": lambda _: config(
-        "DEBUG_TOOLBAR", default=False, cast=bool
-    ),
-}
+# django-debug-toolbar é dependência de desenvolvimento: só é carregado quando
+# habilitado, para que a imagem de produção funcione sem o grupo "dev".
+DEBUG_TOOLBAR = DEBUG and config("DEBUG_TOOLBAR", default=False, cast=bool)
+
+if DEBUG_TOOLBAR:
+    INSTALLED_APPS.append("debug_toolbar")
+    MIDDLEWARE.insert(
+        MIDDLEWARE.index("django.middleware.common.CommonMiddleware") + 1,
+        "debug_toolbar.middleware.DebugToolbarMiddleware",
+    )
+    DEBUG_TOOLBAR_CONFIG = {"SHOW_TOOLBAR_CALLBACK": lambda _: True}

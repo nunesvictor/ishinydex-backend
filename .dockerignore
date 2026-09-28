@@ -1,0 +1,31 @@
+# Somente o necessário para o build entra no contexto.
+# Tudo o mais (VCS, caches, segredos, dados locais) fica de fora.
+
+.git
+.gitignore
+.vscode
+.cache
+.mypy_cache
+.pytest_cache
+**/__pycache__
+**/*.py[cod]
+**/.ipynb_checkpoints
+
+# Segredos: nunca devem ir para a imagem
+.env
+**/.env
+.env.*
+!.env.prod.example
+
+# Dados locais / gerados
+backups
+src/media
+src/staticfiles
+src/notebooks/untracked
+**/*.mo
+**/*.log
+
+# Arquivos do próprio Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml

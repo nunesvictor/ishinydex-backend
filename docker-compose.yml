@@ -1,11 +1,25 @@
 volumes:
   data:
   sprites:
-  staticfiles:
 
 services:
+  # One-shot: popula o volume `sprites` (só reescreve quando a versão muda).
+  # O download da PokeAPI acontece apenas no build desta imagem; depois disso
+  # tudo roda offline a partir do volume local.
+  sprites:
+    build:
+      context: .
+      target: sprites-data
+    image: ${APP_NAME:-django-pokedex}-sprites:${APP_VERSION:-latest}
+    restart: "no"
+    volumes:
+      - sprites:/data
+
   db:
-    image: postgres:${POSTGRES_VERSION:-latest}
+    # Fixo em 17: precisa bater com o pg_dump/pg_restore da imagem (Debian trixie
+    # → postgresql-client 17). Alpine para manter a collation (musl) dos dados já
+    # existentes no volume `data`.
+    image: postgres:17-alpine
     env_file:
       - .env
     environment:
@@ -22,8 +36,12 @@ services:
   jupyter:
     command: jupyter lab --ServerApp.token='${JUPYTER_TOKEN:-}' --ip=0.0.0.0 --port=8888 --allow-root --no-browser --notebook-dir=notebooks
     depends_on:
-      - db
-      - web
+      db:
+        condition: service_started
+      web:
+        condition: service_started
+      sprites:
+        condition: service_completed_successfully
     env_file:
       - .env
     environment:
@@ -36,16 +54,18 @@ services:
     pull_policy: never
     volumes:
       - .:${APP_HOME}
-      - sprites:${APP_HOME}/src/media/sprites
+      - sprites:${APP_HOME}/src/media/sprites:ro
 
   web:
     build:
       context: .
-      args:
-        - POETRY_ARGS=--with dev --with prod
+      target: dev
     command: python manage.py runserver 0.0.0.0:8000
     depends_on:
-      - db
+      db:
+        condition: service_started
+      sprites:
+        condition: service_completed_successfully
     env_file:
       - .env
     environment:
@@ -60,5 +80,34 @@ services:
     restart: always
     volumes:
       - .:${APP_HOME}
-      - sprites:${APP_HOME}/src/media/sprites
-      - staticfiles:${APP_HOME}/src/media/staticfiles
+      - sprites:${APP_HOME}/src/media/sprites:ro
+
+  # Execução "de produção" local: imagem prod (uwsgi, DEBUG=False), sem código
+  # montado. Não sobe por padrão; use:
+  #   docker compose --profile prod up -d --build prod
+  # Compartilha o banco `db` e o volume `sprites` com o ambiente de dev.
+  prod:
+    profiles: [prod]
+    build:
+      context: .
+      target: prod
+    depends_on:
+      db:
+        condition: service_started
+      sprites:
+        condition: service_completed_successfully
+    env_file:
+      - .env
+      - path: .env.prod  # overrides opcionais (ex.: SECRET_KEY própria)
+        required: false
+    environment:
+      DEBUG: "False"
+      DEBUG_TOOLBAR: "False"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    image: ${APP_NAME:-django-pokedex}-prod:${APP_VERSION:-latest}
+    ports:
+      - "${X_PROD_PORT:-8080}:8000"
+    restart: unless-stopped
+    volumes:
+      - sprites:${APP_HOME}/src/media/sprites:ro

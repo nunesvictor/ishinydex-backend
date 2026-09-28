@@ -1,109 +1,211 @@
+# syntax=docker/dockerfile:1
+
+ARG PYTHON_VERSION=3.14
+ARG POETRY_VERSION=2.4.1
+
 # ==========================================
-# STAGE 1: Asset Downloader (Sprites)
+# STAGE: sprites
+# Baixa apenas os sprites efetivamente usados pela aplicação
+# (ver pokedex/renderers.py, pokedex/resolvers.py e core/admin_mixins.py).
 # ==========================================
-FROM alpine/git:latest AS sprite-builder
+FROM alpine/git:latest AS sprites
+
+# Quantização de paleta com pngquant (mantém PNG, resolução e caminhos).
+# Reduz ~70% o tamanho dos sprites HOME (512x512) com perda visual mínima.
+# Use --build-arg SPRITES_OPTIMIZE=0 para manter os arquivos originais.
+ARG SPRITES_OPTIMIZE=1
 
 WORKDIR /tmp/sprites
 
-RUN git clone --filter=blob:none --no-checkout https://github.com/PokeAPI/sprites.git . && \
-    git sparse-checkout init --cone && \
-    git sparse-checkout set sprites/items sprites/pokemon sprites/types && \
-    git checkout
+RUN apk add --no-cache pngquant
+
+RUN git clone --depth 1 --filter=blob:none --no-checkout \
+        https://github.com/PokeAPI/sprites.git . && \
+    git sparse-checkout set --no-cone \
+        '/sprites/items/*.png' \
+        '/sprites/pokemon/*.png' \
+        '/sprites/pokemon/shiny/*.png' \
+        '/sprites/pokemon/female/*.png' \
+        '/sprites/pokemon/shiny/female/*.png' \
+        '/sprites/pokemon/other/home/' \
+        '/sprites/types/generation-viii/sword-shield/' && \
+    git checkout && \
+    printf '%s optimize=%s\n' "$(git rev-parse HEAD)" "$SPRITES_OPTIMIZE" \
+        > sprites/.version && \
+    rm -rf .git && \
+    if [ "$SPRITES_OPTIMIZE" = "1" ]; then \
+        find sprites -type f -name '*.png' -print0 | \
+            xargs -0 -P "$(nproc)" -n 32 \
+                pngquant --quality 80-95 --speed 3 --strip \
+                         --skip-if-larger --force --ext .png || true; \
+    fi
 
 # ==========================================
-# STAGE 2: Final Application Image
+# TARGET: sprites-data
+# Imagem one-shot que popula o volume de sprites (ver serviço `sprites` no
+# docker-compose.yml). Os sprites NÃO fazem parte das imagens dev/prod: ficam
+# num volume Docker local, baixado uma única vez e disponível offline.
+# O volume só é reescrito quando a versão (commit da PokeAPI + otimização) muda.
 # ==========================================
-FROM python:3.14-slim
+FROM busybox:stable AS sprites-data
 
-# 1. Define Arguments and Environment Variables
+COPY --from=sprites /tmp/sprites/sprites/ /sprites/
+
+COPY --chmod=755 <<'SCRIPT' /usr/local/bin/sync-sprites
+#!/bin/sh
+set -e
+if cmp -s /sprites/.version /data/.version; then
+    echo "[sprites] volume já atualizado: $(cat /data/.version)"
+    exit 0
+fi
+echo "[sprites] populando volume: $(cat /sprites/.version)"
+find /data -mindepth 1 -delete
+cp -a /sprites/. /data/
+echo "[sprites] concluído"
+SCRIPT
+
+CMD ["sync-sprites"]
+
+# ==========================================
+# STAGE: builder
+# Toolchain de compilação (gcc, gettext, locales, poetry) que NÃO vai para a
+# imagem final. Gera o virtualenv em /opt/venv.
+# ==========================================
+FROM python:${PYTHON_VERSION}-slim AS builder
+
+ARG POETRY_VERSION
+
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PIP_NO_CACHE_DIR=1 \
+    POETRY_NO_INTERACTION=1 \
+    POETRY_VIRTUALENVS_CREATE=false \
+    PYTHONDONTWRITEBYTECODE=1
+
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        gcc \
+        libc6-dev \
+        gettext \
+        locales && \
+    sed -i '/pt_BR.UTF-8/s/^# //g' /etc/locale.gen && locale-gen && \
+    rm -rf /var/lib/apt/lists/*
+
+# Poetry fica isolado em seu próprio venv; o venv da aplicação não o contém.
+RUN python -m venv /opt/poetry && \
+    /opt/poetry/bin/pip install "poetry==${POETRY_VERSION}" && \
+    python -m venv /opt/venv
+
+ENV VIRTUAL_ENV=/opt/venv \
+    PATH="/opt/venv/bin:$PATH"
+
+WORKDIR /build
+COPY pyproject.toml poetry.lock ./
+
+# ------------------------------------------
+# Dependências de produção
+# ------------------------------------------
+FROM builder AS deps-prod
+RUN --mount=type=cache,target=/root/.cache/pypoetry \
+    /opt/poetry/bin/poetry install --no-root --only main,prod && \
+    find /opt/venv -name '__pycache__' -prune -exec rm -rf {} +
+
+# ------------------------------------------
+# Dependências de desenvolvimento (main + prod + dev)
+# ------------------------------------------
+FROM builder AS deps-dev
+RUN --mount=type=cache,target=/root/.cache/pypoetry \
+    /opt/poetry/bin/poetry install --no-root --with dev,prod && \
+    find /opt/venv -name '__pycache__' -prune -exec rm -rf {} +
+
+# ------------------------------------------
+# Compila traduções e coleta estáticos (usa apenas as deps de produção).
+# Valores fictícios satisfazem o settings.py sem expor segredos reais.
+# ------------------------------------------
+FROM deps-prod AS app
+
+WORKDIR /build/src
+COPY src/ ./
+
+RUN export SECRET_KEY=build-only POSTGRES_PASSWORD=build-only && \
+    python manage.py compilemessages && \
+    python manage.py collectstatic --clear --no-input --verbosity 0
+
+# ==========================================
+# STAGE: base
+# Runtime mínimo compartilhado por dev e prod.
+# ==========================================
+FROM python:${PYTHON_VERSION}-slim AS base
+
 ARG APP_NAME="django-pokedex"
 ARG APP_HOME="/home/guest/${APP_NAME}"
 
 ENV HOME=/home/guest \
+    APP_HOME=${APP_HOME} \
     DJANGO_SETTINGS_MODULE=django_pokedex.settings \
     LANG=pt_BR.UTF-8 \
     LANGUAGE=pt_BR:en \
     LC_ALL=pt_BR.UTF-8 \
-    PATH="/home/guest/.local/bin:/home/guest/.cargo/bin:$PATH" \
+    PATH="/opt/venv/bin:/home/guest/.local/bin:$PATH" \
     PYTHONPATH="${APP_HOME}/src" \
     PYTHONUNBUFFERED=1 \
-    TZ=America/Araguaina
+    TZ=America/Araguaina \
+    VIRTUAL_ENV=/opt/venv
 
-ARG POETRY_ARGS=""
-ENV POETRY_ARGS=${POETRY_ARGS}
-
-# 2. Create User and Base Directory Structure
-RUN groupadd -g 1000 guest && \
-    useradd -u 1000 -g 1000 -d ${HOME} -s /bin/bash guest && \
-    mkdir -p ${APP_HOME}/src/media/sprites/pokemon \
-             ${APP_HOME}/src/media/sprites/types \
-             ${HOME}/.jupyter && \
-    chown -R 1000:1000 ${HOME}
-
-# 3. Install OS Dependencies, Configure Locale/Timezone, and Clean Up
+# postgresql-client: pg_dump/pg_restore (backupdb/restoredb)
+# cron: usado pelo docker-entrypoint.sh quando REPLICA=1
 RUN apt-get update && \
-    DEBIAN_FRONTEND=noninteractive LC_ALL=C apt-get install -y --no-install-recommends \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         postgresql-client \
-        python3-dev \
-        zlib1g-dev \
-        libpq-dev \
-        gettext \
-        locales \
         tzdata \
-        gnupg \
-        curl \
-        cron \
-        g++ \
-        gcc \
-        git && \
-    if echo "$POETRY_ARGS" | grep -qE "(--with|--only| -E | --extras )dev"; then \
-        DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends bash-completion; \
-    fi && \
+        cron && \
     ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
-    sed -i '/pt_BR.UTF-8/s/^# //g' /etc/locale.gen && locale-gen && \
     chmod u+s /usr/sbin/cron && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+    groupadd -g 1000 guest && \
+    useradd -u 1000 -g 1000 -d ${HOME} -s /bin/bash -m guest && \
+    # src/media/sprites: ponto de montagem do volume (target sprites-data)
+    mkdir -p ${APP_HOME}/src/media/sprites && chown -R 1000:1000 ${APP_HOME} && \
+    rm -rf /var/lib/apt/lists/* /var/cache/debconf/*-old /var/log/*
 
-# 4. Configure User's Bash
-RUN cp /etc/skel/.bashrc ${HOME}/.bashrc && \
-    chown 1000:1000 ${HOME}/.bashrc && \
-    chmod 644 ${HOME}/.bashrc && \
-    case "$POETRY_ARGS" in \
-        *--with*dev*|*--only*dev*|*" -E "*dev*|*--extras*dev*) \
-            curl -fsSL https://raw.githubusercontent.com/django/django/main/extras/django_bash_completion -o ${HOME}/.django_bash_completion && \
-            printf '\n[ -f "${HOME}/.django_bash_completion" ] && source "${HOME}/.django_bash_completion"\n' >> ${HOME}/.bashrc && \
-            chown 1000:1000 ${HOME}/.django_bash_completion && \
-            chmod 644 ${HOME}/.django_bash_completion ;; \
-        *) \
-            echo "Ambiente de produção detectado. Pulando autocomplete do Django." ;; \
-    esac
+# Apenas o locale pt_BR já compilado (evita o pacote `locales` inteiro)
+COPY --from=builder /usr/lib/locale/locale-archive /usr/lib/locale/locale-archive
 
-# 5. Copy Sprites from Builder Stage
-COPY --from=sprite-builder --chown=1000:1000 /tmp/sprites/sprites/items/ ${APP_HOME}/src/media/sprites/items/
-COPY --from=sprite-builder --chown=1000:1000 /tmp/sprites/sprites/pokemon/ ${APP_HOME}/src/media/sprites/pokemon/
-COPY --from=sprite-builder --chown=1000:1000 /tmp/sprites/sprites/types/ ${APP_HOME}/src/media/sprites/types/
-
-# 6. Switch to guest user
-USER guest
-WORKDIR ${APP_HOME}
-
-# 7. Install Dependencies
-COPY --chown=1000:1000 pyproject.toml poetry.lock ./
-RUN curl -sSL https://install.python-poetry.org | python3 - && \
-    poetry config virtualenvs.create false && \
-    poetry install ${POETRY_ARGS:-} --no-interaction --no-ansi && \
-    rm -rf ~/.cache/pypoetry ~/.cache/pip pyproject.toml poetry.lock
-
-# 8. Copy Source Code
-COPY --chown=1000:1000 .jupyter/ ${HOME}/.jupyter/
-COPY --chown=1000:1000 src/ ${APP_HOME}/src/
-COPY --chown=1000:1000 *.sh ./
+COPY --chown=1000:1000 docker-entrypoint.sh ${APP_HOME}/
 
 WORKDIR ${APP_HOME}/src
-
-# 9. Compile Messages and Collect Statics
-RUN python manage.py compilemessages && \
-    python manage.py collectstatic --clear --no-input
-
 ENTRYPOINT ["bash", "../docker-entrypoint.sh"]
+
+# ==========================================
+# TARGET: dev  (docker compose build → target: dev)
+# ==========================================
+FROM base AS dev
+
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        bash-completion && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY --from=deps-dev /opt/venv /opt/venv
+COPY --chown=1000:1000 .jupyter/ ${HOME}/.jupyter/
+COPY --from=app --chown=1000:1000 /build/src/ ${APP_HOME}/src/
+
+USER guest
+
+ADD --chown=1000:1000 --chmod=644 \
+    https://raw.githubusercontent.com/django/django/main/extras/django_bash_completion \
+    ${HOME}/.django_bash_completion
+RUN printf '\n[ -f "${HOME}/.django_bash_completion" ] && source "${HOME}/.django_bash_completion"\n' \
+    >> ${HOME}/.bashrc
+
+CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+
+# ==========================================
+# TARGET: prod  (padrão — último estágio)
+# ==========================================
+FROM base AS prod
+
+COPY --from=deps-prod /opt/venv /opt/venv
+COPY --from=app --chown=1000:1000 /build/src/ ${APP_HOME}/src/
+
+USER guest
+
 CMD ["uwsgi", "--ini", "uwsgi/django-pokedex.ini"]

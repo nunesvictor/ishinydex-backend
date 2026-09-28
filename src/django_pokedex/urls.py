@@ -21,8 +21,6 @@ from django.contrib import admin
 from django.urls import include, path
 from django.views.generic import RedirectView
 
-from debug_toolbar.toolbar import debug_toolbar_urls
-
 urlpatterns = [
     path(
         "favicon.ico",
@@ -36,4 +34,8 @@ urlpatterns = [
 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-urlpatterns += debug_toolbar_urls() if settings.DEBUG else []
+
+if settings.DEBUG_TOOLBAR:
+    from debug_toolbar.toolbar import debug_toolbar_urls
+
+    urlpatterns += debug_toolbar_urls()
