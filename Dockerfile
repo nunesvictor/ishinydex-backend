@@ -181,7 +181,8 @@ FROM base AS dev
 
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-        bash-completion && \
+        bash-completion \
+        gettext && \
     rm -rf /var/lib/apt/lists/*
 
 COPY --from=deps-dev /opt/venv /opt/venv
