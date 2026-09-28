@@ -66,7 +66,7 @@ class PokemonFormType(TimestampedModel):
 
 
 class PokemonForm(TimestampedModel):
-    name = models.CharField(_("name"), max_length=255)
+    name = models.CharField(_("name"), max_length=255, unique=True)
     pokeapi_id = models.PositiveIntegerField(_("PokéAPI ID"))
     order = models.PositiveIntegerField(_("order"))
     form_order = models.PositiveIntegerField(_("form order"))
@@ -145,7 +145,7 @@ class PokemonMoveVersion(TimestampedModel):
 
 
 class PokemonSpecies(TimestampedModel):
-    name = models.CharField(_("name"), max_length=255)
+    name = models.CharField(_("name"), max_length=255, unique=True)
     order = models.PositiveIntegerField(_("order"))
     gender_rate = models.IntegerField(_("gender rate"))
     capture_rate = models.PositiveIntegerField(_("capture rate"))
@@ -241,7 +241,7 @@ class PokemonType(TimestampedModel):
 
 
 class Pokemon(TimestampedModel):
-    name = models.CharField(_("name"), max_length=255)
+    name = models.CharField(_("name"), max_length=255, unique=True)
     pokeapi_id = models.PositiveIntegerField(_("PokéAPI ID"), default=1)
     base_experience = models.PositiveIntegerField(
         _("base experience"), blank=True, null=True
@@ -294,7 +294,7 @@ class ShinyLock(TimestampedModel):
 
 
 class Version(TimestampedModel):
-    name = models.CharField(_("name"), max_length=255)
+    name = models.CharField(_("name"), max_length=255, unique=True)
     version_group = models.ForeignKey("VersionGroup", on_delete=models.CASCADE)
 
     class Meta:
@@ -319,7 +319,7 @@ class VersionGameIndex(TimestampedModel):
 
 
 class VersionGroup(TimestampedModel):
-    name = models.CharField(_("name"), max_length=255)
+    name = models.CharField(_("name"), max_length=255, unique=True)
     generation = models.CharField(_("game generation"), max_length=255)
     order = models.PositiveIntegerField(_("order"))
     pokedexes = models.JSONField(_("pokédexes"), default=list)

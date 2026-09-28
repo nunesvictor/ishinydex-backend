@@ -32,7 +32,7 @@ class PokemonSpriteResolverTests(TestCase):
         self.assertEqual(path, BASE / "201-b.png")
 
     def test_non_default_form_with_same_name_as_pokemon(self):
-        _, pokemon, _ = f.make_full_pokemon("vivillon", 666)
+        pokemon = f.make_pokemon(f.make_species(name="vivillon"), pokeapi_id=666)
         form = f.make_form(pokemon, name="vivillon", is_default=False)
 
         path = PokemonSpriteResolver(pokemon, form, shiny=False).resolve(BASE)

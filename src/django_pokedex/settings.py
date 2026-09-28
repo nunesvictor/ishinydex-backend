@@ -165,6 +165,12 @@ MEDIA_URL = "/media/"
 # Database backups (backupdb / restoredb)
 BACKUPS_DIR = BASE_DIR.parent / "backups"
 
+# PokéAPI (sync_pokeapi)
+# POKEAPI_URL pode apontar para uma instância local da PokéAPI; se ela estiver
+# inacessível (e DEBUG=False), o cliente recorre à API oficial.
+POKEAPI_URL = config("POKEAPI_URL", default="https://pokeapi.co")
+POKEAPI_CACHE_DIR = BASE_DIR.parent / ".cache" / "pokeapi"
+
 # Django REST Framework
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [

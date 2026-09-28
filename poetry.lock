@@ -1989,21 +1989,6 @@ files = [
 ]
 
 [[package]]
-name = "pokebase"
-version = "1.4.1"
-description = "A Python wrapper for the friendly PokeAPI database"
-optional = false
-python-versions = "*"
-groups = ["main"]
-files = [
-    {file = "pokebase-1.4.1-py3-none-any.whl", hash = "sha256:0c3f6dcd010711f5e7e9e4bc9a0bacf094b92a9144499c449c35f00a8ce46478"},
-    {file = "pokebase-1.4.1.tar.gz", hash = "sha256:036116b1696dce7ef96ead3e892476648d6e3eec52fbd1e63677f944de259ecc"},
-]
-
-[package.dependencies]
-requests = "*"
-
-[[package]]
 name = "prometheus-client"
 version = "0.24.1"
 description = "Python client for the Prometheus monitoring system."
@@ -2681,14 +2666,14 @@ files = [
 
 [[package]]
 name = "requests"
-version = "2.33.1"
+version = "2.34.2"
 description = "Python HTTP for Humans."
 optional = false
 python-versions = ">=3.10"
 groups = ["main", "dev"]
 files = [
-    {file = "requests-2.33.1-py3-none-any.whl", hash = "sha256:4e6d1ef462f3626a1f0a0a9c42dd93c63bad33f9f1c1937509b8c5c8718ab56a"},
-    {file = "requests-2.33.1.tar.gz", hash = "sha256:18817f8c57c6263968bc123d237e3b8b08ac046f5456bd1e307ee8f4250d3517"},
+    {file = "requests-2.34.2-py3-none-any.whl", hash = "sha256:2a0d60c172f83ac6ab31e4554906c0f3b3588d37b5cb939b1c061f4907e278e0"},
+    {file = "requests-2.34.2.tar.gz", hash = "sha256:f288924cae4e29463698d6d60bc6a4da69c89185ad1e0bcc4104f584e960b9ed"},
 ]
 
 [package.dependencies]
@@ -3194,4 +3179,4 @@ test = ["pytest", "websockets"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.14,<3.15"
-content-hash = "e9e7b350b6c3755df7b6615eb8b3d5e580d9a908e725b23b849fc1261a3761a9"
+content-hash = "3463139c7a61c1be0f1c7e39fcaf225ff8a0bae0626e2ad0a84cd80c0480c42d"

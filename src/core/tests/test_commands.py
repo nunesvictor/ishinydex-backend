@@ -15,9 +15,12 @@ from django.utils import translation
 
 from psycopg2 import sql
 
-from core.management.commands import backupdb, recreatedb, restoredb
+from core.management.commands import backupdb, recreatedb, restoredb, sync_pokeapi
+from core.services.pokeapi import PokeAPIClient
 from core.tests import factories as f
 from home.models import Box, PersonalDex, Slot
+from pokedex.models import PokemonSpecies
+from pokedex.tests.pokeapi_fixtures import FakePokeAPIClient
 
 
 def run(command, *args, **kwargs):
@@ -263,6 +266,152 @@ class CreatePersonalDexTests(TestCase):
             run("create_personal_dex", "Main", "-i")
 
         self.assertFalse(PersonalDex.objects.exists())
+
+
+class SyncPokeAPICommandTests(TestCase):
+    def setUp(self):
+        self.fake = FakePokeAPIClient()
+        patcher = mock.patch(
+            "core.management.commands.sync_pokeapi.Command.get_client",
+            return_value=self.fake,
+        )
+        self.get_client = patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def test_full_sync(self):
+        with translation.override("en"):
+            output = run("sync_pokeapi")
+
+        self.assertIn("species=3", output)
+        self.assertIn("pokemon=4", output)
+        self.assertEqual(PokemonSpecies.objects.count(), 3)
+
+    def test_options_are_passed_to_client(self):
+        run("sync_pokeapi", "pikachu", "--refresh", "--workers", "3")
+
+        options = self.get_client.call_args.kwargs
+        self.assertTrue(options["refresh"])
+        self.assertEqual(options["workers"], 3)
+        self.assertEqual(
+            list(PokemonSpecies.objects.values_list("name", flat=True)), ["pikachu"]
+        )
+
+    def test_unknown_species(self):
+        with self.assertRaisesMessage(CommandError, "missingno"):
+            run("sync_pokeapi", "missingno")
+
+
+class SyncPokeAPIGetClientTests(SimpleTestCase):
+    def test_builds_client_from_options(self):
+        client = sync_pokeapi.Command().get_client(refresh=True, workers=3)
+
+        self.assertIsInstance(client, PokeAPIClient)
+        self.assertTrue(client.refresh)
+        self.assertEqual(client.max_workers, 3)
+
+
+class LinkSpecimensTests(TestCase):
+    def setUp(self):
+        _, _, self.form = f.make_full_pokemon("bulbasaur", 1)
+        _, _, self.other_form = f.make_full_pokemon("ivysaur", 2)
+        self.box = f.make_box()
+        self.dex = f.make_personal_dex(self.form, name="Shiny", is_shiny_dex=True)
+        self.slot = self._scheme_slot(0, self.form, self.dex)
+
+    def _scheme_slot(self, col, form, dex):
+        slot = self.box.slots.get(row=0, col=col)
+        slot.form, slot.personal_dex = form, dex
+        slot.save()
+        return slot
+
+    def test_prefers_specimen_matching_dex_shininess(self):
+        f.make_specimen(self.form, is_shiny=False)
+        shiny = f.make_specimen(self.form, is_shiny=True)
+
+        run("link_specimens")
+
+        self.slot.refresh_from_db()
+        self.assertEqual(self.slot.specimen, shiny)
+
+    def test_falls_back_to_other_shininess(self):
+        regular = f.make_specimen(self.form, is_shiny=False)
+
+        run("link_specimens")
+
+        self.slot.refresh_from_db()
+        self.assertEqual(self.slot.specimen, regular)
+
+    def test_strict_does_not_fall_back(self):
+        f.make_specimen(self.form, is_shiny=False)
+
+        output = run("link_specimens", "--strict")
+
+        self.slot.refresh_from_db()
+        self.assertIsNone(self.slot.specimen)
+        self.assertIn("1", output)
+
+    def test_never_reuses_deposited_specimens(self):
+        specimen = f.make_specimen(self.form, is_shiny=True)
+        second = self._scheme_slot(1, self.form, self.dex)
+
+        run("link_specimens")
+
+        self.slot.refresh_from_db()
+        second.refresh_from_db()
+        self.assertEqual(self.slot.specimen, specimen)
+        self.assertIsNone(second.specimen)
+
+        run("link_specimens")
+
+        second.refresh_from_db()
+        self.assertIsNone(second.specimen)
+
+    def test_only_given_dex(self):
+        other_dex = f.make_personal_dex(self.other_form, name="Regular")
+        other_slot = self._scheme_slot(1, self.other_form, other_dex)
+        f.make_specimen(self.form, is_shiny=True)
+        f.make_specimen(self.other_form)
+
+        run("link_specimens", "Regular")
+
+        self.slot.refresh_from_db()
+        other_slot.refresh_from_db()
+        self.assertIsNone(self.slot.specimen)
+        self.assertIsNotNone(other_slot.specimen)
+
+    def test_dex_by_id_and_unknown(self):
+        f.make_specimen(self.form, is_shiny=True)
+
+        run("link_specimens", str(self.dex.pk))
+        self.slot.refresh_from_db()
+        self.assertIsNotNone(self.slot.specimen)
+
+        with self.assertRaises(CommandError):
+            run("link_specimens", "nope")
+
+    def test_dry_run_does_not_save(self):
+        f.make_specimen(self.form, is_shiny=True)
+
+        output = run("link_specimens", "--dry-run")
+
+        self.slot.refresh_from_db()
+        self.assertIsNone(self.slot.specimen)
+        self.assertIn("bulbasaur", output)
+
+    def test_query_count_does_not_grow_with_slots(self):
+        for col in range(1, 6):
+            self._scheme_slot(col, self.form, self.dex)
+        for _ in range(6):
+            f.make_specimen(self.form, is_shiny=True)
+
+        # savepoint, dexes, slots, specimens, bulk update, release
+        with self.assertNumQueries(6):
+            run("link_specimens", str(self.dex.pk))
+
+        self.assertEqual(
+            Slot.objects.filter(personal_dex=self.dex, specimen__isnull=False).count(),
+            6,
+        )
 
 
 class RecreateDbTests(SimpleTestCase):
