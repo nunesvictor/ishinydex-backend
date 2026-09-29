@@ -473,6 +473,20 @@ class DepositTests(HomeAPITestCase):
 
 
 class SpecimenViewSetTests(HomeAPITestCase):
+    def test_filter_alpha_and_from_go(self):
+        alpha = f.make_specimen(self.bulbasaur, is_alpha=True)
+        go = f.make_specimen(self.bulbasaur, is_from_go=True)
+        both = f.make_specimen(self.bulbasaur, is_alpha=True, is_from_go=True)
+
+        def ids(**params):
+            response = self.client.get(reverse("api:specimen-list"), params)
+            return {s["id"] for s in response.data["results"]}
+
+        self.assertEqual(ids(is_alpha="true"), {alpha.pk, both.pk})
+        self.assertEqual(ids(is_from_go="true"), {go.pk, both.pk})
+        self.assertEqual(ids(is_alpha="true", is_from_go="true"), {both.pk})
+        self.assertNotIn(alpha.pk, ids(is_alpha="false"))
+
     def test_filter_available(self):
         free = f.make_specimen(self.bulbasaur)
 
