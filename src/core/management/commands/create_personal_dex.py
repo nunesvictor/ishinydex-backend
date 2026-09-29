@@ -1,48 +1,11 @@
-from functools import reduce
-from operator import or_
-
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
-from django.db.models import Q
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy as _lazy
 
 from home.models import Box, PersonalDex
-from pokedex.models import PokemonForm
-
-_DEFAULT_FORM_ONLY_LIST = [
-    "arceus",
-    "calyrex",
-    "genesect",
-    "koraidon",
-    "miraidon",
-    "mothim",
-    "pichu",
-    "scatterbug",
-    "silvally",
-    "spewpa",
-]
-
-_DEFAULT_KWARGS_LOOKUPS = (
-    {"name__icontains": "-totem"},
-    {"name__iendswith": "-origin"},
-    {"name__iendswith": "-power-construct"},
-    {"name__iendswith": "-starter"},
-    {"name__iexact": "eternatus-eternamax"},
-    {"name__iexact": "greninja-battle-bond"},
-    {"name__iexact": "minior-red-meteor"},
-    {"name__istartswith": "calyrex-"},
-    {"name__istartswith": "kyurem-"},
-    {"name__istartswith": "necrozma-"},
-    {"name__istartswith": "ogerpon-"},
-    {"name__istartswith": "pikachu-"},
-    {"name__istartswith": "rockruff-"},
-)
-
-_DEFAULT_EXTRA_ARGS = (
-    Q(pokemon__name="alcremie") & ~Q(name__istartswith="alcremie-vanilla"),
-)
+from home.services import default_forms
 
 
 class Command(BaseCommand):
@@ -77,17 +40,7 @@ class Command(BaseCommand):
             },
         )
 
-        forms = (
-            PokemonForm.objects.filter(is_battle_only=False)
-            .exclude(
-                Q(pokemon__species__name__in=_DEFAULT_FORM_ONLY_LIST)
-                & Q(is_default=False)
-            )
-            .exclude(
-                reduce(or_, (Q(**lookup) for lookup in _DEFAULT_KWARGS_LOOKUPS), Q())
-            )
-            .exclude(*_DEFAULT_EXTRA_ARGS)
-        )
+        forms = default_forms()
 
         dex.forms.clear()
         dex.forms.add(*forms)

@@ -9,7 +9,7 @@ from rest_framework.test import APITestCase
 
 from api.serializers.home import type_sprite_url
 from core.tests import factories as f
-from home.models import Slot, Specimen
+from home.models import PersonalDex, Slot, Specimen
 
 
 class HomeAPITestCase(APITestCase):
@@ -129,6 +129,93 @@ class PersonalDexViewSetTests(HomeAPITestCase):
                 },
             ],
         )
+
+    def test_preview_does_not_create(self):
+        # HOME 1 e 2 são do dex; HOME 3 está livre. Formas: as 3 do setUp.
+        response = self.client.get(
+            reverse("api:personal-dex-preview"), {"force_new_box": "true"}
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.data,
+            {
+                "forms": 3,
+                "boxes_needed": 1,
+                "largest_free_run": 1,
+                "enough_space": True,
+                "first_box": {
+                    "id": self.other_box.pk,
+                    "name": "HOME 3",
+                    "position": self.other_box.position,
+                },
+            },
+        )
+        self.assertEqual(PersonalDex.objects.count(), 1)
+
+    def test_preview_without_space(self):
+        self.set_slot(self.other_box, 0, 0, self.charmander, dex=self.dex)
+
+        response = self.client.get(reverse("api:personal-dex-preview"))
+
+        self.assertFalse(response.data["enough_space"])
+        self.assertIsNone(response.data["first_box"])
+        self.assertEqual(response.data["largest_free_run"], 0)
+
+    def test_create_default_dex(self):
+        response = self.client.post(
+            reverse("api:personal-dex-list"),
+            {"name": "Living Dex", "is_shiny_dex": False, "force_new_box": True},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        dex = PersonalDex.objects.get(name="Living Dex")
+        self.assertEqual(
+            response.data,
+            {
+                "id": dex.pk,
+                "name": "Living Dex",
+                "is_shiny_dex": False,
+                "force_new_box": True,
+                "total": 3,
+                "registered": 0,
+            },
+        )
+        self.assertEqual(
+            set(Slot.objects.filter(personal_dex=dex).values_list("box", flat=True)),
+            {self.other_box.pk},
+        )
+
+    def test_create_validation_errors(self):
+        duplicate = self.client.post(
+            reverse("api:personal-dex-list"), {"name": "Shiny Dex"}, format="json"
+        )
+        missing = self.client.post(reverse("api:personal-dex-list"), {}, format="json")
+
+        self.assertEqual(duplicate.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("name", duplicate.data)
+        self.assertIn("name", missing.data)
+
+    def test_create_without_space(self):
+        self.set_slot(self.other_box, 0, 0, self.charmander, dex=self.dex)
+
+        response = self.client.post(
+            reverse("api:personal-dex-list"), {"name": "Living Dex"}, format="json"
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.data,
+            {
+                "non_field_errors": [
+                    "Não há boxes livres seguidas suficientes para este "
+                    "PersonalDex: ele precisa de 1, e a maior sequência livre "
+                    "tem 0."
+                ]
+            },
+        )
+        self.assertFalse(PersonalDex.objects.filter(name="Living Dex").exists())
 
     def test_generations_of_unknown_dex_is_404(self):
         response = self.client.get(reverse("api:personal-dex-generations", args=[9999]))

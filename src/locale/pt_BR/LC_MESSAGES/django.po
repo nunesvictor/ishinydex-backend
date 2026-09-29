@@ -931,3 +931,12 @@ msgstr "a forma de um espécime não pode ser alterada."
 #: api/views/home.py
 msgid "form name, national dex number or the form's PokéAPI ID"
 msgstr "nome da forma, número da Pokédex nacional ou o PokéAPI ID da forma"
+
+#: api/views/home.py
+#, python-format
+msgid ""
+"There aren't enough free boxes in a row for this PersonalDex: it needs "
+"%(needed)d, and the largest free sequence has %(largest)d."
+msgstr ""
+"Não há boxes livres seguidas suficientes para este PersonalDex: ele precisa "
+"de %(needed)d, e a maior sequência livre tem %(largest)d."

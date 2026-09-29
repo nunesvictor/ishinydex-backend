@@ -71,6 +71,8 @@ class AuthenticationRequiredTests(APITestCase):
         requests = [
             ("get", reverse("api:pokemon-list")),
             ("get", reverse("api:personal-dex-list")),
+            ("post", reverse("api:personal-dex-list")),
+            ("get", reverse("api:personal-dex-preview")),
             ("get", reverse("api:personal-dex-detail", args=[dex.pk])),
             ("get", reverse("api:personal-dex-boxes", args=[dex.pk])),
             ("get", reverse("api:personal-dex-generations", args=[dex.pk])),

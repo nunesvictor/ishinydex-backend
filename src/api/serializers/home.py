@@ -263,6 +263,24 @@ class PersonalDexSerializer(serializers.ModelSerializer):
         )
 
 
+class PersonalDexCreateSerializer(serializers.ModelSerializer):
+    """Dados para criar um PersonalDex com o conjunto padrão de formas."""
+
+    class Meta:
+        model = PersonalDex
+        fields = ("name", "is_shiny_dex", "force_new_box")
+
+
+class PersonalDexPreviewSerializer(serializers.Serializer):
+    """Simulação de um dex padrão: o que seria criado, sem criar nada."""
+
+    forms = serializers.IntegerField()
+    boxes_needed = serializers.IntegerField()
+    largest_free_run = serializers.IntegerField()
+    enough_space = serializers.BooleanField()
+    first_box = BoxRefSerializer(allow_null=True)
+
+
 class DepositSerializer(serializers.Serializer):
     """Valida o depósito de um specimen no slot passado em ``context["slot"]``.
 
