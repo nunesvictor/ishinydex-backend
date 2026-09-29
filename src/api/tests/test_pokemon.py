@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.urls import reverse
 
 from rest_framework import status
@@ -9,6 +10,7 @@ from pokedex.models import PokemonAbility
 
 class PokemonViewSetTests(APITestCase):
     def setUp(self):
+        self.client.force_authenticate(User.objects.create_user("ash"))
         _, self.bulbasaur, self.bulbasaur_form = f.make_full_pokemon(
             "bulbasaur", 1, types=("grass", "poison"), abilities=("overgrow",)
         )
@@ -83,6 +85,13 @@ class PokemonViewSetTests(APITestCase):
 
         self.assertEqual([a["slot"] for a in response.data["abilities"]], [1, 3])
         self.assertEqual([t["slot"] for t in response.data["types"]], [1, 2])
+
+    def test_requires_authentication(self):
+        self.client.force_authenticate(None)
+
+        response = self.client.get(reverse("api:pokemon-list"))
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_list_query_count_does_not_grow_with_page_size(self):
         for i in range(8):

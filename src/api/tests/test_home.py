@@ -1,0 +1,485 @@
+from django.contrib.auth.models import User
+from django.urls import reverse
+
+from rest_framework import status
+from rest_framework.test import APITestCase
+
+from core.tests import factories as f
+from home.models import Slot, Specimen
+
+
+class HomeAPITestCase(APITestCase):
+    """Um dex shiny com duas boxes: a 1ª com bulbasaur (depositado) e
+    charmander (vazio); a 2ª com squirtle (vazio). Uma 3ª box não pertence ao
+    dex."""
+
+    def setUp(self):
+        self.client.force_authenticate(User.objects.create_user("ash"))
+
+        _, _, self.bulbasaur = f.make_full_pokemon(
+            "bulbasaur", 1, abilities=("overgrow", "chlorophyll")
+        )
+        _, _, self.charmander = f.make_full_pokemon("charmander", 4)
+        _, _, self.squirtle = f.make_full_pokemon("squirtle", 7)
+
+        self.dex = f.make_personal_dex(
+            self.bulbasaur,
+            self.charmander,
+            self.squirtle,
+            name="Shiny Dex",
+            is_shiny_dex=True,
+        )
+        self.box1 = f.make_box(name="HOME 1")
+        self.box2 = f.make_box(name="HOME 2")
+        self.other_box = f.make_box(name="HOME 3")
+
+        self.bulbasaur_specimen = f.make_specimen(self.bulbasaur, is_shiny=True)
+        self.bulbasaur_slot = self.set_slot(
+            self.box1, 0, 0, self.bulbasaur, self.bulbasaur_specimen
+        )
+        self.charmander_slot = self.set_slot(self.box1, 0, 1, self.charmander)
+        # slot do dex, mas sem forma (espaço livre)
+        self.free_slot = self.set_slot(self.box1, 0, 2, None)
+        self.squirtle_slot = self.set_slot(self.box2, 0, 0, self.squirtle)
+
+    def set_slot(self, box, row, col, form, specimen=None, dex=None) -> Slot:
+        slot = box.slots.get(row=row, col=col)
+        slot.personal_dex = dex or self.dex
+        slot.form = form
+        slot.specimen = specimen
+        slot.save()
+        return slot
+
+
+class PersonalDexViewSetTests(HomeAPITestCase):
+    def test_list_counts_total_and_registered(self):
+        other_dex = f.make_personal_dex(name="Living Dex")
+        self.set_slot(self.other_box, 0, 0, self.charmander, dex=other_dex)
+
+        response = self.client.get(reverse("api:personal-dex-list"))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.data["results"],
+            [
+                {
+                    "id": other_dex.pk,
+                    "name": "Living Dex",
+                    "is_shiny_dex": False,
+                    "force_new_box": False,
+                    "total": 1,
+                    "registered": 0,
+                },
+                {
+                    "id": self.dex.pk,
+                    "name": "Shiny Dex",
+                    "is_shiny_dex": True,
+                    "force_new_box": False,
+                    "total": 3,
+                    "registered": 1,
+                },
+            ],
+        )
+
+    def test_retrieve(self):
+        response = self.client.get(
+            reverse("api:personal-dex-detail", args=[self.dex.pk])
+        )
+
+        self.assertEqual(response.data["total"], 3)
+        self.assertEqual(response.data["registered"], 1)
+
+    def test_boxes_only_with_dex_slots_ordered_by_position(self):
+        response = self.client.get(
+            reverse("api:personal-dex-boxes", args=[self.dex.pk])
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.data,
+            [
+                {
+                    "id": self.box1.pk,
+                    "name": "HOME 1",
+                    "position": self.box1.position,
+                    "total": 2,
+                    "registered": 1,
+                },
+                {
+                    "id": self.box2.pk,
+                    "name": "HOME 2",
+                    "position": self.box2.position,
+                    "total": 1,
+                    "registered": 0,
+                },
+            ],
+        )
+
+    def test_boxes_count_only_slots_of_the_dex(self):
+        other_dex = f.make_personal_dex()
+        self.set_slot(self.box1, 4, 5, self.squirtle, dex=other_dex)
+
+        response = self.client.get(
+            reverse("api:personal-dex-boxes", args=[self.dex.pk])
+        )
+
+        self.assertEqual(response.data[0]["total"], 2)
+
+    def test_boxes_of_unknown_dex_is_404(self):
+        response = self.client.get(reverse("api:personal-dex-boxes", args=[999999]))
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
+class SlotViewSetTests(HomeAPITestCase):
+    def test_list_by_box_returns_all_slots_without_pagination(self):
+        with self.assertNumQueries(1):
+            response = self.client.get(reverse("api:slot-list"), {"box": self.box1.pk})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 30)
+        self.assertEqual(
+            [(s["row"], s["col"]) for s in response.data[:3]],
+            [(0, 0), (0, 1), (0, 2)],
+        )
+
+    def test_slot_representation(self):
+        response = self.client.get(
+            reverse("api:slot-list"), {"box": self.box1.pk, "personal_dex": self.dex.pk}
+        )
+
+        registered, empty, free = response.data
+        self.assertEqual(
+            registered["box"],
+            {"id": self.box1.pk, "name": "HOME 1", "position": self.box1.position},
+        )
+        self.assertEqual(registered["form"]["name"], "bulbasaur")
+        self.assertEqual(
+            registered["form"]["sprite_url"],
+            "http://testserver/media/sprites/pokemon/other/home/1.png",
+        )
+        self.assertEqual(
+            registered["form"]["shiny_sprite_url"],
+            "http://testserver/media/sprites/pokemon/other/home/shiny/1.png",
+        )
+        self.assertEqual(registered["specimen"]["id"], self.bulbasaur_specimen.pk)
+        self.assertTrue(registered["is_shiny_display"])
+
+        # slot vazio num dex shiny também é exibido como shiny
+        self.assertIsNone(empty["specimen"])
+        self.assertTrue(empty["is_shiny_display"])
+
+        self.assertIsNone(free["form"])
+        self.assertFalse(free["is_shiny_display"])
+
+    def test_non_shiny_specimen_is_not_shiny_display(self):
+        self.bulbasaur_specimen.is_shiny = False
+        self.bulbasaur_specimen.save()
+
+        response = self.client.get(
+            reverse("api:slot-detail", args=[self.bulbasaur_slot.pk])
+        )
+
+        self.assertFalse(response.data["is_shiny_display"])
+
+    def test_list_filter_registered(self):
+        url = reverse("api:slot-list")
+
+        registered = self.client.get(
+            url, {"personal_dex": self.dex.pk, "registered": "true"}
+        )
+        missing = self.client.get(
+            url, {"personal_dex": self.dex.pk, "registered": "false"}
+        )
+
+        self.assertEqual(
+            [s["id"] for s in registered.data["results"]], [self.bulbasaur_slot.pk]
+        )
+        self.assertEqual(
+            [s["id"] for s in missing.data["results"]],
+            [self.charmander_slot.pk, self.squirtle_slot.pk],
+        )
+
+    def test_list_without_box_is_paginated(self):
+        response = self.client.get(reverse("api:slot-list"), {"page_size": 5})
+
+        self.assertEqual(response.data["count"], 90)
+        self.assertEqual(len(response.data["results"]), 5)
+
+    def test_page_size_is_capped(self):
+        f.make_box()  # 120 slots no total
+
+        response = self.client.get(reverse("api:slot-list"), {"page_size": 1000})
+
+        self.assertEqual(len(response.data["results"]), 100)
+
+
+class DepositTests(HomeAPITestCase):
+    def deposit(self, slot, specimen_id):
+        return self.client.post(
+            reverse("api:slot-deposit", args=[slot.pk]),
+            {"specimen_id": specimen_id},
+            format="json",
+        )
+
+    def test_valid_deposit(self):
+        specimen = f.make_specimen(self.charmander, is_shiny=True)
+
+        response = self.deposit(self.charmander_slot, specimen.pk)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["id"], self.charmander_slot.pk)
+        self.assertEqual(response.data["specimen"]["id"], specimen.pk)
+        self.charmander_slot.refresh_from_db()
+        self.assertEqual(self.charmander_slot.specimen, specimen)
+
+    def test_different_form_is_400(self):
+        specimen = f.make_specimen(self.squirtle)
+
+        response = self.deposit(self.charmander_slot, specimen.pk)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.data,
+            {"specimen_id": ["a forma do espécime não corresponde à forma do slot."]},
+        )
+        self.charmander_slot.refresh_from_db()
+        self.assertIsNone(self.charmander_slot.specimen)
+
+    def test_specimen_deposited_elsewhere_is_400(self):
+        other_slot = self.set_slot(self.other_box, 0, 0, self.bulbasaur)
+
+        response = self.deposit(other_slot, self.bulbasaur_specimen.pk)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.data,
+            {"specimen_id": ["este espécime já está depositado em outro slot."]},
+        )
+
+    def test_redeposit_in_same_slot_is_ok(self):
+        response = self.deposit(self.bulbasaur_slot, self.bulbasaur_specimen.pk)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_slot_without_form_is_400(self):
+        specimen = f.make_specimen(self.charmander)
+
+        response = self.deposit(self.free_slot, specimen.pk)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.data,
+            {
+                "non_field_errors": [
+                    "este slot não tem forma; não é possível depositar espécimes nele."
+                ]
+            },
+        )
+
+    def test_unknown_specimen_is_400(self):
+        response = self.deposit(self.charmander_slot, 999999)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("specimen_id", response.data)
+
+    def test_unknown_slot_is_404(self):
+        response = self.client.post(
+            reverse("api:slot-deposit", args=[999999]), {"specimen_id": 1}
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_withdraw(self):
+        response = self.client.post(
+            reverse("api:slot-withdraw", args=[self.bulbasaur_slot.pk])
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIsNone(response.data["specimen"])
+        self.bulbasaur_slot.refresh_from_db()
+        self.assertIsNone(self.bulbasaur_slot.specimen)
+        self.assertTrue(Specimen.objects.filter(pk=self.bulbasaur_specimen.pk).exists())
+
+
+class SpecimenViewSetTests(HomeAPITestCase):
+    def test_filter_available(self):
+        free = f.make_specimen(self.bulbasaur)
+
+        available = self.client.get(reverse("api:specimen-list"), {"available": "true"})
+        deposited = self.client.get(
+            reverse("api:specimen-list"), {"available": "false"}
+        )
+
+        self.assertEqual([s["id"] for s in available.data["results"]], [free.pk])
+        self.assertIsNone(available.data["results"][0]["slot"])
+        self.assertEqual(
+            [s["id"] for s in deposited.data["results"]], [self.bulbasaur_specimen.pk]
+        )
+        self.assertEqual(deposited.data["results"][0]["slot"], self.bulbasaur_slot.pk)
+
+    def test_filters_form_shiny_and_search(self):
+        charmander = f.make_specimen(self.charmander, nickname="Charizard Jr")
+        f.make_specimen(self.squirtle, is_shiny=True)
+        url = reverse("api:specimen-list")
+
+        by_form = self.client.get(url, {"form_id": self.charmander.pk})
+        not_shiny = self.client.get(url, {"is_shiny": "false"})
+        by_nickname = self.client.get(url, {"search": "jr"})
+        by_form_name = self.client.get(url, {"search": "SQUIRT"})
+
+        self.assertEqual([s["id"] for s in by_form.data["results"]], [charmander.pk])
+        self.assertEqual([s["id"] for s in not_shiny.data["results"]], [charmander.pk])
+        self.assertEqual(
+            [s["id"] for s in by_nickname.data["results"]], [charmander.pk]
+        )
+        self.assertEqual(by_form_name.data["count"], 1)
+
+    def test_create(self):
+        ot = f.make_ot()
+
+        response = self.client.post(
+            reverse("api:specimen-list"),
+            {
+                "form": self.bulbasaur.pk,
+                "ability": "chlorophyll",
+                "nature": "modest",
+                "is_shiny": True,
+                "ot": ot.pk,
+                "pokeball": "dream-ball",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["form_name"], "bulbasaur")
+        self.assertEqual(response.data["form_ref"]["id"], self.bulbasaur.pk)
+        self.assertIsNone(response.data["slot"])
+        self.assertEqual(
+            response.data["pokeball_sprite_url"],
+            "http://testserver/media/sprites/items/dream-ball.png",
+        )
+
+    def test_ability_must_belong_to_form(self):
+        response = self.client.post(
+            reverse("api:specimen-list"),
+            {"form": self.bulbasaur.pk, "ability": "blaze"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.data,
+            {"ability": ["“blaze” não é uma habilidade válida para bulbasaur."]},
+        )
+
+    def test_partial_update_validates_ability_against_current_form(self):
+        response = self.client.patch(
+            reverse("api:specimen-detail", args=[self.bulbasaur_specimen.pk]),
+            {"ability": "torrent"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("ability", response.data)
+
+    def test_delete_deposited_specimen_is_400(self):
+        response = self.client.delete(
+            reverse("api:specimen-detail", args=[self.bulbasaur_specimen.pk])
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.data, {"detail": "um espécime depositado não pode ser excluído."}
+        )
+        self.assertTrue(Specimen.objects.filter(pk=self.bulbasaur_specimen.pk).exists())
+
+    def test_delete_available_specimen(self):
+        specimen = f.make_specimen(self.bulbasaur)
+
+        response = self.client.delete(
+            reverse("api:specimen-detail", args=[specimen.pk])
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(Specimen.objects.filter(pk=specimen.pk).exists())
+
+    def test_options(self):
+        response = self.client.get(reverse("api:specimen-options"))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            set(response.data), {"language", "gender", "nature", "pokeball"}
+        )
+        self.assertIn({"value": "male", "label": "Macho"}, response.data["gender"])
+        self.assertIn(
+            {"value": "pt-br", "label": "Português brasileiro"},
+            response.data["language"],
+        )
+        self.assertIn(
+            {"value": "dream-ball", "label": "Dream Ball"}, response.data["pokeball"]
+        )
+        self.assertEqual(len(response.data["nature"]), 25)
+
+
+class FormViewSetTests(HomeAPITestCase):
+    def test_list_search_by_name(self):
+        response = self.client.get(reverse("api:form-list"), {"search": "char"})
+
+        self.assertEqual(
+            [form["name"] for form in response.data["results"]], ["charmander"]
+        )
+        self.assertNotIn("abilities", response.data["results"][0])
+
+    def test_retrieve_detail(self):
+        f.make_shinylock(self.bulbasaur)
+
+        response = self.client.get(reverse("api:form-detail", args=[self.bulbasaur.pk]))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["types"], [{"slot": 1, "type": "grass"}])
+        self.assertEqual(
+            [a["ability"] for a in response.data["abilities"]],
+            ["overgrow", "chlorophyll"],
+        )
+        self.assertTrue(response.data["is_shinylocked"])
+        self.assertFalse(response.data["is_distro_only"])
+
+
+class TrainerViewSetTests(APITestCase):
+    def setUp(self):
+        self.client.force_authenticate(User.objects.create_user("ash"))
+
+    def test_list_and_create(self):
+        version = f.make_version(name="scarlet")
+
+        created = self.client.post(
+            reverse("api:trainer-list"),
+            {"name": "Ash", "trainer_id": "123456", "version": "scarlet"},
+            format="json",
+        )
+        listed = self.client.get(reverse("api:trainer-list"))
+
+        self.assertEqual(created.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(
+            listed.data["results"],
+            [
+                {
+                    "id": created.data["id"],
+                    "name": "Ash",
+                    "trainer_id": "123456",
+                    "version": version.name,
+                }
+            ],
+        )
+
+    def test_duplicate_trainer_is_400(self):
+        f.make_ot(name="Ash", trainer_id="123456")
+
+        response = self.client.post(
+            reverse("api:trainer-list"),
+            {"name": "Ash", "trainer_id": "123456"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

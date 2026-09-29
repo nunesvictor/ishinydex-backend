@@ -12,6 +12,8 @@ dependencies = [
     "psycopg2-binary (>=2.9.12,<3.0.0)",
     "python-decouple (>=3.8,<4.0)",
     "requests (>=2.32,<3)",
+    "django-cors-headers (>=4.9.0,<5.0.0)",
+    "drf-spectacular (>=0.30.0,<0.31.0)",
 ]
 
 
@@ -74,7 +76,7 @@ django_settings_module = "django_pokedex.settings"
 profile = "black"
 default_section = "THIRDPARTY"
 known_django = ["django"]
-known_third_party = ["decouple", "requests", "rest_framework", "urllib3"]
+known_third_party = ["corsheaders", "decouple", "drf_spectacular", "requests", "rest_framework", "urllib3"]
 sections = ["FUTURE", "STDLIB", "DJANGO", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
 multi_line_output = 3
 skip = [".gitignore", ".dockerignore", ".venv", "migrations"]

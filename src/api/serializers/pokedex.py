@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from pokedex.models import Pokemon, PokemonAbility, PokemonStat, PokemonType
@@ -44,10 +45,12 @@ class PokemonSerializer(serializers.ModelSerializer):
         )
 
     # Ordenação em Python: usa o prefetch da view sem consultas extras.
+    @extend_schema_field(PokemonAbilitySerializer(many=True))
     def get_abilities(self, obj: Pokemon):
         abilities = sorted(obj.abilities.all(), key=lambda a: a.slot)
         return PokemonAbilitySerializer(abilities, many=True).data
 
+    @extend_schema_field(PokemonStatSerializer(many=True))
     def get_stats(self, obj: Pokemon):
         def position(stat: PokemonStat) -> int:
             try:
@@ -58,6 +61,7 @@ class PokemonSerializer(serializers.ModelSerializer):
         stats = sorted(obj.stats.all(), key=position)
         return PokemonStatSerializer(stats, many=True).data
 
+    @extend_schema_field(PokemonTypeSerializer(many=True))
     def get_types(self, obj: Pokemon):
         types = sorted(obj.types.all(), key=lambda t: t.slot)
         return PokemonTypeSerializer(types, many=True).data

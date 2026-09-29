@@ -1,5 +1,15 @@
-from rest_framework import routers
+from django.urls import path
 
+from rest_framework import routers
+from rest_framework.authtoken.views import obtain_auth_token
+
+from .views.home import (
+    FormViewSet,
+    PersonalDexViewSet,
+    SlotViewSet,
+    SpecimenViewSet,
+    TrainerViewSet,
+)
 from .views.pokedex import PokemonViewSet
 
 app_name = "api"
@@ -7,5 +17,13 @@ app_name = "api"
 router = routers.DefaultRouter()
 
 router.register(r"pokemon", PokemonViewSet)
+router.register(r"personal-dexes", PersonalDexViewSet, basename="personal-dex")
+router.register(r"slots", SlotViewSet, basename="slot")
+router.register(r"specimens", SpecimenViewSet, basename="specimen")
+router.register(r"forms", FormViewSet, basename="form")
+router.register(r"trainers", TrainerViewSet, basename="trainer")
 
-urlpatterns = router.urls
+urlpatterns = [
+    path("auth/token/", obtain_auth_token, name="auth-token"),
+    *router.urls,
+]

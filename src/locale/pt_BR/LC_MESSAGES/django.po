@@ -730,3 +730,200 @@ msgstr "[{box}: {row},{col}] slot livre"
 #: home/models.py
 msgid "no specimen deposited"
 msgstr "nenhum espécime depositado"
+
+#: api/choices.py
+msgid "Japanese (kana)"
+msgstr "Japonês (kana)"
+
+#: api/choices.py
+msgid "Japanese (romaji)"
+msgstr "Japonês (romaji)"
+
+#: api/choices.py
+msgid "Korean"
+msgstr "Coreano"
+
+#: api/choices.py
+msgid "Chinese (traditional)"
+msgstr "Chinês (tradicional)"
+
+#: api/choices.py
+msgid "French"
+msgstr "Francês"
+
+#: api/choices.py
+msgid "German"
+msgstr "Alemão"
+
+#: api/choices.py
+msgid "Spanish (Spain)"
+msgstr "Espanhol (Espanha)"
+
+#: api/choices.py
+msgid "Italian"
+msgstr "Italiano"
+
+#: api/choices.py
+msgid "English"
+msgstr "Inglês"
+
+#: api/choices.py
+msgid "Czech"
+msgstr "Tcheco"
+
+#: api/choices.py
+msgid "Japanese"
+msgstr "Japonês"
+
+#: api/choices.py
+msgid "Chinese (simplified)"
+msgstr "Chinês (simplificado)"
+
+#: api/choices.py
+msgid "Brazilian Portuguese"
+msgstr "Português brasileiro"
+
+#: api/choices.py
+msgid "Spanish (Latin America)"
+msgstr "Espanhol (América Latina)"
+
+#: api/choices.py
+msgid "Male"
+msgstr "Macho"
+
+#: api/choices.py
+msgid "Female"
+msgstr "Fêmea"
+
+#: api/choices.py
+msgid "Genderless"
+msgstr "Sem gênero"
+
+#: api/choices.py
+msgid "Adamant"
+msgstr ""
+
+#: api/choices.py
+msgid "Bashful"
+msgstr ""
+
+#: api/choices.py
+msgid "Bold"
+msgstr ""
+
+#: api/choices.py
+msgid "Brave"
+msgstr ""
+
+#: api/choices.py
+msgid "Calm"
+msgstr ""
+
+#: api/choices.py
+msgid "Careful"
+msgstr ""
+
+#: api/choices.py
+msgid "Docile"
+msgstr ""
+
+#: api/choices.py
+msgid "Gentle"
+msgstr ""
+
+#: api/choices.py
+msgid "Hardy"
+msgstr ""
+
+#: api/choices.py
+msgid "Hasty"
+msgstr ""
+
+#: api/choices.py
+msgid "Impish"
+msgstr ""
+
+#: api/choices.py
+msgid "Jolly"
+msgstr ""
+
+#: api/choices.py
+msgid "Lax"
+msgstr ""
+
+#: api/choices.py
+msgid "Lonely"
+msgstr ""
+
+#: api/choices.py
+msgid "Mild"
+msgstr ""
+
+#: api/choices.py
+msgid "Modest"
+msgstr ""
+
+#: api/choices.py
+msgid "Naive"
+msgstr ""
+
+#: api/choices.py
+msgid "Naughty"
+msgstr ""
+
+#: api/choices.py
+msgid "Quiet"
+msgstr ""
+
+#: api/choices.py
+msgid "Quirky"
+msgstr ""
+
+#: api/choices.py
+msgid "Rash"
+msgstr ""
+
+#: api/choices.py
+msgid "Relaxed"
+msgstr ""
+
+#: api/choices.py
+msgid "Sassy"
+msgstr ""
+
+#: api/choices.py
+msgid "Serious"
+msgstr ""
+
+#: api/choices.py
+msgid "Timid"
+msgstr ""
+
+#: api/serializers/home.py
+#, python-format
+msgid "“%(ability)s” is not a valid ability for %(form)s."
+msgstr "“%(ability)s” não é uma habilidade válida para %(form)s."
+
+#: api/serializers/home.py
+msgid "this slot has no form; specimens can't be deposited in it."
+msgstr "este slot não tem forma; não é possível depositar espécimes nele."
+
+#: api/serializers/home.py
+msgid "this specimen is already deposited in another slot."
+msgstr "este espécime já está depositado em outro slot."
+
+#: api/views/home.py
+msgid "when set, returns all box slots, without pagination"
+msgstr "quando informado, retorna todos os slots da box, sem paginação"
+
+#: api/views/home.py
+msgid "true: only specimens not deposited in any slot"
+msgstr "true: apenas espécimes não depositados em nenhum slot"
+
+#: api/views/home.py
+msgid "nickname or form name"
+msgstr "apelido ou nome da forma"
+
+#: api/views/home.py
+msgid "a deposited specimen can't be deleted."
+msgstr "um espécime depositado não pode ser excluído."

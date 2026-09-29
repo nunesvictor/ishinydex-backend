@@ -76,8 +76,12 @@ class PokemonSpriteRenderer(SpriteRenderer):
     def is_shiny_sprite(self):
         return self._is_shiny_sprite
 
+    def resolve_sprite_url(self) -> Path:
+        """URL do sprite, sem verificar se o arquivo existe."""
+        return self._get_sprite_resolver().resolve(self.sprites_url)
+
     def get_sprite_url(self, **kwargs) -> Path:
-        sprite_url = self._get_sprite_resolver().resolve(self.sprites_url)
+        sprite_url = self.resolve_sprite_url()
         sprite_path = Path(settings.BASE_DIR / sprite_url.relative_to("/"))
         default = kwargs.get("default")
 
