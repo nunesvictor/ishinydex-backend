@@ -731,6 +731,148 @@ class SpecimenViewSetTests(HomeAPITestCase):
         )
         self.assertEqual(self.ids(ordering="nope"), dex_order)
 
+    def test_ids_follow_filters_and_ordering(self):
+        dive = f.make_specimen(self.charmander, pokeball="dive-ball")
+        undated = f.make_specimen(self.squirtle)
+        url = reverse("api:specimen-ids")
+
+        everything = self.client.get(url)
+        by_ball = self.client.get(url, {"pokeball": "dive-ball"})
+        recent_first = self.client.get(url, {"ordering": "-created_at"})
+
+        self.assertEqual(
+            everything.data, [self.bulbasaur_specimen.pk, dive.pk, undated.pk]
+        )
+        self.assertEqual(by_ball.data, [dive.pk])
+        self.assertEqual(
+            recent_first.data, [undated.pk, dive.pk, self.bulbasaur_specimen.pk]
+        )
+
+    def bulk(self, ids, changes):
+        return self.client.patch(
+            reverse("api:specimen-bulk"),
+            {"ids": ids, "changes": changes},
+            format="json",
+        )
+
+    def test_bulk_updates_only_given_fields(self):
+        ot = f.make_ot()
+        a = f.make_specimen(self.charmander, nature="bold", is_alpha=True)
+        b = f.make_specimen(self.charmander, nature="bold")
+        untouched = f.make_specimen(self.charmander, nature="bold")
+        before = Specimen.objects.get(pk=a.pk).updated_at
+
+        response = self.bulk(
+            [a.pk, b.pk, a.pk],
+            {
+                "pokeball": "dive-ball",
+                "ot": ot.pk,
+                "captured_at": "2026-01-02",
+                "is_shiny": True,
+            },
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, {"updated": 2})
+        for pk in (a.pk, b.pk):
+            specimen = Specimen.objects.get(pk=pk)
+            self.assertEqual(specimen.pokeball, "dive-ball")
+            self.assertEqual(specimen.ot, ot)
+            self.assertEqual(specimen.captured_at, date(2026, 1, 2))
+            self.assertTrue(specimen.is_shiny)
+            self.assertEqual(specimen.nature, "bold")  # não enviado: mantido
+        self.assertTrue(Specimen.objects.get(pk=a.pk).is_alpha)
+        self.assertGreater(Specimen.objects.get(pk=a.pk).updated_at, before)
+        self.assertIsNone(Specimen.objects.get(pk=untouched.pk).pokeball)
+
+    def test_bulk_null_removes_value(self):
+        specimen = f.make_specimen(
+            self.charmander,
+            pokeball="dive-ball",
+            ot=f.make_ot(),
+            captured_at=date(2026, 1, 2),
+        )
+        other = f.make_specimen(self.charmander, pokeball="dusk-ball")
+
+        self.bulk([specimen.pk], {"pokeball": None, "ot": None, "captured_at": None})
+        self.bulk([other.pk], {"pokeball": ""})
+
+        specimen.refresh_from_db()
+        other.refresh_from_db()
+        self.assertIsNone(specimen.pokeball)
+        self.assertIsNone(specimen.ot)
+        self.assertIsNone(specimen.captured_at)
+        self.assertIsNone(other.pokeball)
+
+    def test_bulk_rejects_invalid_requests(self):
+        pk = self.bulbasaur_specimen.pk
+
+        unknown = self.bulk([pk], {"nickname": "x", "ability": "y"})
+        empty = self.bulk([pk], {})
+        no_ids = self.bulk([], {"is_alpha": True})
+        bad_choice = self.bulk([pk], {"nature": "sleepy"})
+
+        for response in (unknown, empty, no_ids, bad_choice):
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(set(unknown.data["changes"]), {"ability", "nickname"})
+        self.assertEqual(
+            unknown.data["changes"]["nickname"],
+            ["este campo não pode ser alterado em lote."],
+        )
+        self.assertEqual(
+            empty.data["changes"]["non_field_errors"], ["nenhuma alteração."]
+        )
+        self.assertIn("ids", no_ids.data)
+        self.assertIn("nature", bad_choice.data["changes"])
+
+    def test_bulk_missing_ids_changes_nothing(self):
+        response = self.bulk([self.bulbasaur_specimen.pk, 998, 999], {"is_alpha": True})
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data["ids"], ["espécimes não encontrados: 998, 999"])
+        self.assertFalse(Specimen.objects.filter(is_alpha=True).exists())
+
+    def test_bulk_gender_validated_per_specimen(self):
+        species, _, latias = f.make_full_pokemon("latias", 380)
+        species.gender_rate = 8
+        species.save()
+        _, _, oinkologne = f.make_full_pokemon("oinkologne-female", 916)
+        oinkologne.pokemon.species.gender_rate = 0  # como na base importada
+        oinkologne.pokemon.species.save()
+        female_only = f.make_specimen(latias, gender="genderless")
+        gender_form = f.make_specimen(oinkologne)
+        either = f.make_specimen(self.charmander)  # gender_rate 4
+
+        ok = self.bulk(
+            [female_only.pk, gender_form.pk, either.pk], {"gender": "female"}
+        )
+        conflict = self.bulk(
+            [female_only.pk, gender_form.pk, either.pk], {"gender": "male"}
+        )
+
+        self.assertEqual(ok.data, {"updated": 3})
+        self.assertEqual(conflict.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            conflict.data["gender"],
+            ["este gênero não é possível para 2 espécime(s)."],
+        )
+        self.assertEqual(
+            conflict.data["conflicts"],
+            [
+                {"id": female_only.pk, "form_name": "latias"},
+                {"id": gender_form.pk, "form_name": "oinkologne-female"},
+            ],
+        )
+        # Tudo ou nada: os três continuam fêmea.
+        self.assertEqual(
+            set(
+                Specimen.objects.filter(
+                    pk__in=[female_only.pk, gender_form.pk, either.pk]
+                ).values_list("gender", flat=True)
+            ),
+            {"female"},
+        )
+
     def test_options(self):
         with (
             tempfile.TemporaryDirectory() as root,

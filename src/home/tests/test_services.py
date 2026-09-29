@@ -5,6 +5,7 @@ from home.models import PersonalDex, Slot
 from home.services import (
     BOX_SIZE,
     NotEnoughBoxes,
+    allowed_genders,
     boxes_needed,
     create_default_dex,
     free_box_runs,
@@ -96,3 +97,28 @@ class CreateDefaultDexTests(TestCase):
         self.assertEqual(error.exception.plan.boxes_needed, 1)
         self.assertEqual(error.exception.plan.largest_free_run, 0)
         self.assertFalse(PersonalDex.objects.exists())
+
+
+class AllowedGendersTests(TestCase):
+    def form(self, name, gender_rate):
+        species, _, form = f.make_full_pokemon(name, 1)
+        species.gender_rate = gender_rate
+        species.save()
+        return form
+
+    def test_by_species_gender_rate(self):
+        self.assertEqual(allowed_genders(self.form("magnemite", -1)), {"genderless"})
+        self.assertEqual(allowed_genders(self.form("tauros", 0)), {"male"})
+        self.assertEqual(allowed_genders(self.form("chansey", 8)), {"female"})
+        self.assertEqual(allowed_genders(self.form("pikachu", 4)), {"male", "female"})
+
+    def test_gender_forms_win_over_species(self):
+        # Na base importada, oinkologne tem gender_rate 0 ("só macho").
+        self.assertEqual(allowed_genders(self.form("oinkologne-female", 0)), {"female"})
+        self.assertEqual(allowed_genders(self.form("meowstic-male", 4)), {"male"})
+
+    def test_form_without_pokemon_accepts_any(self):
+        self.assertEqual(
+            allowed_genders(f.make_form(pokemon=None, name="x")),
+            {"male", "female", "genderless"},
+        )

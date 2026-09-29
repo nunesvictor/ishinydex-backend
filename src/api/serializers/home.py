@@ -2,6 +2,7 @@ from pathlib import Path
 
 from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from drf_spectacular.types import OpenApiTypes
@@ -10,6 +11,7 @@ from rest_framework import serializers
 
 from core.consts import TYPES_DICT
 from home.models import Box, OriginalTrainer, PersonalDex, Slot, Specimen
+from home.services import allowed_genders
 from pokedex.models import PokemonForm, Version
 from pokedex.renderers import HomeSpriteRenderer
 
@@ -380,3 +382,100 @@ class SpecimenOptionsSerializer(serializers.Serializer):
     pokeball = PokeballChoiceSerializer(many=True)
     type = TypeChoiceSerializer(many=True)
     generation = ChoiceSerializer(many=True)
+
+
+class SpecimenChangesSerializer(serializers.ModelSerializer):
+    """Campos editáveis em lote; todos opcionais. ``null`` em ``pokeball``,
+    ``ot`` e ``captured_at`` remove o valor."""
+
+    class Meta:
+        model = Specimen
+        fields = (
+            "pokeball",
+            "ot",
+            "language",
+            "gender",
+            "nature",
+            "captured_at",
+            "is_shiny",
+            "is_alpha",
+            "is_from_go",
+        )
+        extra_kwargs = {field: {"required": False} for field in fields}
+
+    def to_internal_value(self, data):
+        # Por padrão o DRF ignora campos desconhecidos; aqui eles são erro,
+        # para "apelido em lote" não parecer ter funcionado.
+        if isinstance(data, dict):
+            unknown = sorted(set(data) - set(self.fields))
+            if unknown:
+                raise serializers.ValidationError(
+                    {
+                        field: [_("this field can't be changed in bulk.")]
+                        for field in unknown
+                    }
+                )
+
+        return super().to_internal_value(data)
+
+    def validate(self, attrs):
+        if not attrs:
+            raise serializers.ValidationError(_("no changes."))
+        if attrs.get("pokeball") == "":
+            attrs["pokeball"] = None
+
+        return attrs
+
+
+class SpecimenBulkUpdateSerializer(serializers.Serializer):
+    """``PATCH /specimens/bulk/``: aplica ``changes`` a todos os ``ids``.
+
+    Deve rodar dentro de uma transação: os espécimes ficam travados
+    (``select_for_update``) entre a validação e o ``update``.
+    """
+
+    ids = serializers.ListField(child=serializers.IntegerField(), allow_empty=False)
+    changes = SpecimenChangesSerializer()
+
+    def validate_ids(self, ids: list[int]) -> list[int]:
+        ids = sorted(set(ids))
+        found = set(
+            Specimen.objects.select_for_update()
+            .filter(pk__in=ids)
+            .values_list("pk", flat=True)
+        )
+        missing = [pk for pk in ids if pk not in found]
+        if missing:
+            raise serializers.ValidationError(
+                _("specimens not found: %(ids)s")
+                % {"ids": ", ".join(map(str, missing))}
+            )
+
+        return ids
+
+    def gender_conflicts(self) -> list[dict]:
+        """Espécimes cuja forma não admite o gênero pedido (vazio se o
+        gênero não muda). Fora do ``validate`` porque o ``ValidationError``
+        do DRF transformaria os ids em texto."""
+        gender = self.validated_data["changes"].get("gender")
+        if gender is None:
+            return []
+
+        specimens = Specimen.objects.filter(
+            pk__in=self.validated_data["ids"]
+        ).select_related("form__pokemon__species")
+        return [
+            {"id": specimen.pk, "form_name": specimen.form.name}
+            for specimen in specimens.order_by("pk")
+            if gender not in allowed_genders(specimen.form)
+        ]
+
+    def save(self) -> int:
+        """Número de espécimes atualizados."""
+        return Specimen.objects.filter(pk__in=self.validated_data["ids"]).update(
+            **self.validated_data["changes"], updated_at=timezone.now()
+        )
+
+
+class SpecimenBulkResultSerializer(serializers.Serializer):
+    updated = serializers.IntegerField()

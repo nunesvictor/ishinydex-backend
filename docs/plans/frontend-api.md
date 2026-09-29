@@ -36,6 +36,8 @@ Schema OpenAPI: `GET /api/schema/` · Swagger UI: `GET /api/docs/` (públicos).
 | POST | `/api/slots/{id}/withdraw/` | 200 com o slot (`specimen: null`); o app não usa mais (libertar = DELETE do specimen) |
 | GET/POST | `/api/specimens/?form_id=&available=&is_shiny=&is_alpha=&is_from_go=&search=` + filtros abaixo | lista/cria specimens |
 | GET/PUT/PATCH/DELETE | `/api/specimens/{id}/` | PATCH = editar (`form` imutável); DELETE = libertar, inclusive depositado |
+| GET | `/api/specimens/ids/?` + filtros de `/specimens/` | ids de todos os espécimes do filtro, na ordem da lista, **sem paginação**: `[1, 2, ...]` |
+| PATCH | `/api/specimens/bulk/` | edição em lote (ver Regras): `{"ids": [...], "changes": {...}}` → `{"updated": n}` |
 | GET | `/api/specimens/options/` | choices de language, gender, nature, pokeball, type e generation |
 | GET | `/api/forms/?search=` | formas (`FormRef`), busca por nome |
 | GET | `/api/forms/{id}/` | `FormDetail` |
@@ -126,5 +128,18 @@ inválidos são ignorados.
   Enviar a mesma forma é aceito.
 - **Libertar** (DELETE → 204): apaga o specimen, mesmo depositado; o slot
   mantém a forma e fica faltante (`Slot.specimen` é `on_delete=SET_NULL`).
+- **Edição em lote** (`PATCH /specimens/bulk/`, `transaction.atomic` +
+  `select_for_update`), tudo ou nada:
+  - `changes` aceita só `pokeball`, `ot`, `language`, `gender`, `nature`,
+    `captured_at`, `is_shiny`, `is_alpha`, `is_from_go`; outro campo →
+    `{"changes": {"<campo>": [...]}}`; vazio → `{"changes": {"non_field_errors": [...]}}`.
+  - `null` em `pokeball`/`ot`/`captured_at` remove o valor (`pokeball: ""`
+    também). Campos fora de `changes` ficam como estão.
+  - ids repetidos contam uma vez; id inexistente → `{"ids": [...]}`.
+  - Gênero validado por espécime: forma `-male`/`-female` define o gênero;
+    senão, o `gender_rate` da espécie (-1 sem gênero, 0 só macho, 8 só
+    fêmea, 1–7 macho ou fêmea). Conflito →
+    `{"gender": ["..."], "conflicts": [{"id": 1, "form_name": "latias"}]}`.
+  - `updated_at` é atualizado.
 - Labels de nature ainda sem tradução pt-BR (caem no inglês) até definirmos os
   nomes; ver `api/choices.py` e `locale/pt_BR/LC_MESSAGES/django.po`.

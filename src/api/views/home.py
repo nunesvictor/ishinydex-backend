@@ -3,6 +3,7 @@ from django.db.models import Count, F, Min, OuterRef, Q, Subquery
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 
+from drf_spectacular.plumbing import build_array_type, build_basic_type
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import mixins, status, viewsets
@@ -32,6 +33,8 @@ from ..serializers.home import (
     PersonalDexPreviewSerializer,
     PersonalDexSerializer,
     SlotSerializer,
+    SpecimenBulkResultSerializer,
+    SpecimenBulkUpdateSerializer,
     SpecimenOptionsSerializer,
     SpecimenSerializer,
     TrainerSerializer,
@@ -223,62 +226,56 @@ class SlotViewSet(viewsets.ReadOnlyModelViewSet):
         return self._slot_response(slot.pk)
 
 
-@extend_schema_view(
-    list=extend_schema(
-        parameters=[
-            OpenApiParameter("form_id", OpenApiTypes.INT),
-            OpenApiParameter(
-                "available",
-                OpenApiTypes.BOOL,
-                description=_("true: only specimens not deposited in any slot"),
-            ),
-            OpenApiParameter("is_shiny", OpenApiTypes.BOOL),
-            OpenApiParameter("is_alpha", OpenApiTypes.BOOL),
-            OpenApiParameter("is_from_go", OpenApiTypes.BOOL),
-            OpenApiParameter(
-                "search", OpenApiTypes.STR, description=_("nickname or form name")
-            ),
-            OpenApiParameter(
-                "pokeball",
-                OpenApiTypes.STR,
-                description=_("comma-separated pokéballs; none: without pokéball"),
-            ),
-            OpenApiParameter(
-                "type",
-                OpenApiTypes.STR,
-                description=_("comma-separated types; the form must have all"),
-            ),
-            OpenApiParameter(
-                "ot",
-                OpenApiTypes.STR,
-                description=_("comma-separated trainer ids; none: without OT"),
-            ),
-            OpenApiParameter(
-                "generation",
-                OpenApiTypes.STR,
-                description=_("comma-separated generations (generation-i...)"),
-            ),
-            OpenApiParameter(
-                "gender", OpenApiTypes.STR, description=_("comma-separated")
-            ),
-            OpenApiParameter(
-                "nature", OpenApiTypes.STR, description=_("comma-separated")
-            ),
-            OpenApiParameter(
-                "language", OpenApiTypes.STR, description=_("comma-separated")
-            ),
-            OpenApiParameter("ability", OpenApiTypes.STR),
-            OpenApiParameter("captured_after", OpenApiTypes.DATE),
-            OpenApiParameter("captured_before", OpenApiTypes.DATE),
-            OpenApiParameter(
-                "ordering",
-                OpenApiTypes.STR,
-                enum=list(SPECIMEN_ORDERINGS),
-                description=_("default: dex"),
-            ),
-        ]
-    )
-)
+# Filtros de GET /specimens/ (e de /specimens/ids/), para o schema.
+SPECIMEN_FILTER_PARAMETERS = [
+    OpenApiParameter("form_id", OpenApiTypes.INT),
+    OpenApiParameter(
+        "available",
+        OpenApiTypes.BOOL,
+        description=_("true: only specimens not deposited in any slot"),
+    ),
+    OpenApiParameter("is_shiny", OpenApiTypes.BOOL),
+    OpenApiParameter("is_alpha", OpenApiTypes.BOOL),
+    OpenApiParameter("is_from_go", OpenApiTypes.BOOL),
+    OpenApiParameter(
+        "search", OpenApiTypes.STR, description=_("nickname or form name")
+    ),
+    OpenApiParameter(
+        "pokeball",
+        OpenApiTypes.STR,
+        description=_("comma-separated pokéballs; none: without pokéball"),
+    ),
+    OpenApiParameter(
+        "type",
+        OpenApiTypes.STR,
+        description=_("comma-separated types; the form must have all"),
+    ),
+    OpenApiParameter(
+        "ot",
+        OpenApiTypes.STR,
+        description=_("comma-separated trainer ids; none: without OT"),
+    ),
+    OpenApiParameter(
+        "generation",
+        OpenApiTypes.STR,
+        description=_("comma-separated generations (generation-i...)"),
+    ),
+    OpenApiParameter("gender", OpenApiTypes.STR, description=_("comma-separated")),
+    OpenApiParameter("nature", OpenApiTypes.STR, description=_("comma-separated")),
+    OpenApiParameter("language", OpenApiTypes.STR, description=_("comma-separated")),
+    OpenApiParameter("ability", OpenApiTypes.STR),
+    OpenApiParameter("captured_after", OpenApiTypes.DATE),
+    OpenApiParameter("captured_before", OpenApiTypes.DATE),
+    OpenApiParameter(
+        "ordering",
+        OpenApiTypes.STR,
+        enum=list(SPECIMEN_ORDERINGS),
+        description=_("default: dex"),
+    ),
+]
+
+
+@extend_schema_view(list=extend_schema(parameters=SPECIMEN_FILTER_PARAMETERS))
 class SpecimenViewSet(viewsets.ModelViewSet):
     queryset = (
         Specimen.objects.select_related("form__pokemon__species")
@@ -307,6 +304,42 @@ class SpecimenViewSet(viewsets.ModelViewSet):
             type_["sprite_url"] = type_sprite_url(request, type_["value"])
 
         return Response(options)
+
+    @extend_schema(
+        parameters=SPECIMEN_FILTER_PARAMETERS,
+        responses={200: build_array_type(build_basic_type(OpenApiTypes.INT))},
+    )
+    @action(detail=False, pagination_class=None)
+    def ids(self, request):
+        """Ids de todos os espécimes do filtro, na mesma ordem da lista e sem
+        paginação: o app seleciona "todos os resultados" para editar em
+        lote."""
+        queryset = self.filter_queryset(self.get_queryset())
+        return Response(list(queryset.values_list("pk", flat=True)))
+
+    @extend_schema(
+        request=SpecimenBulkUpdateSerializer,
+        responses=SpecimenBulkResultSerializer,
+    )
+    @action(detail=False, methods=["patch"], filter_backends=[])
+    @transaction.atomic
+    def bulk(self, request):
+        """Edição em lote: aplica ``changes`` a todos os ``ids``, tudo ou
+        nada. Gênero incompatível com a forma de algum espécime → 400 com a
+        lista ``conflicts``."""
+        serializer = SpecimenBulkUpdateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        if conflicts := serializer.gender_conflicts():
+            message = _("this gender is not possible for %(count)d specimen(s).")
+            return Response(
+                {
+                    "gender": [message % {"count": len(conflicts)}],
+                    "conflicts": conflicts,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response({"updated": serializer.save()})
 
 
 @extend_schema_view(
