@@ -924,6 +924,6 @@ msgstr "true: apenas espécimes não depositados em nenhum slot"
 msgid "nickname or form name"
 msgstr "apelido ou nome da forma"
 
-#: api/views/home.py
-msgid "a deposited specimen can't be deleted."
-msgstr "um espécime depositado não pode ser excluído."
+#: api/serializers/home.py
+msgid "the form of a specimen can't be changed."
+msgstr "a forma de um espécime não pode ser alterada."
