@@ -93,6 +93,48 @@ class PersonalDexViewSetTests(HomeAPITestCase):
         self.assertEqual(response.data["total"], 3)
         self.assertEqual(response.data["registered"], 1)
 
+    def test_generations_in_box_order_with_counts(self):
+        species, _, chikorita = f.make_full_pokemon("chikorita", 152)
+        species.generation = "generation-ii"
+        species.save()
+        # Geração II começa na HOME 2, depois da I (HOME 1 e 2).
+        self.set_slot(self.box2, 0, 1, chikorita)
+        # Slot de outro dex não conta.
+        self.set_slot(
+            self.other_box, 0, 0, chikorita, dex=f.make_personal_dex(name="Outro")
+        )
+
+        with self.assertNumQueries(3):  # dex, agregação, boxes
+            response = self.client.get(
+                reverse("api:personal-dex-generations", args=[self.dex.pk])
+            )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        box1 = {"id": self.box1.pk, "name": "HOME 1", "position": self.box1.position}
+        box2 = {"id": self.box2.pk, "name": "HOME 2", "position": self.box2.position}
+        self.assertEqual(
+            response.data,
+            [
+                {
+                    "generation": "generation-i",
+                    "total": 3,
+                    "registered": 1,
+                    "first_box": box1,
+                },
+                {
+                    "generation": "generation-ii",
+                    "total": 1,
+                    "registered": 0,
+                    "first_box": box2,
+                },
+            ],
+        )
+
+    def test_generations_of_unknown_dex_is_404(self):
+        response = self.client.get(reverse("api:personal-dex-generations", args=[9999]))
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
     def test_boxes_only_with_dex_slots_ordered_by_position(self):
         response = self.client.get(
             reverse("api:personal-dex-boxes", args=[self.dex.pk])

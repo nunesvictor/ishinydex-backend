@@ -304,6 +304,16 @@ class DepositSerializer(serializers.Serializer):
         return attrs
 
 
+class GenerationProgressSerializer(serializers.Serializer):
+    """Progresso de um PersonalDex numa geração (``null`` = formas sem
+    pokémon associado)."""
+
+    generation = serializers.CharField(allow_null=True)
+    total = serializers.IntegerField()
+    registered = serializers.IntegerField()
+    first_box = BoxRefSerializer()
+
+
 class VersionSerializer(serializers.ModelSerializer):
     """Versão de jogo, para o treinador original (``OriginalTrainer.version``).
 
