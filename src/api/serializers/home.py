@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.utils.translation import gettext_lazy as _
@@ -6,6 +8,7 @@ from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
+from core.consts import TYPES_DICT
 from home.models import Box, OriginalTrainer, PersonalDex, Slot, Specimen
 from pokedex.models import PokemonForm, Version
 from pokedex.renderers import HomeSpriteRenderer
@@ -57,9 +60,32 @@ class FormRefSerializer(serializers.ModelSerializer):
         return form_sprite_url(self.context.get("request"), obj, shiny=True)
 
 
+def type_sprite_url(request, type_: str) -> str | None:
+    """Ícone pequeno (60×60) do tipo, ou ``None`` se não houver arquivo."""
+    type_id = TYPES_DICT.get(type_)
+    if type_id is None:
+        return None
+
+    relative = (
+        Path(settings.TYPE_SPRITES_DEFAULT_GEN)
+        / settings.TYPE_SPRITES_DEFAULT_GAME
+        / "small"
+        / f"{type_id}.png"
+    )
+    if not (settings.TYPE_SPRITES_ROOT / relative).is_file():
+        return None
+
+    return absolute_url(request, settings.TYPE_SPRITES_URL / relative)
+
+
 class FormTypeSerializer(serializers.Serializer):
     slot = serializers.IntegerField()
     type = serializers.CharField()
+    sprite_url = serializers.SerializerMethodField()
+
+    @extend_schema_field(OpenApiTypes.URI)
+    def get_sprite_url(self, obj) -> str | None:
+        return type_sprite_url(self.context.get("request"), obj.type)
 
 
 class FormAbilitySerializer(serializers.Serializer):
@@ -85,7 +111,7 @@ class FormDetailSerializer(FormRefSerializer):
     @extend_schema_field(FormTypeSerializer(many=True))
     def get_types(self, obj: PokemonForm):
         types = sorted(obj.types.all(), key=lambda t: t.slot)
-        return FormTypeSerializer(types, many=True).data
+        return FormTypeSerializer(types, many=True, context=self.context).data
 
     @extend_schema_field(FormAbilitySerializer(many=True))
     def get_abilities(self, obj: PokemonForm):

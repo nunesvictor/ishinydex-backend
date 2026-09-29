@@ -48,7 +48,9 @@ Schema OpenAPI: `GET /api/schema/` · Swagger UI: `GET /api/docs/` (públicos).
  "shiny_sprite_url": "http://host/media/sprites/pokemon/other/home/shiny/1.png"}
 
 // FormDetail = FormRef +
-{"types": [{"slot": 1, "type": "grass"}],
+{"types": [{"slot": 1, "type": "grass",
+            // ícone 60×60 (sword-shield/small); null se não houver arquivo
+            "sprite_url": "http://host/media/sprites/types/generation-viii/sword-shield/small/12.png"}],
  "abilities": [{"slot": 1, "ability": "overgrow", "is_hidden": false}],
  "is_shinylocked": false, "is_distro_only": false}
 
