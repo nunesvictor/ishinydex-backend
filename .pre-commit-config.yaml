@@ -1,0 +1,25 @@
+# Hooks de formatação e lint rodados a cada `git commit`.
+#   pre-commit install            # uma vez por clone
+#   pre-commit run --all-files    # roda em todo o projeto
+# Cada ferramenta lê a própria config (pyproject.toml / .flake8). Mantenha as
+# versões (rev) alinhadas com o grupo `dev` do pyproject.toml.
+
+# Migrations são geradas pelo Django; as configs já as excluem, mas os hooks
+# recebem os arquivos explicitamente e ignorariam o exclude do black.
+exclude: /migrations/
+
+repos:
+  - repo: https://github.com/psf/black-pre-commit-mirror
+    rev: 26.5.1
+    hooks:
+      - id: black
+
+  - repo: https://github.com/PyCQA/isort
+    rev: 8.0.1
+    hooks:
+      - id: isort
+
+  - repo: https://github.com/PyCQA/flake8
+    rev: 7.3.0
+    hooks:
+      - id: flake8
