@@ -136,12 +136,12 @@ RUN export SECRET_KEY=build-only POSTGRES_PASSWORD=build-only && \
 # ==========================================
 FROM python:${PYTHON_VERSION}-slim AS base
 
-ARG APP_NAME="django-pokedex"
+ARG APP_NAME="ishinydex"
 ARG APP_HOME="/home/guest/${APP_NAME}"
 
 ENV HOME=/home/guest \
     APP_HOME=${APP_HOME} \
-    DJANGO_SETTINGS_MODULE=django_pokedex.settings \
+    DJANGO_SETTINGS_MODULE=ishinydex.settings \
     LANG=pt_BR.UTF-8 \
     LANGUAGE=pt_BR:en \
     LC_ALL=pt_BR.UTF-8 \
@@ -209,4 +209,4 @@ COPY --from=app --chown=1000:1000 /build/src/ ${APP_HOME}/src/
 
 USER guest
 
-CMD ["uwsgi", "--ini", "uwsgi/django-pokedex.ini"]
+CMD ["uwsgi", "--ini", "uwsgi/ishinydex.ini"]

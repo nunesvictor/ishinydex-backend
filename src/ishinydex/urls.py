@@ -1,5 +1,5 @@
 """
-URL configuration for django-pokedex project.
+URL configuration for ishinydex project.
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/6.0/topics/http/urls/

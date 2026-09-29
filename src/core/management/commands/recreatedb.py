@@ -38,7 +38,7 @@ class Command(BaseCommand):
             conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
             cursor = conn.cursor()
 
-            # Identifier: nomes como "django-pokedex" precisam de aspas.
+            # Identifier: nomes como "ishinydex-dev" precisam de aspas.
             # WITH (FORCE) encerra conexões remanescentes (PostgreSQL 13+).
             db_identifier = sql.Identifier(db_name)
             cursor.execute(

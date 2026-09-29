@@ -1,5 +1,5 @@
 [project]
-name = "django-pokedex"
+name = "ishinydex"
 version = "0.1.0"
 description = ""
 authors = [
@@ -71,7 +71,7 @@ module = "*.migrations.*"
 ignore_errors = true
 
 [tool.django-stubs]
-django_settings_module = "django_pokedex.settings"
+django_settings_module = "ishinydex.settings"
 
 [tool.isort]
 profile = "black"

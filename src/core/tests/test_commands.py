@@ -421,14 +421,14 @@ class RecreateDbTests(SimpleTestCase):
         default = connections_mock.__getitem__.return_value
         cursor = default.Database.connect.return_value.cursor.return_value
 
-        with mock.patch.dict(settings.DATABASES["default"], NAME="django-pokedex"):
+        with mock.patch.dict(settings.DATABASES["default"], NAME="ishinydex-dev"):
             run("recreatedb")
 
         default.close.assert_called_once()
         self.assertEqual(
             default.Database.connect.call_args.kwargs["dbname"], "postgres"
         )
-        name = sql.Identifier("django-pokedex")
+        name = sql.Identifier("ishinydex-dev")
         self.assertEqual(
             [c.args[0] for c in cursor.execute.call_args_list],
             [
@@ -442,7 +442,7 @@ class RecreateDbTests(SimpleTestCase):
 
 
 DB_SETTINGS = {
-    "NAME": "django-pokedex",
+    "NAME": "ishinydex",
     "USER": "pokeuser",
     "PASSWORD": "secret",
     "HOST": "db",
@@ -469,7 +469,7 @@ class BackupTestCase(TestCase):
             ("-h", "db"),
             ("-p", "5432"),
             ("-U", "pokeuser"),
-            ("-d", "django-pokedex"),
+            ("-d", "ishinydex"),
         ):
             self.assertEqual(cmd[cmd.index(flag) + 1], value)
         self.assertEqual(run_mock.call_args.kwargs["env"]["PGPASSWORD"], "secret")
@@ -490,7 +490,7 @@ class BackupDbTests(BackupTestCase):
         self.assert_connection_args(run_mock)
         backup_file = Path(cmd[cmd.index("-f") + 1])
         self.assertEqual(backup_file.parent, self.tmp)
-        self.assertRegex(backup_file.name, r"^dump-django-pokedex-\d{12}\.backup$")
+        self.assertRegex(backup_file.name, r"^dump-ishinydex-\d{12}\.backup$")
         self.assertIn("dumped to", output)
 
     def test_timestamp_is_computed_on_each_run(self, run_mock, _clearsessions):
@@ -505,8 +505,8 @@ class BackupDbTests(BackupTestCase):
         self.assertEqual(
             names,
             [
-                "dump-django-pokedex-202609281200.backup",
-                "dump-django-pokedex-202609281201.backup",
+                "dump-ishinydex-202609281200.backup",
+                "dump-ishinydex-202609281201.backup",
             ],
         )
 
