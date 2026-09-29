@@ -146,6 +146,13 @@ class SpecimenSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         attrs = super().validate(attrs)
 
+        # A forma é fixa: trocá-la num specimen depositado quebraria a regra
+        # de Slot.clean (forma do specimen = forma do slot).
+        if self.instance and "form" in attrs and attrs["form"] != self.instance.form:
+            raise serializers.ValidationError(
+                {"form": [_("the form of a specimen can't be changed.")]}
+            )
+
         form = attrs.get("form", getattr(self.instance, "form", None))
         ability = attrs.get("ability", getattr(self.instance, "ability", None))
 

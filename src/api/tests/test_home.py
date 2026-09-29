@@ -383,16 +383,45 @@ class SpecimenViewSetTests(HomeAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("ability", response.data)
 
-    def test_delete_deposited_specimen_is_400(self):
-        response = self.client.delete(
-            reverse("api:specimen-detail", args=[self.bulbasaur_specimen.pk])
+    def test_partial_update_deposited_specimen(self):
+        response = self.client.patch(
+            reverse("api:specimen-detail", args=[self.bulbasaur_specimen.pk]),
+            {"nickname": "Bulba", "is_alpha": True, "form": self.bulbasaur.pk},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["nickname"], "Bulba")
+        self.assertTrue(response.data["is_alpha"])
+        self.assertEqual(response.data["slot"], self.bulbasaur_slot.pk)
+
+    def test_partial_update_cannot_change_form(self):
+        response = self.client.patch(
+            reverse("api:specimen-detail", args=[self.bulbasaur_specimen.pk]),
+            {"form": self.charmander.pk},
+            format="json",
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response.data, {"detail": "um espécime depositado não pode ser excluído."}
+            response.data, {"form": ["a forma de um espécime não pode ser alterada."]}
         )
-        self.assertTrue(Specimen.objects.filter(pk=self.bulbasaur_specimen.pk).exists())
+        self.bulbasaur_specimen.refresh_from_db()
+        self.assertEqual(self.bulbasaur_specimen.form, self.bulbasaur)
+
+    def test_delete_deposited_specimen_releases_the_slot(self):
+        response = self.client.delete(
+            reverse("api:specimen-detail", args=[self.bulbasaur_specimen.pk])
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(
+            Specimen.objects.filter(pk=self.bulbasaur_specimen.pk).exists()
+        )
+        # O slot continua com a forma e fica faltante.
+        self.bulbasaur_slot.refresh_from_db()
+        self.assertIsNone(self.bulbasaur_slot.specimen)
+        self.assertEqual(self.bulbasaur_slot.form, self.bulbasaur)
 
     def test_delete_available_specimen(self):
         specimen = f.make_specimen(self.bulbasaur)

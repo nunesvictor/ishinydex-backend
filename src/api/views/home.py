@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
-from rest_framework import mixins, status, viewsets
+from rest_framework import mixins, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -154,17 +154,6 @@ class SpecimenViewSet(viewsets.ModelViewSet):
     )
     serializer_class = SpecimenSerializer
     filter_backends = (SpecimenFilterBackend,)
-
-    def destroy(self, request, *args, **kwargs):
-        specimen = self.get_object()
-
-        if specimen.slot_id is not None:
-            return Response(
-                {"detail": _("a deposited specimen can't be deleted.")},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        return super().destroy(request, *args, **kwargs)
 
     @extend_schema(responses=SpecimenOptionsSerializer)
     @action(detail=False, pagination_class=None, filter_backends=[])

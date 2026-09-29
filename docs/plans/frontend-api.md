@@ -30,9 +30,9 @@ Schema OpenAPI: `GET /api/schema/` · Swagger UI: `GET /api/docs/` (públicos).
 | GET | `/api/slots/?personal_dex=&box=&registered=true\|false` | slots; com `box`, retorna os 30 slots **sem paginação** |
 | GET | `/api/slots/{id}/` | um slot |
 | POST | `/api/slots/{id}/deposit/` | `{specimen_id}` → 200 com o slot, ou 400 |
-| POST | `/api/slots/{id}/withdraw/` | 200 com o slot (`specimen: null`) |
+| POST | `/api/slots/{id}/withdraw/` | 200 com o slot (`specimen: null`); o app não usa mais (libertar = DELETE do specimen) |
 | GET/POST | `/api/specimens/?form_id=&available=&is_shiny=&search=` | lista/cria specimens |
-| GET/PUT/PATCH/DELETE | `/api/specimens/{id}/` | DELETE de specimen depositado → 400 |
+| GET/PUT/PATCH/DELETE | `/api/specimens/{id}/` | PATCH = editar (`form` imutável); DELETE = libertar, inclusive depositado |
 | GET | `/api/specimens/options/` | choices de language, gender, nature e pokeball |
 | GET | `/api/forms/?search=` | formas (`FormRef`), busca por nome |
 | GET | `/api/forms/{id}/` | `FormDetail` |
@@ -96,6 +96,9 @@ Schema OpenAPI: `GET /api/schema/` · Swagger UI: `GET /api/docs/` (públicos).
     o specimen anterior (que volta a ficar disponível).
 - **Ability** do specimen deve pertencer às abilities do pokémon da forma
   (mesma regra do `SpecimenAdminForm`) → `{"ability": [...]}`.
-- **DELETE** de specimen depositado → 400 `{"detail": "..."}`.
+- **Editar** (PUT/PATCH): `form` não pode mudar depois de criado → `{"form": [...]}`.
+  Enviar a mesma forma é aceito.
+- **Libertar** (DELETE → 204): apaga o specimen, mesmo depositado; o slot
+  mantém a forma e fica faltante (`Slot.specimen` é `on_delete=SET_NULL`).
 - Labels de nature ainda sem tradução pt-BR (caem no inglês) até definirmos os
   nomes; ver `api/choices.py` e `locale/pt_BR/LC_MESSAGES/django.po`.
