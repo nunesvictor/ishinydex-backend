@@ -940,3 +940,104 @@ msgid ""
 msgstr ""
 "Não há boxes livres seguidas suficientes para este PersonalDex: ele precisa "
 "de %(needed)d, e a maior sequência livre tem %(largest)d."
+
+#: api/choices.py
+msgid "Normal"
+msgstr "Normal"
+
+#: api/choices.py
+msgid "Fire"
+msgstr "Fogo"
+
+#: api/choices.py
+msgid "Water"
+msgstr "Água"
+
+#: api/choices.py
+msgid "Grass"
+msgstr "Planta"
+
+#: api/choices.py
+msgid "Electric"
+msgstr "Elétrico"
+
+#: api/choices.py
+msgid "Ice"
+msgstr "Gelo"
+
+#: api/choices.py
+msgid "Fighting"
+msgstr "Lutador"
+
+#: api/choices.py
+msgid "Poison"
+msgstr "Venenoso"
+
+#: api/choices.py
+msgid "Ground"
+msgstr "Terrestre"
+
+#: api/choices.py
+msgid "Flying"
+msgstr "Voador"
+
+#: api/choices.py
+msgid "Psychic"
+msgstr "Psíquico"
+
+#: api/choices.py
+msgid "Bug"
+msgstr "Inseto"
+
+#: api/choices.py
+msgid "Rock"
+msgstr "Pedra"
+
+#: api/choices.py
+msgid "Ghost"
+msgstr "Fantasma"
+
+#: api/choices.py
+msgid "Dragon"
+msgstr "Dragão"
+
+#: api/choices.py
+msgid "Dark"
+msgstr "Sombrio"
+
+#: api/choices.py
+msgid "Steel"
+msgstr "Aço"
+
+#: api/choices.py
+msgid "Fairy"
+msgstr "Fada"
+
+#: api/choices.py
+#, python-format
+msgid "Generation %(number)s"
+msgstr "Geração %(number)s"
+
+#: api/views/home.py
+msgid "comma-separated pokéballs; none: without pokéball"
+msgstr "pokébolas separadas por vírgula; none: sem pokébola"
+
+#: api/views/home.py
+msgid "comma-separated types; the form must have all"
+msgstr "tipos separados por vírgula; a forma precisa ter todos"
+
+#: api/views/home.py
+msgid "comma-separated trainer ids; none: without OT"
+msgstr "ids de treinadores separados por vírgula; none: sem OT"
+
+#: api/views/home.py
+msgid "comma-separated generations (generation-i...)"
+msgstr "gerações separadas por vírgula (generation-i...)"
+
+#: api/views/home.py
+msgid "comma-separated"
+msgstr "separados por vírgula"
+
+#: api/views/home.py
+msgid "default: dex"
+msgstr "padrão: dex"

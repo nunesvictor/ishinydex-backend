@@ -34,9 +34,9 @@ Schema OpenAPI: `GET /api/schema/` · Swagger UI: `GET /api/docs/` (públicos).
 | GET | `/api/slots/{id}/` | um slot |
 | POST | `/api/slots/{id}/deposit/` | `{specimen_id}` → 200 com o slot, ou 400 |
 | POST | `/api/slots/{id}/withdraw/` | 200 com o slot (`specimen: null`); o app não usa mais (libertar = DELETE do specimen) |
-| GET/POST | `/api/specimens/?form_id=&available=&is_shiny=&is_alpha=&is_from_go=&search=` | lista/cria specimens |
+| GET/POST | `/api/specimens/?form_id=&available=&is_shiny=&is_alpha=&is_from_go=&search=` + filtros abaixo | lista/cria specimens |
 | GET/PUT/PATCH/DELETE | `/api/specimens/{id}/` | PATCH = editar (`form` imutável); DELETE = libertar, inclusive depositado |
-| GET | `/api/specimens/options/` | choices de language, gender, nature e pokeball |
+| GET | `/api/specimens/options/` | choices de language, gender, nature, pokeball, type e generation |
 | GET | `/api/forms/?search=` | formas (`FormRef`), busca por nome |
 | GET | `/api/forms/{id}/` | `FormDetail` |
 | GET/POST | `/api/trainers/?search=` | lista/cria OriginalTrainer |
@@ -88,8 +88,28 @@ Schema OpenAPI: `GET /api/schema/` · Swagger UI: `GET /api/docs/` (públicos).
  "gender": [{"value": "male", "label": "Macho"}, ...],
  "nature": [{"value": "adamant", "label": "Adamant"}, ...],
  "pokeball": [{"value": "poke-ball", "label": "Poké Ball",
-               "sprite_url": "http://host/media/sprites/items/poke-ball.png"}, ...]}
+               "sprite_url": "http://host/media/sprites/items/poke-ball.png"}, ...],
+ "type": [{"value": "water", "label": "Água",
+           "sprite_url": "http://host/media/sprites/types/.../11.png"}, ...],  // sprite_url pode ser null
+ "generation": [{"value": "generation-iv", "label": "Geração IV"}, ...]}
 ```
+
+## Filtros de `/api/specimens/`
+
+Listas aceitam vários valores separados por vírgula (**OU** entre os
+valores, exceto `type`); filtros diferentes combinam com **E**. Valores
+inválidos são ignorados.
+
+| Parâmetro | Exemplo | Regra |
+| --- | --- | --- |
+| `pokeball` | `dive-ball,none` | `none` = sem pokébola |
+| `type` | `water,flying` | a forma precisa ter **todos** os tipos |
+| `ot` | `1,none` | ids de OriginalTrainer; `none` = sem OT |
+| `generation` | `generation-i,generation-iv` | geração da espécie |
+| `gender` / `nature` / `language` | `female,genderless` | |
+| `ability` | `levitate` | contém (sem diferenciar maiúsculas) |
+| `captured_after` / `captured_before` | `2026-01-01` | intervalo inclusivo de `captured_at` |
+| `ordering` | `-captured_at` | `dex` (padrão), `captured_at`, `-captured_at` (sem data por último), `-created_at` |
 
 ## Regras
 

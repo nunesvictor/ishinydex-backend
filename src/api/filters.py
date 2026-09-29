@@ -1,4 +1,6 @@
-from django.db.models import Q, QuerySet
+from datetime import date
+
+from django.db.models import F, Q, QuerySet
 
 from rest_framework import filters
 
@@ -68,6 +70,42 @@ class SlotFilterBackend(filters.BaseFilterBackend):
         return queryset
 
 
+# Parâmetro → campo, para filtros de lista simples (valores por vírgula).
+SPECIMEN_LIST_FILTERS = {
+    "generation": "form__pokemon__species__generation",
+    "gender": "gender",
+    "nature": "nature",
+    "language": "language",
+}
+
+# Valor de ``ordering`` → ``order_by``; o padrão é a ordem da dex (queryset da
+# view). ``pk`` desempata para a paginação ficar estável.
+SPECIMEN_ORDERINGS = {
+    "dex": ("form__order", "pk"),
+    "captured_at": (F("captured_at").asc(nulls_last=True), "pk"),
+    "-captured_at": (F("captured_at").desc(nulls_last=True), "-pk"),
+    "-created_at": ("-created_at", "-pk"),
+}
+
+
+def parse_list(value: str | None) -> list[str]:
+    """ "a, b,,c" → ["a", "b", "c"]."""
+    return [item.strip() for item in (value or "").split(",") if item.strip()]
+
+
+def parse_date(value: str) -> date | None:
+    """Data ISO (``AAAA-MM-DD``); valor inválido → None (filtro ignorado)."""
+    try:
+        return date.fromisoformat(value.strip())
+    except ValueError:
+        return None
+
+
+def with_none(condition: Q, values: list[str], none_condition: Q) -> Q:
+    """Soma ``none_condition`` à condição quando ``values`` contém "none"."""
+    return condition | none_condition if "none" in values else condition
+
+
 class SpecimenFilterBackend(filters.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
         params = request.query_params
@@ -87,6 +125,37 @@ class SpecimenFilterBackend(filters.BaseFilterBackend):
             queryset = queryset.filter(
                 Q(nickname__icontains=search) | Q(form_name__icontains=search)
             )
+
+        if balls := parse_list(params.get("pokeball")):
+            queryset = queryset.filter(
+                with_none(Q(pokeball__in=balls), balls, Q(pokeball__isnull=True))
+            )
+
+        if ots := parse_list(params.get("ot")):
+            ids = [ot for ot in ots if ot.isdigit()]
+            queryset = queryset.filter(
+                with_none(Q(ot_id__in=ids), ots, Q(ot__isnull=True))
+            )
+
+        # Com mais de um tipo, a forma precisa ter todos (ex.: água + voador).
+        for type_ in parse_list(params.get("type")):
+            queryset = queryset.filter(form__types__type=type_)
+
+        for param, field in SPECIMEN_LIST_FILTERS.items():
+            if values := parse_list(params.get(param)):
+                queryset = queryset.filter(**{f"{field}__in": values})
+
+        if ability := params.get("ability", "").strip():
+            queryset = queryset.filter(ability__icontains=ability)
+
+        if after := parse_date(params.get("captured_after", "")):
+            queryset = queryset.filter(captured_at__gte=after)
+
+        if before := parse_date(params.get("captured_before", "")):
+            queryset = queryset.filter(captured_at__lte=before)
+
+        if ordering := SPECIMEN_ORDERINGS.get(params.get("ordering", "")):
+            queryset = queryset.order_by(*ordering)
 
         return queryset
 

@@ -1,4 +1,5 @@
 import tempfile
+from datetime import date
 from pathlib import Path
 
 from django.contrib.auth.models import User
@@ -627,12 +628,142 @@ class SpecimenViewSetTests(HomeAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(Specimen.objects.filter(pk=specimen.pk).exists())
 
+    def ids(self, **params) -> list[int]:
+        response = self.client.get(reverse("api:specimen-list"), params)
+        return [s["id"] for s in response.data["results"]]
+
+    def test_filter_pokeball(self):
+        dive = f.make_specimen(self.charmander, pokeball="dive-ball")
+        dusk = f.make_specimen(self.charmander, pokeball="dusk-ball")
+        without = self.bulbasaur_specimen
+
+        self.assertEqual(self.ids(pokeball="dive-ball"), [dive.pk])
+        self.assertEqual(self.ids(pokeball="dive-ball, dusk-ball"), [dive.pk, dusk.pk])
+        self.assertEqual(self.ids(pokeball="none"), [without.pk])
+        self.assertEqual(
+            set(self.ids(pokeball="none,dusk-ball")), {without.pk, dusk.pk}
+        )
+        self.assertEqual(self.ids(pokeball=",,"), [without.pk, dive.pk, dusk.pk])
+
+    def test_filter_ot(self):
+        ash, misty = f.make_ot(), f.make_ot()
+        by_ash = f.make_specimen(self.charmander, ot=ash)
+        by_misty = f.make_specimen(self.charmander, ot=misty)
+
+        self.assertEqual(self.ids(ot=str(ash.pk)), [by_ash.pk])
+        self.assertEqual(self.ids(ot=f"{ash.pk},{misty.pk}"), [by_ash.pk, by_misty.pk])
+        self.assertEqual(self.ids(ot="none"), [self.bulbasaur_specimen.pk])
+        self.assertEqual(self.ids(ot="abc"), [])
+
+    def test_filter_type_requires_all_types(self):
+        _, _, pidgey = f.make_full_pokemon("pidgey", 16, types=("normal", "flying"))
+        _, _, wingull = f.make_full_pokemon("wingull", 278, types=("water", "flying"))
+        pidgey_specimen = f.make_specimen(pidgey)
+        wingull_specimen = f.make_specimen(wingull)
+
+        self.assertEqual(
+            self.ids(type="flying"), [pidgey_specimen.pk, wingull_specimen.pk]
+        )
+        self.assertEqual(self.ids(type="water,flying"), [wingull_specimen.pk])
+        self.assertEqual(self.ids(type="grass"), [self.bulbasaur_specimen.pk])
+        self.assertEqual(self.ids(type="fire,flying"), [])
+
+    def test_filter_generation(self):
+        species, _, turtwig = f.make_full_pokemon("turtwig", 387)
+        species.generation = "generation-iv"
+        species.save()
+        specimen = f.make_specimen(turtwig)
+
+        self.assertEqual(self.ids(generation="generation-iv"), [specimen.pk])
+        self.assertEqual(
+            self.ids(generation="generation-i,generation-iv"),
+            [self.bulbasaur_specimen.pk, specimen.pk],
+        )
+
+    def test_filter_gender_nature_language_and_ability(self):
+        female = f.make_specimen(
+            self.charmander, gender="female", nature="jolly", language="ja"
+        )
+        genderless = f.make_specimen(self.charmander, gender="genderless")
+        blaze = f.make_specimen(self.charmander, ability="blaze")
+
+        self.assertEqual(
+            self.ids(gender="female,genderless"), [female.pk, genderless.pk]
+        )
+        self.assertEqual(self.ids(nature="jolly"), [female.pk])
+        self.assertEqual(self.ids(language="ja"), [female.pk])
+        self.assertEqual(self.ids(ability="BLA"), [blaze.pk])
+        self.assertEqual(self.ids(gender="female", language="en"), [])
+
+    def test_filter_captured_range(self):
+        january = f.make_specimen(self.charmander, captured_at=date(2026, 1, 10))
+        march = f.make_specimen(self.charmander, captured_at=date(2026, 3, 5))
+
+        self.assertEqual(self.ids(captured_after="2026-03-05"), [march.pk])
+        self.assertEqual(self.ids(captured_before="2026-01-10"), [january.pk])
+        self.assertEqual(
+            self.ids(captured_after="2026-01-01", captured_before="2026-12-31"),
+            [january.pk, march.pk],
+        )
+        # data inválida: filtro ignorado
+        self.assertEqual(len(self.ids(captured_after="ontem")), 3)
+
+    def test_ordering(self):
+        self.bulbasaur_specimen.captured_at = date(2026, 2, 1)
+        self.bulbasaur_specimen.save()
+        old = f.make_specimen(self.charmander, captured_at=date(2025, 1, 1))
+        undated = f.make_specimen(self.squirtle)
+        dex_order = [self.bulbasaur_specimen.pk, old.pk, undated.pk]
+
+        self.assertEqual(self.ids(), dex_order)
+        self.assertEqual(self.ids(ordering="dex"), dex_order)
+        self.assertEqual(
+            self.ids(ordering="captured_at"),
+            [old.pk, self.bulbasaur_specimen.pk, undated.pk],
+        )
+        self.assertEqual(
+            self.ids(ordering="-captured_at"),
+            [self.bulbasaur_specimen.pk, old.pk, undated.pk],
+        )
+        self.assertEqual(
+            self.ids(ordering="-created_at"),
+            [undated.pk, old.pk, self.bulbasaur_specimen.pk],
+        )
+        self.assertEqual(self.ids(ordering="nope"), dex_order)
+
     def test_options(self):
-        response = self.client.get(reverse("api:specimen-options"))
+        with (
+            tempfile.TemporaryDirectory() as root,
+            self.settings(TYPE_SPRITES_ROOT=Path(root)),
+        ):
+            small = Path(root) / "generation-viii" / "sword-shield" / "small"
+            small.mkdir(parents=True)
+            (small / "11.png").write_bytes(b"png")  # water = 11
+
+            response = self.client.get(reverse("api:specimen-options"))
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
-            set(response.data), {"language", "gender", "nature", "pokeball"}
+            set(response.data),
+            {"language", "gender", "nature", "pokeball", "type", "generation"},
+        )
+        self.assertEqual(len(response.data["type"]), 18)
+        self.assertIn(
+            {
+                "value": "water",
+                "label": "Água",
+                "sprite_url": "http://testserver/media/sprites/types/"
+                "generation-viii/sword-shield/small/11.png",
+            },
+            response.data["type"],
+        )
+        self.assertIn(
+            {"value": "fire", "label": "Fogo", "sprite_url": None},
+            response.data["type"],
+        )
+        self.assertEqual(
+            response.data["generation"][3],
+            {"value": "generation-iv", "label": "Geração IV"},
         )
         self.assertIn({"value": "male", "label": "Macho"}, response.data["gender"])
         self.assertIn(
