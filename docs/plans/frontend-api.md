@@ -37,6 +37,7 @@ Schema OpenAPI: `GET /api/schema/` · Swagger UI: `GET /api/docs/` (públicos).
 | GET | `/api/forms/?search=` | formas (`FormRef`), busca por nome |
 | GET | `/api/forms/{id}/` | `FormDetail` |
 | GET/POST | `/api/trainers/?search=` | lista/cria OriginalTrainer |
+| GET | `/api/versions/` | versões de jogo em ordem de lançamento, **sem paginação**: `[{name, version_group, generation}]`; `name` é o valor de `version` no POST de trainers |
 | GET | `/api/pokemon/` | (já existia; agora exige autenticação) |
 
 ## Shapes

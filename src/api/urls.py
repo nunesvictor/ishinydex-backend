@@ -9,6 +9,7 @@ from .views.home import (
     SlotViewSet,
     SpecimenViewSet,
     TrainerViewSet,
+    VersionViewSet,
 )
 from .views.pokedex import PokemonViewSet
 
@@ -22,6 +23,7 @@ router.register(r"slots", SlotViewSet, basename="slot")
 router.register(r"specimens", SpecimenViewSet, basename="specimen")
 router.register(r"forms", FormViewSet, basename="form")
 router.register(r"trainers", TrainerViewSet, basename="trainer")
+router.register(r"versions", VersionViewSet, basename="version")
 
 urlpatterns = [
     # Sem autenticação: um cookie de sessão (ex.: do admin, na mesma origem)

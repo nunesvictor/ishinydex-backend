@@ -552,3 +552,42 @@ class TrainerViewSetTests(APITestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class VersionViewSetTests(APITestCase):
+    def setUp(self):
+        self.client.force_authenticate(User.objects.create_user("ash"))
+
+    def test_list_in_release_order_without_pagination(self):
+        sv = f.make_version_group(
+            name="scarlet-violet", generation="generation-ix", order=20
+        )
+        rb = f.make_version_group(name="red-blue", generation="generation-i", order=1)
+        f.make_version(name="scarlet", version_group=sv)
+        f.make_version(name="red", version_group=rb)
+
+        response = self.client.get(reverse("api:version-list"))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.data,
+            [
+                {
+                    "name": "red",
+                    "version_group": "red-blue",
+                    "generation": "generation-i",
+                },
+                {
+                    "name": "scarlet",
+                    "version_group": "scarlet-violet",
+                    "generation": "generation-ix",
+                },
+            ],
+        )
+
+    def test_is_read_only(self):
+        response = self.client.post(
+            reverse("api:version-list"), {"name": "x"}, format="json"
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
