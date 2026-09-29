@@ -27,7 +27,7 @@ Schema OpenAPI: `GET /api/schema/` · Swagger UI: `GET /api/docs/` (públicos).
 | GET | `/api/personal-dexes/` | lista paginada de dexes |
 | GET | `/api/personal-dexes/{id}/` | um dex |
 | GET | `/api/personal-dexes/{id}/boxes/` | boxes com slots do dex, por `position`, **sem paginação** |
-| GET | `/api/slots/?personal_dex=&box=&registered=true\|false` | slots; com `box`, retorna os 30 slots **sem paginação** |
+| GET | `/api/slots/?personal_dex=&box=&registered=true\|false&search=` | slots; com `box`, retorna os 30 slots **sem paginação**; `search` = nome da forma (`icontains`) ou número (Pokédex nacional da espécie ou `pokeapi_id` da forma), na ordem das boxes |
 | GET | `/api/slots/{id}/` | um slot |
 | POST | `/api/slots/{id}/deposit/` | `{specimen_id}` → 200 com o slot, ou 400 |
 | POST | `/api/slots/{id}/withdraw/` | 200 com o slot (`specimen: null`); o app não usa mais (libertar = DELETE do specimen) |
