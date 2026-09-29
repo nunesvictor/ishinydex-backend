@@ -5,11 +5,12 @@ from django.utils.translation import gettext_lazy as _
 
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
-from rest_framework import mixins, viewsets
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from home.models import Box, OriginalTrainer, PersonalDex, Slot, Specimen
+from home.services import NotEnoughBoxes, create_default_dex, plan_default_dex
 from pokedex.models import PokemonForm, Version
 
 from ..choices import specimen_options
@@ -18,6 +19,7 @@ from ..filters import (
     SlotFilterBackend,
     SpecimenFilterBackend,
     TrainerSearchFilterBackend,
+    parse_bool,
 )
 from ..serializers.home import (
     BoxSummarySerializer,
@@ -25,6 +27,8 @@ from ..serializers.home import (
     FormDetailSerializer,
     FormRefSerializer,
     GenerationProgressSerializer,
+    PersonalDexCreateSerializer,
+    PersonalDexPreviewSerializer,
     PersonalDexSerializer,
     SlotSerializer,
     SpecimenOptionsSerializer,
@@ -49,9 +53,56 @@ def count_slots(prefix: str, **filters) -> dict:
     }
 
 
-class PersonalDexViewSet(viewsets.ReadOnlyModelViewSet):
+def not_enough_boxes_message(plan) -> str:
+    return _(
+        "There aren't enough free boxes in a row for this PersonalDex: it needs "
+        "%(needed)d, and the largest free sequence has %(largest)d."
+    ) % {"needed": plan.boxes_needed, "largest": plan.largest_free_run}
+
+
+class PersonalDexViewSet(mixins.CreateModelMixin, viewsets.ReadOnlyModelViewSet):
     queryset = PersonalDex.objects.annotate(**count_slots("slot__")).order_by("name")
     serializer_class = PersonalDexSerializer
+
+    @extend_schema(
+        request=PersonalDexCreateSerializer, responses={201: PersonalDexSerializer}
+    )
+    def create(self, request, *args, **kwargs):
+        """Cria o dex com o conjunto padrão de formas e instala o esquema na
+        primeira sequência de boxes livres que comporte todas elas."""
+        serializer = PersonalDexCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            dex = create_default_dex(**serializer.validated_data)
+        except NotEnoughBoxes as error:
+            return Response(
+                {"non_field_errors": [not_enough_boxes_message(error.plan)]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        data = PersonalDexSerializer(self.get_queryset().get(pk=dex.pk)).data
+        return Response(data, status=status.HTTP_201_CREATED)
+
+    @extend_schema(
+        parameters=[OpenApiParameter("force_new_box", OpenApiTypes.BOOL)],
+        responses=PersonalDexPreviewSerializer,
+    )
+    @action(detail=False, pagination_class=None)
+    def preview(self, request):
+        """Simula um dex padrão (quantas formas, quantas boxes e onde começa),
+        sem criar nada."""
+        plan = plan_default_dex(
+            parse_bool(request.query_params.get("force_new_box")) or False
+        )
+        data = {
+            "forms": len(plan.forms),
+            "boxes_needed": plan.boxes_needed,
+            "largest_free_run": plan.largest_free_run,
+            "enough_space": plan.enough_space,
+            "first_box": plan.boxes[0] if plan.boxes else None,
+        }
+        return Response(PersonalDexPreviewSerializer(data).data)
 
     @extend_schema(responses=BoxSummarySerializer(many=True))
     @action(detail=True, pagination_class=None)

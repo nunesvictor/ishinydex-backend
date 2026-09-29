@@ -1,11 +1,11 @@
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
-from django.db.models import Prefetch, QuerySet
+from django.db.models import QuerySet
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy as _lazy
 
-from core.consts import GEN_FIRST_FORM_NAMES
 from home.models import Box, PersonalDex, Slot
+from home.services import boxes_with_slots, install_scheme
 from pokedex.models import PokemonForm
 
 
@@ -21,9 +21,7 @@ class Command(BaseCommand):
         if l_box:
             boxes = boxes.filter(position__lte=l_box.position)
 
-        return boxes.prefetch_related(
-            Prefetch("slots", queryset=Slot.objects.order_by("position"))
-        )
+        return boxes_with_slots(boxes)
 
     def __get_forms(self, p_dex: PersonalDex, capacity: int) -> list[PokemonForm]:
         forms = list(p_dex.forms.all())
@@ -62,37 +60,12 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING(_("No forms to install.")))
             return
 
-        index = 0
-        total_forms = len(forms)
-        slots_to_update = []
-
         self.stdout.write(
             self.style.MIGRATE_LABEL(_("Installing scheme... ")),
             ending="",
         )
 
-        for slots in slots_by_box:
-            for slot in slots:
-                if index >= total_forms:
-                    break
-
-                current_form = forms[index]
-                is_gen_first_form = current_form.name in GEN_FIRST_FORM_NAMES[1:]
-
-                if is_gen_first_form and not slot.is_first and p_dex.force_new_box:
-                    break
-
-                slot.form = current_form
-                slot.personal_dex = p_dex
-                slots_to_update.append(slot)
-
-                index += 1
-
-            if index >= total_forms:
-                break
-
-        if slots_to_update:
-            Slot.objects.bulk_update(slots_to_update, fields=["form", "personal_dex"])
+        install_scheme(p_dex, boxes, forms)
 
         self.stdout.write(self.style.SUCCESS(_("done!")))
 
