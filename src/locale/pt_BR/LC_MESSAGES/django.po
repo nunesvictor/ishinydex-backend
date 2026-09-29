@@ -1041,3 +1041,7 @@ msgstr "separados por vírgula"
 #: api/views/home.py
 msgid "default: dex"
 msgstr "padrão: dex"
+
+#: templates/admin/base_site.html
+msgid "development environment"
+msgstr "ambiente de desenvolvimento"

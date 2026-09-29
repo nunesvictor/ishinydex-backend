@@ -1,4 +1,5 @@
 from django.contrib import admin, messages
+from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy as _lazy
 from django.utils.translation import ngettext
@@ -16,7 +17,10 @@ class SpecimenBulkUpdateView(FormView):
         update_fields = form.get_updates()
 
         if update_fields:
-            updated_count = specimens_queryset.update(**update_fields)
+            # update() não aciona o auto_now: o updated_at vai explícito.
+            updated_count = specimens_queryset.update(
+                **update_fields, updated_at=timezone.now()
+            )
 
             message = ngettext(
                 "%(count)d specimen successfully updated.",

@@ -1,8 +1,11 @@
+from datetime import timedelta
+
 from django.contrib.admin.sites import site
 from django.contrib.auth import get_user_model
 from django.contrib.messages import get_messages
-from django.test import RequestFactory, TestCase
+from django.test import RequestFactory, TestCase, override_settings
 from django.urls import reverse
+from django.utils import timezone
 
 from core.tests import factories as f
 from core.tests.mixins import TempSpritesMixin
@@ -336,6 +339,23 @@ class SpecimenBulkUpdateViewTests(AdminTestCase):
         self.assertEqual(len(messages), 1)
         self.assertEqual(messages[0].level_tag, "success")
 
+    def test_updates_updated_at_of_selected_specimens(self):
+        """``update()`` não aciona o ``auto_now``: a view atualiza à parte."""
+        old = timezone.now() - timedelta(days=30)
+        Specimen.objects.update(updated_at=old)
+        selected, untouched = self.specimens[0], self.specimens[1]
+
+        self.client.post(
+            reverse(self.url_name),
+            {"specimens": [selected.pk], "pokeball": "dive-ball"},
+        )
+
+        selected.refresh_from_db()
+        untouched.refresh_from_db()
+        self.assertEqual(selected.pokeball, "dive-ball")
+        self.assertGreater(selected.updated_at, old)
+        self.assertEqual(untouched.updated_at, old)
+
     def test_can_revert_to_default_values(self):
         """Regressão: não era possível voltar para hardy/male/não-shiny."""
         Specimen.objects.update(nature="bold", gender="female", is_shiny=True)
@@ -365,3 +385,34 @@ class SpecimenBulkUpdateViewTests(AdminTestCase):
         messages = list(response.context["messages"])
         self.assertEqual(len(messages), 1)
         self.assertEqual(messages[0].level_tag, "warning")
+
+
+class DevEnvironmentAdminTests(AdminTestCase):
+    """Com DEBUG=True o admin se identifica como DEV (título, cabeçalho e
+    cor); com DEBUG=False fica como o padrão do Django."""
+
+    def get_index(self):
+        return self.client.get(reverse("admin:index"))
+
+    @override_settings(DEBUG=True)
+    def test_dev_marks_title_header_and_color(self):
+        response = self.get_index()
+
+        self.assertTrue(response.context["is_dev_environment"])
+        self.assertContains(response, "(DEV)</title>", html=False)
+        self.assertContains(response, 'title="ambiente de desenvolvimento">(DEV)')
+        self.assertContains(response, "--header-bg: #b45309")
+
+    @override_settings(DEBUG=False)
+    def test_production_is_unchanged(self):
+        response = self.get_index()
+
+        self.assertFalse(response.context["is_dev_environment"])
+        self.assertNotContains(response, "(DEV)")
+        self.assertNotContains(response, "--header-bg: #b45309")
+
+    @override_settings(DEBUG=True)
+    def test_dev_also_on_custom_admin_pages(self):
+        response = self.client.get(reverse("admin:home_specimen_bulk_update"))
+
+        self.assertContains(response, "(DEV)</title>", html=False)
