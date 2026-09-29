@@ -927,3 +927,7 @@ msgstr "apelido ou nome da forma"
 #: api/serializers/home.py
 msgid "the form of a specimen can't be changed."
 msgstr "a forma de um espécime não pode ser alterada."
+
+#: api/views/home.py
+msgid "form name, national dex number or the form's PokéAPI ID"
+msgstr "nome da forma, número da Pokédex nacional ou o PokéAPI ID da forma"

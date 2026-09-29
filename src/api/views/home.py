@@ -81,6 +81,13 @@ class PersonalDexViewSet(viewsets.ReadOnlyModelViewSet):
                 description=_("when set, returns all box slots, without pagination"),
             ),
             OpenApiParameter("registered", OpenApiTypes.BOOL),
+            OpenApiParameter(
+                "search",
+                OpenApiTypes.STR,
+                description=_(
+                    "form name, national dex number or the form's PokéAPI ID"
+                ),
+            ),
         ]
     )
 )

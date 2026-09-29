@@ -135,6 +135,43 @@ class PersonalDexViewSetTests(HomeAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
+class SlotSearchTests(HomeAPITestCase):
+    def setUp(self):
+        super().setUp()
+        _, venusaur, self.venusaur = f.make_full_pokemon("venusaur", 3, national_dex=3)
+        self.venusaur_alt = f.make_form(
+            venusaur, name="venusaur-alt", pokeapi_id=10033, form_order=2
+        )
+        self.venusaur_slot = self.set_slot(self.box2, 0, 1, self.venusaur)
+        self.alt_slot = self.set_slot(self.box2, 0, 2, self.venusaur_alt)
+        # Mesma forma em outro dex: não entra na busca deste.
+        other_dex = f.make_personal_dex(name="Outro")
+        self.set_slot(self.other_box, 0, 0, self.venusaur, dex=other_dex)
+
+    def search(self, text):
+        response = self.client.get(
+            reverse("api:slot-list"),
+            {"personal_dex": self.dex.pk, "search": text},
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        return [slot["id"] for slot in response.data["results"]]
+
+    def test_by_name_is_case_insensitive_and_paginated(self):
+        self.assertEqual(self.search("VENU"), [self.venusaur_slot.pk, self.alt_slot.pk])
+        self.assertEqual(self.search("char"), [self.charmander_slot.pk])
+
+    def test_by_national_dex_number_includes_alternate_forms(self):
+        self.assertEqual(self.search("3"), [self.venusaur_slot.pk, self.alt_slot.pk])
+
+    def test_by_form_pokeapi_id(self):
+        self.assertEqual(self.search("10033"), [self.alt_slot.pk])
+        self.assertEqual(self.search(" 1 "), [self.bulbasaur_slot.pk])
+
+    def test_no_match(self):
+        self.assertEqual(self.search("mewtwo"), [])
+        self.assertEqual(self.search("999"), [])
+
+
 class SlotViewSetTests(HomeAPITestCase):
     def test_list_by_box_returns_all_slots_without_pagination(self):
         with self.assertNumQueries(1):
