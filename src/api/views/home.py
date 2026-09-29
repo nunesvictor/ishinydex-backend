@@ -10,7 +10,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from home.models import Box, OriginalTrainer, PersonalDex, Slot, Specimen
-from pokedex.models import PokemonForm
+from pokedex.models import PokemonForm, Version
 
 from ..choices import specimen_options
 from ..filters import (
@@ -29,6 +29,7 @@ from ..serializers.home import (
     SpecimenOptionsSerializer,
     SpecimenSerializer,
     TrainerSerializer,
+    VersionSerializer,
     pokeball_sprite_url,
 )
 
@@ -204,3 +205,15 @@ class TrainerViewSet(
     queryset = OriginalTrainer.objects.select_related("version")
     serializer_class = TrainerSerializer
     filter_backends = (TrainerSearchFilterBackend,)
+
+
+class VersionViewSet(viewsets.ReadOnlyModelViewSet):
+    """Versões de jogo em ordem de lançamento (poucas dezenas: sem
+    paginação), para escolher a versão do treinador original."""
+
+    queryset = Version.objects.select_related("version_group").order_by(
+        "version_group__order", "pk"
+    )
+    serializer_class = VersionSerializer
+    pagination_class = None
+    lookup_field = "name"

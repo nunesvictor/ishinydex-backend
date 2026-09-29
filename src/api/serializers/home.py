@@ -304,6 +304,20 @@ class DepositSerializer(serializers.Serializer):
         return attrs
 
 
+class VersionSerializer(serializers.ModelSerializer):
+    """Versão de jogo, para o treinador original (``OriginalTrainer.version``).
+
+    Requer ``select_related("version_group")`` na queryset.
+    """
+
+    version_group = serializers.CharField(source="version_group.name")
+    generation = serializers.CharField(source="version_group.generation")
+
+    class Meta:
+        model = Version
+        fields = ("name", "version_group", "generation")
+
+
 class TrainerSerializer(serializers.ModelSerializer):
     version = serializers.SlugRelatedField(
         slug_field="name",

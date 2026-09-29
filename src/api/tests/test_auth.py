@@ -87,6 +87,7 @@ class AuthenticationRequiredTests(APITestCase):
             ("get", reverse("api:form-detail", args=[form.pk])),
             ("get", reverse("api:trainer-list")),
             ("post", reverse("api:trainer-list")),
+            ("get", reverse("api:version-list")),
         ]
 
         for method, url in requests:
