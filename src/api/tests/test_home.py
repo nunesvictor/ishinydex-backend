@@ -417,7 +417,12 @@ class SpecimenViewSetTests(HomeAPITestCase):
             response.data["language"],
         )
         self.assertIn(
-            {"value": "dream-ball", "label": "Dream Ball"}, response.data["pokeball"]
+            {
+                "value": "dream-ball",
+                "label": "Dream Ball",
+                "sprite_url": "http://testserver/media/sprites/items/dream-ball.png",
+            },
+            response.data["pokeball"],
         )
         self.assertEqual(len(response.data["nature"]), 25)
 

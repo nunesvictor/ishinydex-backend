@@ -81,7 +81,8 @@ Schema OpenAPI: `GET /api/schema/` · Swagger UI: `GET /api/docs/` (públicos).
 {"language": [{"value": "pt-br", "label": "Português brasileiro"}, ...],
  "gender": [{"value": "male", "label": "Macho"}, ...],
  "nature": [{"value": "adamant", "label": "Adamant"}, ...],
- "pokeball": [{"value": "poke-ball", "label": "Poké Ball"}, ...]}
+ "pokeball": [{"value": "poke-ball", "label": "Poké Ball",
+               "sprite_url": "http://host/media/sprites/items/poke-ball.png"}, ...]}
 ```
 
 ## Regras

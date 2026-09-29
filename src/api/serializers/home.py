@@ -289,8 +289,12 @@ class ChoiceSerializer(serializers.Serializer):
     label = serializers.CharField()
 
 
+class PokeballChoiceSerializer(ChoiceSerializer):
+    sprite_url = serializers.CharField()
+
+
 class SpecimenOptionsSerializer(serializers.Serializer):
     language = ChoiceSerializer(many=True)
     gender = ChoiceSerializer(many=True)
     nature = ChoiceSerializer(many=True)
-    pokeball = ChoiceSerializer(many=True)
+    pokeball = PokeballChoiceSerializer(many=True)

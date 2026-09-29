@@ -29,6 +29,7 @@ from ..serializers.home import (
     SpecimenOptionsSerializer,
     SpecimenSerializer,
     TrainerSerializer,
+    pokeball_sprite_url,
 )
 
 
@@ -169,8 +170,13 @@ class SpecimenViewSet(viewsets.ModelViewSet):
     @action(detail=False, pagination_class=None, filter_backends=[])
     def options(self, request):
         """Choices de language, gender, nature e pokeball, com labels
-        traduzidos."""
-        return Response(specimen_options())
+        traduzidos. Cada pokébola traz também a URL absoluta do sprite."""
+        options = specimen_options()
+
+        for ball in options["pokeball"]:
+            ball["sprite_url"] = pokeball_sprite_url(request, ball["value"])
+
+        return Response(options)
 
 
 @extend_schema_view(
