@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.14"
+  POETRY_VERSION: 2.4.1
+
+jobs:
+  lint:
+    name: Lint (pre-commit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
+
+      - run: pip install pre-commit
+      - run: pre-commit run --all-files --show-diff-on-failure
+
+  test:
+    name: Testes (Postgres 17)
+    runs-on: ubuntu-latest
+    services:
+      # Mesma versão do serviço `db` do docker-compose.yml.
+      postgres:
+        image: postgres:17-alpine
+        env:
+          # Banco descartável, só acessível pelo job: sem senha no arquivo.
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      POSTGRES_HOST: localhost
+      # O poetry.toml desliga o virtualenv (o Docker instala no sistema); no CI
+      # um virtualenv próprio permite cachear as dependências.
+      POETRY_VIRTUALENVS_CREATE: "true"
+      POETRY_VIRTUALENVS_IN_PROJECT: "true"
+    steps:
+      - uses: actions/checkout@v5
+
+      # O settings.py exige SECRET_KEY e POSTGRES_PASSWORD. Valores aleatórios
+      # a cada execução (com `trust`, o Postgres aceita qualquer senha), para
+      # não versionar nada com cara de segredo.
+      - name: Gerar credenciais de teste
+        run: |
+          echo "SECRET_KEY=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
+          echo "POSTGRES_PASSWORD=$(openssl rand -hex 16)" >> "$GITHUB_ENV"
+
+      - run: pipx install "poetry==${POETRY_VERSION}"
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: poetry
+
+      # compilemessages precisa do gettext; os testes conferem textos em pt-BR.
+      - run: sudo apt-get update -q && sudo apt-get install -y -q gettext
+
+      - run: poetry install --no-root --only main
+
+      - name: Compilar traduções
+        working-directory: src
+        run: poetry run python manage.py compilemessages -l pt_BR
+
+      - name: Testes
+        working-directory: src
+        run: poetry run python manage.py test
