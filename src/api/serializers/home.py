@@ -131,6 +131,7 @@ class SpecimenSummarySerializer(serializers.ModelSerializer):
             "id",
             "nickname",
             "form_name",
+            "ability",
             "is_shiny",
             "is_alpha",
             "pokeball",
