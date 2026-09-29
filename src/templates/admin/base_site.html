@@ -1,0 +1,33 @@
+{% extends "admin/base.html" %}
+{% load i18n %}
+
+{% comment %}
+  Igual ao admin/base_site.html do Django, mais a identificação do ambiente
+  de desenvolvimento (DEBUG=True): "(DEV)" no título e no cabeçalho, e o
+  cabeçalho em outra cor. Evita editar dados no admin errado quando o compose
+  de dev (:8008) roda junto com o app (:8090).
+{% endcomment %}
+
+{% block title %}{% if subtitle %}{{ subtitle }} | {% endif %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% if is_dev_environment %} (DEV){% endif %}{% endblock %}
+
+{% block extrastyle %}{{ block.super }}
+{% if is_dev_environment %}
+<style>
+  :root, html[data-theme="light"], html[data-theme="dark"] {
+    --header-bg: #b45309;
+    --header-branding-color: #fff;
+    --header-color: #fff;
+    --header-link-color: #fff;
+  }
+</style>
+{% endif %}
+{% endblock %}
+
+{% block branding %}
+<div id="site-name"><a href="{% url 'admin:index' %}">{{ site_header|default:_('Django administration') }}{% if is_dev_environment %} <span title="{% translate 'development environment' %}">(DEV)</span>{% endif %}</a></div>
+{% if user.is_anonymous %}
+  {% include "admin/color_theme_toggle.html" %}
+{% endif %}
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
