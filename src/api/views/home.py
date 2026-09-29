@@ -15,6 +15,7 @@ from pokedex.models import PokemonForm, Version
 
 from ..choices import specimen_options
 from ..filters import (
+    SPECIMEN_ORDERINGS,
     FormSearchFilterBackend,
     SlotFilterBackend,
     SpecimenFilterBackend,
@@ -36,6 +37,7 @@ from ..serializers.home import (
     TrainerSerializer,
     VersionSerializer,
     pokeball_sprite_url,
+    type_sprite_url,
 )
 
 
@@ -236,6 +238,44 @@ class SlotViewSet(viewsets.ReadOnlyModelViewSet):
             OpenApiParameter(
                 "search", OpenApiTypes.STR, description=_("nickname or form name")
             ),
+            OpenApiParameter(
+                "pokeball",
+                OpenApiTypes.STR,
+                description=_("comma-separated pokéballs; none: without pokéball"),
+            ),
+            OpenApiParameter(
+                "type",
+                OpenApiTypes.STR,
+                description=_("comma-separated types; the form must have all"),
+            ),
+            OpenApiParameter(
+                "ot",
+                OpenApiTypes.STR,
+                description=_("comma-separated trainer ids; none: without OT"),
+            ),
+            OpenApiParameter(
+                "generation",
+                OpenApiTypes.STR,
+                description=_("comma-separated generations (generation-i...)"),
+            ),
+            OpenApiParameter(
+                "gender", OpenApiTypes.STR, description=_("comma-separated")
+            ),
+            OpenApiParameter(
+                "nature", OpenApiTypes.STR, description=_("comma-separated")
+            ),
+            OpenApiParameter(
+                "language", OpenApiTypes.STR, description=_("comma-separated")
+            ),
+            OpenApiParameter("ability", OpenApiTypes.STR),
+            OpenApiParameter("captured_after", OpenApiTypes.DATE),
+            OpenApiParameter("captured_before", OpenApiTypes.DATE),
+            OpenApiParameter(
+                "ordering",
+                OpenApiTypes.STR,
+                enum=list(SPECIMEN_ORDERINGS),
+                description=_("default: dex"),
+            ),
         ]
     )
 )
@@ -255,12 +295,16 @@ class SpecimenViewSet(viewsets.ModelViewSet):
     @extend_schema(responses=SpecimenOptionsSerializer)
     @action(detail=False, pagination_class=None, filter_backends=[])
     def options(self, request):
-        """Choices de language, gender, nature e pokeball, com labels
-        traduzidos. Cada pokébola traz também a URL absoluta do sprite."""
+        """Choices de language, gender, nature, pokeball, type e generation,
+        com labels traduzidos. Pokébolas e tipos trazem também a URL absoluta
+        do sprite (``null`` se o tipo não tiver ícone)."""
         options = specimen_options()
 
         for ball in options["pokeball"]:
             ball["sprite_url"] = pokeball_sprite_url(request, ball["value"])
+
+        for type_ in options["type"]:
+            type_["sprite_url"] = type_sprite_url(request, type_["value"])
 
         return Response(options)
 

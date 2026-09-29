@@ -61,6 +61,32 @@ NATURE_LABELS = {
 }
 
 
+# Tipos que as formas podem ter (sem "stellar", "unknown" e "shadow").
+TYPE_LABELS = {
+    "normal": _("Normal"),
+    "fire": _("Fire"),
+    "water": _("Water"),
+    "grass": _("Grass"),
+    "electric": _("Electric"),
+    "ice": _("Ice"),
+    "fighting": _("Fighting"),
+    "poison": _("Poison"),
+    "ground": _("Ground"),
+    "flying": _("Flying"),
+    "psychic": _("Psychic"),
+    "bug": _("Bug"),
+    "rock": _("Rock"),
+    "ghost": _("Ghost"),
+    "dragon": _("Dragon"),
+    "dark": _("Dark"),
+    "steel": _("Steel"),
+    "fairy": _("Fairy"),
+}
+
+# Valores de PokemonSpecies.generation (PokéAPI), em ordem.
+GENERATIONS = ("i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix")
+
+
 def _labeled(choices, labels) -> list[dict]:
     return [
         {"value": value, "label": str(labels.get(value, label))}
@@ -74,4 +100,15 @@ def specimen_options() -> dict[str, list[dict]]:
         "gender": _labeled(GENDER_CHOICES, GENDER_LABELS),
         "nature": _labeled(NATURE_CHOICES, NATURE_LABELS),
         "pokeball": _labeled(Pokeball.choices, {}),
+        "type": [
+            {"value": value, "label": str(label)}
+            for value, label in TYPE_LABELS.items()
+        ],
+        "generation": [
+            {
+                "value": f"generation-{roman}",
+                "label": _("Generation %(number)s") % {"number": roman.upper()},
+            }
+            for roman in GENERATIONS
+        ],
     }
