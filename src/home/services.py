@@ -205,3 +205,33 @@ def create_default_dex(
     boxes = boxes_with_slots(Box.objects.filter(pk__in=[b.pk for b in plan.boxes]))
     install_scheme(dex, boxes, plan.forms)
     return dex
+
+
+GENDERS = frozenset({"male", "female", "genderless"})
+
+
+def allowed_genders(form: PokemonForm) -> frozenset[str]:
+    """Gêneros possíveis para um espécime da forma.
+
+    Formas por gênero (``meowstic-female``, ``oinkologne-male``...) definem o
+    gênero pelo nome: a espécie nem sempre ajuda (na base importada,
+    ``oinkologne`` tem ``gender_rate`` 0, "só macho"). Nas demais vale o
+    ``gender_rate`` da espécie (PokéAPI): -1 sem gênero, 0 só macho, 8 só
+    fêmea, 1 a 7 macho ou fêmea.
+    """
+    if form.name.endswith("-female"):
+        return frozenset({"female"})
+    if form.name.endswith("-male"):
+        return frozenset({"male"})
+    if form.pokemon is None or form.pokemon.species is None:
+        return GENDERS
+
+    match form.pokemon.species.gender_rate:
+        case -1:
+            return frozenset({"genderless"})
+        case 0:
+            return frozenset({"male"})
+        case 8:
+            return frozenset({"female"})
+
+    return frozenset({"male", "female"})

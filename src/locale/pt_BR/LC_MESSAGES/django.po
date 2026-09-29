@@ -925,6 +925,24 @@ msgid "nickname or form name"
 msgstr "apelido ou nome da forma"
 
 #: api/serializers/home.py
+msgid "this field can't be changed in bulk."
+msgstr "este campo não pode ser alterado em lote."
+
+#: api/serializers/home.py
+msgid "no changes."
+msgstr "nenhuma alteração."
+
+#: api/serializers/home.py
+#, python-format
+msgid "specimens not found: %(ids)s"
+msgstr "espécimes não encontrados: %(ids)s"
+
+#: api/views/home.py
+#, python-format
+msgid "this gender is not possible for %(count)d specimen(s)."
+msgstr "este gênero não é possível para %(count)d espécime(s)."
+
+#: api/serializers/home.py
 msgid "the form of a specimen can't be changed."
 msgstr "a forma de um espécime não pode ser alterada."
 
