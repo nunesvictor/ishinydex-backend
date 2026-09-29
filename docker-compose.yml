@@ -10,7 +10,7 @@ services:
     build:
       context: .
       target: sprites-data
-    image: ${APP_NAME:-django-pokedex}-sprites:${APP_VERSION:-latest}
+    image: ${APP_NAME:-ishinydex}-sprites:${APP_VERSION:-latest}
     restart: "no"
     volumes:
       - sprites:/data
@@ -25,7 +25,7 @@ services:
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-django-pokedex}
+      POSTGRES_DB: ${POSTGRES_DB:-ishinydex}
     ports:
       - "${X_POSTGRES_PORT:-5432}:5432"
     restart: always
@@ -48,13 +48,13 @@ services:
       JUPYTER_TOKEN: ${JUPYTER_TOKEN:-}
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    image: ${APP_NAME:-django-pokedex}:${APP_VERSION:-latest}
+    image: ${APP_NAME:-ishinydex}:${APP_VERSION:-latest}
     ports:
       - "${X_JUPYTER_PORT:-8888}:8888"
     pull_policy: never
     volumes:
-      - .:${APP_HOME}
-      - sprites:${APP_HOME}/src/media/sprites:ro
+      - .:/home/guest/ishinydex
+      - sprites:/home/guest/ishinydex/src/media/sprites:ro
 
   web:
     build:
@@ -74,13 +74,13 @@ services:
       DJANGO_SUPERUSER_USERNAME: ${DJANGO_SUPERUSER_USERNAME:-admin}
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    image: ${APP_NAME:-django-pokedex}:${APP_VERSION:-latest}
+    image: ${APP_NAME:-ishinydex}:${APP_VERSION:-latest}
     ports:
       - "${X_WEB_PORT:-8000}:8000"
     restart: always
     volumes:
-      - .:${APP_HOME}
-      - sprites:${APP_HOME}/src/media/sprites:ro
+      - .:/home/guest/ishinydex
+      - sprites:/home/guest/ishinydex/src/media/sprites:ro
 
   # Execução "de produção" local: imagem prod (uwsgi, DEBUG=False), sem código
   # montado. Não sobe por padrão; use:
@@ -105,11 +105,11 @@ services:
       DEBUG_TOOLBAR: "False"
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    image: ${APP_NAME:-django-pokedex}-prod:${APP_VERSION:-latest}
+    image: ${APP_NAME:-ishinydex}-prod:${APP_VERSION:-latest}
     ports:
       - "${X_PROD_PORT:-8080}:8000"
     restart: unless-stopped
     volumes:
-      - ./.cache:${APP_HOME}/.cache
-      - ./backups:${APP_HOME}/backups
-      - sprites:${APP_HOME}/src/media/sprites:ro
+      - ./.cache:/home/guest/ishinydex/.cache
+      - ./backups:/home/guest/ishinydex/backups
+      - sprites:/home/guest/ishinydex/src/media/sprites:ro

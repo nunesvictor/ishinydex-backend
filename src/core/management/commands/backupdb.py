@@ -7,7 +7,7 @@ from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.utils.translation import gettext_lazy as _
 
-APP_NAME = os.getenv("APP_NAME", "django-pokedex")
+APP_NAME = os.getenv("APP_NAME", "ishinydex")
 
 
 def pg_connection_args(db: dict) -> tuple[list[str], dict[str, str]]:
