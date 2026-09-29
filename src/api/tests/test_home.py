@@ -1,9 +1,13 @@
+import tempfile
+from pathlib import Path
+
 from django.contrib.auth.models import User
 from django.urls import reverse
 
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from api.serializers.home import type_sprite_url
 from core.tests import factories as f
 from home.models import Slot, Specimen
 
@@ -468,16 +472,47 @@ class FormViewSetTests(HomeAPITestCase):
     def test_retrieve_detail(self):
         f.make_shinylock(self.bulbasaur)
 
-        response = self.client.get(reverse("api:form-detail", args=[self.bulbasaur.pk]))
+        # Sem o arquivo do ícone (como no CI): sprite_url nulo.
+        with (
+            tempfile.TemporaryDirectory() as root,
+            self.settings(TYPE_SPRITES_ROOT=Path(root)),
+        ):
+            response = self.client.get(
+                reverse("api:form-detail", args=[self.bulbasaur.pk])
+            )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["types"], [{"slot": 1, "type": "grass"}])
+        self.assertEqual(
+            response.data["types"], [{"slot": 1, "type": "grass", "sprite_url": None}]
+        )
         self.assertEqual(
             [a["ability"] for a in response.data["abilities"]],
             ["overgrow", "chlorophyll"],
         )
         self.assertTrue(response.data["is_shinylocked"])
         self.assertFalse(response.data["is_distro_only"])
+
+    def test_retrieve_detail_type_sprite(self):
+        with (
+            tempfile.TemporaryDirectory() as root,
+            self.settings(TYPE_SPRITES_ROOT=Path(root)),
+        ):
+            small = Path(root) / "generation-viii" / "sword-shield" / "small"
+            small.mkdir(parents=True)
+            (small / "12.png").write_bytes(b"png")  # grass = 12
+
+            response = self.client.get(
+                reverse("api:form-detail", args=[self.bulbasaur.pk])
+            )
+
+        self.assertEqual(
+            response.data["types"][0]["sprite_url"],
+            "http://testserver/media/sprites/types/generation-viii/sword-shield/"
+            "small/12.png",
+        )
+
+    def test_type_sprite_url_unknown_type(self):
+        self.assertIsNone(type_sprite_url(None, "not-a-type"))
 
 
 class TrainerViewSetTests(APITestCase):
