@@ -1,5 +1,5 @@
 from django.db import transaction
-from django.db.models import Count, OuterRef, Q, Subquery
+from django.db.models import Count, F, Min, OuterRef, Q, Subquery
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 
@@ -24,6 +24,7 @@ from ..serializers.home import (
     DepositSerializer,
     FormDetailSerializer,
     FormRefSerializer,
+    GenerationProgressSerializer,
     PersonalDexSerializer,
     SlotSerializer,
     SpecimenOptionsSerializer,
@@ -69,6 +70,41 @@ class PersonalDexViewSet(viewsets.ReadOnlyModelViewSet):
             boxes, many=True, context=self.get_serializer_context()
         )
         return Response(serializer.data)
+
+    @extend_schema(responses=GenerationProgressSerializer(many=True))
+    @action(detail=True, pagination_class=None)
+    def generations(self, request, pk=None):
+        """Total e registrados por geração, na ordem em que as gerações
+        aparecem nas boxes, com a box onde cada uma começa."""
+        dex = get_object_or_404(PersonalDex, pk=pk)
+        rows = list(
+            Slot.objects.filter(personal_dex=dex, form__isnull=False)
+            .values(generation=F("form__pokemon__species__generation"))
+            .annotate(
+                total=Count("id"),
+                registered=Count("id", filter=Q(specimen__isnull=False)),
+                first_box_position=Min("box__position"),
+            )
+            .order_by("first_box_position", "generation")
+        )
+        # `position` é sequencial (OrderedModel), mas não tem unique no banco:
+        # sem in_bulk(field_name=...).
+        boxes = {
+            box.position: box
+            for box in Box.objects.filter(
+                position__in=[row["first_box_position"] for row in rows]
+            )
+        }
+        data = [
+            {
+                "generation": row["generation"],
+                "total": row["total"],
+                "registered": row["registered"],
+                "first_box": boxes[row["first_box_position"]],
+            }
+            for row in rows
+        ]
+        return Response(GenerationProgressSerializer(data, many=True).data)
 
 
 @extend_schema_view(

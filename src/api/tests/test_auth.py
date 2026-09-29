@@ -73,6 +73,7 @@ class AuthenticationRequiredTests(APITestCase):
             ("get", reverse("api:personal-dex-list")),
             ("get", reverse("api:personal-dex-detail", args=[dex.pk])),
             ("get", reverse("api:personal-dex-boxes", args=[dex.pk])),
+            ("get", reverse("api:personal-dex-generations", args=[dex.pk])),
             ("get", reverse("api:slot-list")),
             ("get", reverse("api:slot-detail", args=[slot.pk])),
             ("post", reverse("api:slot-deposit", args=[slot.pk])),
