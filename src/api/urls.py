@@ -1,7 +1,7 @@
 from django.urls import path
 
 from rest_framework import routers
-from rest_framework.authtoken.views import obtain_auth_token
+from rest_framework.authtoken.views import ObtainAuthToken
 
 from .views.home import (
     FormViewSet,
@@ -24,6 +24,12 @@ router.register(r"forms", FormViewSet, basename="form")
 router.register(r"trainers", TrainerViewSet, basename="trainer")
 
 urlpatterns = [
-    path("auth/token/", obtain_auth_token, name="auth-token"),
+    # Sem autenticação: um cookie de sessão (ex.: do admin, na mesma origem)
+    # faria o SessionAuthentication exigir CSRF no login.
+    path(
+        "auth/token/",
+        ObtainAuthToken.as_view(authentication_classes=[]),
+        name="auth-token",
+    ),
     *router.urls,
 ]

@@ -7,7 +7,7 @@ from django.urls import reverse
 
 from rest_framework import status
 from rest_framework.authtoken.models import Token
-from rest_framework.test import APITestCase
+from rest_framework.test import APIClient, APITestCase
 
 from core.tests import factories as f
 
@@ -37,6 +37,20 @@ class AuthTokenTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("non_field_errors", response.data)
+
+    def test_obtain_token_ignores_session_cookie(self):
+        # O navegador envia o cookie de sessão do admin junto com o login do
+        # frontend (mesma origem); o endpoint não pode exigir CSRF por causa dele.
+        client = APIClient(enforce_csrf_checks=True)
+        client.force_login(self.user)
+
+        response = client.post(
+            reverse("api:auth-token"),
+            {"username": "ash", "password": "pikachu123"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_token_authenticates_requests(self):
         token = Token.objects.create(user=self.user)
