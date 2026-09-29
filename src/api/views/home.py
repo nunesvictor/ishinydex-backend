@@ -231,6 +231,8 @@ class SlotViewSet(viewsets.ReadOnlyModelViewSet):
                 description=_("true: only specimens not deposited in any slot"),
             ),
             OpenApiParameter("is_shiny", OpenApiTypes.BOOL),
+            OpenApiParameter("is_alpha", OpenApiTypes.BOOL),
+            OpenApiParameter("is_from_go", OpenApiTypes.BOOL),
             OpenApiParameter(
                 "search", OpenApiTypes.STR, description=_("nickname or form name")
             ),

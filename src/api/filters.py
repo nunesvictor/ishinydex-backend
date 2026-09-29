@@ -79,8 +79,9 @@ class SpecimenFilterBackend(filters.BaseFilterBackend):
             # slot_id é anotado na queryset da view
             queryset = queryset.filter(slot_id__isnull=available)
 
-        if (is_shiny := parse_bool(params.get("is_shiny"))) is not None:
-            queryset = queryset.filter(is_shiny=is_shiny)
+        for flag in ("is_shiny", "is_alpha", "is_from_go"):
+            if (value := parse_bool(params.get(flag))) is not None:
+                queryset = queryset.filter(**{flag: value})
 
         if search := params.get("search", "").strip():
             queryset = queryset.filter(
