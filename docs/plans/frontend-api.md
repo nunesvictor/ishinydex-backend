@@ -59,7 +59,7 @@ Schema OpenAPI: `GET /api/schema/` · Swagger UI: `GET /api/docs/` (públicos).
  "is_shinylocked": false, "is_distro_only": false}
 
 // SpecimenSummary
-{"id": 1, "nickname": null, "form_name": "bulbasaur", "is_shiny": true,
+{"id": 1, "nickname": null, "form_name": "bulbasaur", "ability": "overgrow", "is_shiny": true,
  "is_alpha": false, "pokeball": "dream-ball",
  "pokeball_sprite_url": "http://host/media/sprites/items/dream-ball.png"}
 

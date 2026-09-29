@@ -352,6 +352,16 @@ class SlotViewSetTests(HomeAPITestCase):
 
         self.assertFalse(response.data["is_shiny_display"])
 
+    def test_specimen_summary_has_ability(self):
+        self.bulbasaur_specimen.ability = "chlorophyll"
+        self.bulbasaur_specimen.save()
+
+        response = self.client.get(
+            reverse("api:slot-detail", args=[self.bulbasaur_slot.pk])
+        )
+
+        self.assertEqual(response.data["specimen"]["ability"], "chlorophyll")
+
     def test_list_filter_registered(self):
         url = reverse("api:slot-list")
 
