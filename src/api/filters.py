@@ -1,10 +1,18 @@
 from datetime import date
 
-from django.db.models import F, Q, QuerySet
+from django.db.models import (
+    BooleanField,
+    Exists,
+    ExpressionWrapper,
+    F,
+    OuterRef,
+    Q,
+    QuerySet,
+)
 
 from rest_framework import filters
 
-from pokedex.models import PokemonForm
+from pokedex.models import PokemonAbility, PokemonForm, PokemonFormType, ShinyLock
 
 
 class PokemonFromFormFilterBackend(filters.BaseFilterBackend):
@@ -176,3 +184,115 @@ class TrainerSearchFilterBackend(filters.BaseFilterBackend):
             )
 
         return queryset
+
+
+# Lista de caçadas (GET /personal-dexes/{id}/hunts/). Motivos são somados
+# (OU); escopo (geração, tipo, categoria, busca) restringe (E).
+HUNT_REASONS = ("no_shiny", "from_go", "pokeball")
+HUNT_DEFAULT_REASONS = ("no_shiny",)
+HUNT_CATEGORIES = ("legendary", "mythical", "ultra-beast", "baby", "regular")
+# A PokéAPI não marca Ultra Beasts; a Beast Boost é exclusiva delas.
+ULTRA_BEAST_ABILITY = "beast-boost"
+SPECIES = "form__pokemon__species__"
+
+
+def as_bool(condition: Q) -> ExpressionWrapper:
+    return ExpressionWrapper(condition, output_field=BooleanField())
+
+
+def has_lock(lock_type: str) -> Exists:
+    return Exists(
+        ShinyLock.objects.filter(
+            forms=OuterRef("form"), active=True, lock_type=lock_type
+        )
+    )
+
+
+def hunt_reason_conditions(accepted_balls: list[str]) -> dict[str, Q]:
+    """Condição de cada motivo. ``pokeball`` só existe com bolas aceitas, e
+    espécime sem pokébola informada não conta como bola errada."""
+    shiny = Q(specimen__is_shiny=True)
+    conditions = {
+        "no_shiny": Q(specimen__isnull=True) | Q(specimen__is_shiny=False),
+        "from_go": shiny & Q(specimen__is_from_go=True),
+    }
+    if accepted_balls:
+        conditions["pokeball"] = (
+            shiny
+            & Q(specimen__pokeball__isnull=False)
+            & ~Q(specimen__pokeball__in=accepted_balls)
+        )
+    return conditions
+
+
+def hunt_category_conditions() -> dict[str, Q]:
+    """Condição de cada categoria; requer a anotação ``is_ultra_beast``."""
+    special = {
+        "legendary": Q(**{f"{SPECIES}is_legendary": True}),
+        "mythical": Q(**{f"{SPECIES}is_mythical": True}),
+        "ultra-beast": Q(is_ultra_beast=True),
+        "baby": Q(**{f"{SPECIES}is_baby": True}),
+    }
+    regular = Q(**{f"{SPECIES}isnull": False})
+    for condition in special.values():
+        regular &= ~condition
+    return special | {"regular": regular}
+
+
+def filter_hunts(queryset: QuerySet, params) -> QuerySet:
+    """Slots (com forma) de um shiny dex que ainda precisam ser caçados.
+
+    Anota ``hunt_<motivo>`` para cada motivo possível (a resposta traz todos
+    em que o slot se encaixa, não só os pedidos) e ``hunt_unobtainable`` /
+    ``hunt_distro_only`` (shiny lock)."""
+    conditions = hunt_reason_conditions(parse_list(params.get("accepted_balls")))
+    queryset = queryset.filter(form__isnull=False).annotate(
+        **{f"hunt_{name}": as_bool(cond) for name, cond in conditions.items()},
+        hunt_unobtainable=has_lock(ShinyLock.LockTypeChoices.UNOBTAINABLE),
+        hunt_distro_only=has_lock(ShinyLock.LockTypeChoices.DISTRO_ONLY),
+        is_ultra_beast=Exists(
+            PokemonAbility.objects.filter(
+                pokemons=OuterRef("form__pokemon"), ability=ULTRA_BEAST_ABILITY
+            )
+        ),
+    )
+
+    # Sem ``reasons``, o padrão; motivos desconhecidos são ignorados.
+    requested = (
+        parse_list(params.get("reasons"))
+        if "reasons" in params
+        else HUNT_DEFAULT_REASONS
+    )
+    wanted = Q(pk__in=[])
+    for reason in requested:
+        if reason in conditions:
+            wanted |= conditions[reason]
+    queryset = queryset.filter(wanted)
+
+    if not parse_bool(params.get("include_locked")):
+        queryset = queryset.filter(hunt_unobtainable=False)
+
+    if generations := parse_list(params.get("generation")):
+        queryset = queryset.filter(**{f"{SPECIES}generation__in": generations})
+
+    # Qualquer um dos tipos (diferente de /specimens/, que exige todos).
+    if types := parse_list(params.get("type")):
+        queryset = queryset.filter(
+            Exists(
+                PokemonFormType.objects.filter(
+                    pokemon_forms=OuterRef("form"), type__in=types
+                )
+            )
+        )
+
+    categories = hunt_category_conditions()
+    if chosen := [c for c in parse_list(params.get("category")) if c in categories]:
+        condition = Q(pk__in=[])
+        for category in chosen:
+            condition |= categories[category]
+        queryset = queryset.filter(condition)
+
+    if search := params.get("search", "").strip():
+        queryset = queryset.filter(form__in=search_forms(search))
+
+    return queryset

@@ -265,6 +265,211 @@ class PersonalDexViewSetTests(HomeAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
+class HuntTests(HomeAPITestCase):
+    """Lista de caçadas. No setUp: bulbasaur shiny depositado (HOME 1),
+    charmander vazio (HOME 1), squirtle vazio (HOME 2)."""
+
+    def hunts(self, dex=None, **params):
+        return self.client.get(
+            reverse("api:personal-dex-hunts", args=[(dex or self.dex).pk]), params
+        )
+
+    def names(self, response) -> list[str]:
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        return [item["form"]["name"] for item in response.data["results"]]
+
+    def reasons(self, response) -> dict[str, list[str]]:
+        return {
+            item["form"]["name"]: item["reasons"] for item in response.data["results"]
+        }
+
+    def test_default_lists_slots_without_shiny_in_box_order(self):
+        # Espécime não shiny também precisa ser caçado.
+        _, _, oddish = f.make_full_pokemon("oddish", 43)
+        self.set_slot(self.box2, 0, 1, oddish, f.make_specimen(oddish))
+
+        response = self.hunts()
+
+        self.assertEqual(self.names(response), ["charmander", "squirtle", "oddish"])
+        self.assertEqual(response.data["count"], 3)
+        item = response.data["results"][0]
+        self.assertEqual(item["id"], self.charmander_slot.pk)
+        self.assertEqual(item["box"]["name"], "HOME 1")
+        self.assertEqual((item["row"], item["col"]), (0, 1))
+        self.assertIsNone(item["specimen"])
+        self.assertEqual(item["reasons"], ["no_shiny"])
+        self.assertIsNone(item["shiny_lock"])
+        self.assertEqual(self.reasons(response)["oddish"], ["no_shiny"])  # não shiny
+
+    def test_ignores_slots_of_other_dexes_and_free_slots(self):
+        other = f.make_personal_dex(name="Outro", is_shiny_dex=True)
+        self.set_slot(self.other_box, 0, 0, self.charmander, dex=other)
+
+        self.assertEqual(self.names(self.hunts()), ["charmander", "squirtle"])
+        self.assertEqual(self.names(self.hunts(other)), ["charmander"])
+
+    def test_from_go(self):
+        self.bulbasaur_specimen.is_from_go = True
+        self.bulbasaur_specimen.save()
+
+        self.assertNotIn("bulbasaur", self.names(self.hunts()))
+        response = self.hunts(reasons="no_shiny,from_go")
+        self.assertEqual(self.names(response), ["bulbasaur", "charmander", "squirtle"])
+        self.assertEqual(self.reasons(response)["bulbasaur"], ["from_go"])
+        self.assertEqual(self.names(self.hunts(reasons="from_go")), ["bulbasaur"])
+
+    def test_pokeball_outside_accepted_balls(self):
+        params = {"reasons": "pokeball", "accepted_balls": "poke-ball,premier-ball"}
+        cases = {"great-ball": ["bulbasaur"], "premier-ball": [], None: []}
+        for ball, expected in cases.items():
+            with self.subTest(ball=ball):
+                self.bulbasaur_specimen.pokeball = ball
+                self.bulbasaur_specimen.save()
+                self.assertEqual(self.names(self.hunts(**params)), expected)
+
+    def test_pokeball_without_accepted_balls_is_ignored(self):
+        self.bulbasaur_specimen.pokeball = "great-ball"
+        self.bulbasaur_specimen.save()
+
+        self.assertEqual(self.names(self.hunts(reasons="pokeball")), [])
+        self.assertEqual(
+            self.names(self.hunts(reasons="pokeball,no_shiny")),
+            ["charmander", "squirtle"],
+        )
+
+    def test_reports_every_matching_reason(self):
+        self.bulbasaur_specimen.is_from_go = True
+        self.bulbasaur_specimen.pokeball = "great-ball"
+        self.bulbasaur_specimen.save()
+
+        response = self.hunts(reasons="from_go", accepted_balls="poke-ball")
+
+        self.assertEqual(self.reasons(response), {"bulbasaur": ["from_go", "pokeball"]})
+
+    def test_unknown_or_empty_reasons_list_nothing(self):
+        self.assertEqual(self.names(self.hunts(reasons="")), [])
+        self.assertEqual(self.names(self.hunts(reasons="foo")), [])
+        self.assertEqual(
+            self.names(self.hunts(reasons="foo,no_shiny")), ["charmander", "squirtle"]
+        )
+
+    def test_generation_and_type_any_of(self):
+        species, _, pikipek = f.make_full_pokemon(
+            "pikipek", 731, types=("normal", "flying")
+        )
+        species.generation = "generation-vii"
+        species.save()
+        self.set_slot(self.box2, 0, 1, pikipek)
+
+        self.assertEqual(
+            self.names(self.hunts(generation="generation-vii")), ["pikipek"]
+        )
+        # Qualquer um dos tipos: charmander e squirtle são "grass" na fábrica.
+        self.assertEqual(self.names(self.hunts(type="flying,water")), ["pikipek"])
+        self.assertEqual(
+            self.names(self.hunts(type="grass,flying")),
+            ["charmander", "squirtle", "pikipek"],
+        )
+
+    def test_categories(self):
+        def add(name, number, col, *, abilities=(), **species_fields):
+            species, _, form = f.make_full_pokemon(name, number, abilities=abilities)
+            for field, value in species_fields.items():
+                setattr(species, field, value)
+            species.save()
+            self.set_slot(self.box2, 1, col, form)
+
+        add("mewtwo", 150, 0, is_legendary=True)
+        add("mew", 151, 1, is_mythical=True)
+        add("nihilego", 793, 2, abilities=("beast-boost",))
+        add("pichu", 172, 3, is_baby=True)
+
+        cases = {
+            "legendary": ["mewtwo"],
+            "mythical": ["mew"],
+            "ultra-beast": ["nihilego"],
+            "baby": ["pichu"],
+            "regular": ["charmander", "squirtle"],
+            "legendary,mythical,ultra-beast": ["mewtwo", "mew", "nihilego"],
+            "foo": ["charmander", "squirtle", "mewtwo", "mew", "nihilego", "pichu"],
+        }
+        for category, expected in cases.items():
+            with self.subTest(category=category):
+                self.assertEqual(self.names(self.hunts(category=category)), expected)
+
+    def test_example_gen7_legends_without_shiny_or_from_go(self):
+        # Ex. 1 da issue: gen VII, lendário/mítico/UB, sem shiny ou shiny do GO.
+        def add(name, number, col, specimen_fields=None, **species_fields):
+            species, _, form = f.make_full_pokemon(name, number)
+            species.generation = "generation-vii"
+            for field, value in species_fields.items():
+                setattr(species, field, value)
+            species.save()
+            specimen = specimen_fields and f.make_specimen(form, **specimen_fields)
+            self.set_slot(self.box2, 2, col, form, specimen or None)
+
+        add("tapu-koko", 785, 0, is_legendary=True)  # vazio
+        add("solgaleo", 791, 1, {"is_shiny": True}, is_legendary=True)  # ok
+        add(
+            "magearna", 801, 2, {"is_shiny": True, "is_from_go": True}, is_mythical=True
+        )
+        add("rowlet", 722, 3)  # comum
+
+        response = self.hunts(
+            generation="generation-vii",
+            category="legendary,mythical,ultra-beast",
+            reasons="no_shiny,from_go",
+        )
+
+        self.assertEqual(
+            self.reasons(response),
+            {"tapu-koko": ["no_shiny"], "magearna": ["from_go"]},
+        )
+
+    def test_search(self):
+        self.assertEqual(self.names(self.hunts(search="squir")), ["squirtle"])
+
+    def test_shiny_locks(self):
+        f.make_shinylock(self.charmander, lock_type="unobtainable")
+        f.make_shinylock(self.squirtle, lock_type="distro-only")
+        # Lock inativo não conta.
+        _, _, oddish = f.make_full_pokemon("oddish", 43)
+        f.make_shinylock(oddish, lock_type="unobtainable", active=False)
+        self.set_slot(self.box2, 0, 1, oddish)
+
+        response = self.hunts()
+        self.assertEqual(self.names(response), ["squirtle", "oddish"])
+        locks = {i["form"]["name"]: i["shiny_lock"] for i in response.data["results"]}
+        self.assertEqual(locks, {"squirtle": "distro-only", "oddish": None})
+
+        response = self.hunts(include_locked="true")
+        self.assertEqual(self.names(response), ["charmander", "squirtle", "oddish"])
+        self.assertEqual(response.data["results"][0]["shiny_lock"], "unobtainable")
+
+    def test_query_count_does_not_grow_with_results(self):
+        for col in range(1, 6):
+            _, _, form = f.make_full_pokemon(f"extra-{col}", 900 + col)
+            self.set_slot(self.box2, 0, col, form)
+
+        with self.assertNumQueries(3):  # dex, count, página
+            response = self.hunts()
+
+        self.assertEqual(response.data["count"], 7)
+
+    def test_not_shiny_dex_is_400(self):
+        dex = f.make_personal_dex(name="Living Dex")
+
+        response = self.hunts(dex)
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("detail", response.data)
+
+    def test_unknown_dex_is_404(self):
+        response = self.client.get(reverse("api:personal-dex-hunts", args=[9999]))
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
 class SlotSearchTests(HomeAPITestCase):
     def setUp(self):
         super().setUp()

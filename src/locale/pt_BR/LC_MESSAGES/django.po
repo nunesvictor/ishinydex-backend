@@ -1049,6 +1049,42 @@ msgid "comma-separated trainer ids; none: without OT"
 msgstr "ids de treinadores separados por vírgula; none: sem OT"
 
 #: api/views/home.py
+msgid ""
+"comma-separated reasons (any of them): no_shiny, from_go, pokeball; default: "
+"no_shiny"
+msgstr ""
+"motivos separados por vírgula (qualquer um): no_shiny, from_go, pokeball; "
+"padrão: no_shiny"
+
+#: api/views/home.py
+msgid ""
+"comma-separated pokéballs for the pokeball reason; specimens without "
+"pokéball are not listed by it"
+msgstr ""
+"pokébolas aceitas pelo motivo pokeball, separadas por vírgula; espécimes sem "
+"pokébola não entram por ele"
+
+#: api/views/home.py
+msgid "comma-separated types; the form must have any"
+msgstr "tipos separados por vírgula; a forma precisa ter qualquer um"
+
+#: api/views/home.py
+msgid ""
+"comma-separated (any of them): legendary, mythical, ultra-beast, baby, "
+"regular"
+msgstr ""
+"separadas por vírgula (qualquer uma): legendary, mythical, ultra-beast, "
+"baby, regular"
+
+#: api/views/home.py
+msgid "include forms whose shiny is unobtainable"
+msgstr "incluir formas cujo shiny é impossível de obter"
+
+#: api/views/home.py
+msgid "Hunts are only available for shiny dexes."
+msgstr "A lista de caçadas só existe para shiny dex."
+
+#: api/views/home.py
 msgid "comma-separated generations (generation-i...)"
 msgstr "gerações separadas por vírgula (generation-i...)"
 

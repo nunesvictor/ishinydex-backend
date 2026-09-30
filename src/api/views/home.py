@@ -21,6 +21,7 @@ from ..filters import (
     SlotFilterBackend,
     SpecimenFilterBackend,
     TrainerSearchFilterBackend,
+    filter_hunts,
     parse_bool,
 )
 from ..serializers.home import (
@@ -29,6 +30,7 @@ from ..serializers.home import (
     FormDetailSerializer,
     FormRefSerializer,
     GenerationProgressSerializer,
+    HuntSerializer,
     PersonalDexCreateSerializer,
     PersonalDexPreviewSerializer,
     PersonalDexSerializer,
@@ -161,6 +163,78 @@ class PersonalDexViewSet(mixins.CreateModelMixin, viewsets.ReadOnlyModelViewSet)
             for row in rows
         ]
         return Response(GenerationProgressSerializer(data, many=True).data)
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "reasons",
+                OpenApiTypes.STR,
+                description=_(
+                    "comma-separated reasons (any of them): no_shiny, from_go, "
+                    "pokeball; default: no_shiny"
+                ),
+            ),
+            OpenApiParameter(
+                "accepted_balls",
+                OpenApiTypes.STR,
+                description=_(
+                    "comma-separated pokéballs for the pokeball reason; "
+                    "specimens without pokéball are not listed by it"
+                ),
+            ),
+            OpenApiParameter(
+                "generation", OpenApiTypes.STR, description=_("comma-separated")
+            ),
+            OpenApiParameter(
+                "type",
+                OpenApiTypes.STR,
+                description=_("comma-separated types; the form must have any"),
+            ),
+            OpenApiParameter(
+                "category",
+                OpenApiTypes.STR,
+                description=_(
+                    "comma-separated (any of them): legendary, mythical, "
+                    "ultra-beast, baby, regular"
+                ),
+            ),
+            OpenApiParameter(
+                "search",
+                OpenApiTypes.STR,
+                description=_(
+                    "form name, national dex number or the form's PokéAPI ID"
+                ),
+            ),
+            OpenApiParameter(
+                "include_locked",
+                OpenApiTypes.BOOL,
+                description=_("include forms whose shiny is unobtainable"),
+            ),
+        ],
+        responses=HuntSerializer(many=True),
+    )
+    @action(detail=True)
+    def hunts(self, request, pk=None):
+        """Slots de um shiny dex que ainda precisam ser caçados, na ordem das
+        boxes, com os motivos de cada um."""
+        dex = get_object_or_404(PersonalDex, pk=pk)
+        if not dex.is_shiny_dex:
+            return Response(
+                {"detail": _("Hunts are only available for shiny dexes.")},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        slots = filter_hunts(
+            Slot.objects.filter(personal_dex=dex).select_related(
+                "box", "personal_dex", "specimen", "form__pokemon__species"
+            ),
+            request.query_params,
+        )
+        page = self.paginate_queryset(slots)
+        serializer = HuntSerializer(
+            page, many=True, context=self.get_serializer_context()
+        )
+        return self.get_paginated_response(serializer.data)
 
 
 @extend_schema_view(
