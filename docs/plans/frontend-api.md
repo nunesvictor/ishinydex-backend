@@ -28,6 +28,7 @@ Schema OpenAPI: `GET /api/schema/` · Swagger UI: `GET /api/docs/` (públicos).
 | GET | `/api/personal-dexes/{id}/` | um dex |
 | GET | `/api/personal-dexes/{id}/boxes/` | boxes com slots do dex, por `position`, **sem paginação** |
 | GET | `/api/personal-dexes/{id}/generations/` | progresso por geração, **sem paginação**: `[{generation, total, registered, first_box: BoxRef}]`, na ordem em que as gerações aparecem nas boxes; `generation` é `null` para formas sem pokémon |
+| GET | `/api/personal-dexes/{id}/hunts/` | lista de caçadas de um **shiny dex** (paginada, na ordem das boxes): `Hunt[]`; dex que não é shiny dex → 400 `{"detail": ...}`. Filtros em [Caçadas](#caçadas-de-apipersonal-dexesidhunts) |
 | GET | `/api/personal-dexes/preview/?force_new_box=` | simula um dex padrão sem criar: `{forms, boxes_needed, largest_free_run, enough_space, first_box: BoxRef \| null}` |
 | POST | `/api/personal-dexes/` | `{name, is_shiny_dex?, force_new_box?}` → 201 com o dex (e contagens); cria com o conjunto padrão de formas e instala o esquema na 1ª sequência de boxes livres. Nome repetido → `{"name": [...]}`; sem espaço → `{"non_field_errors": [...]}` |
 | GET | `/api/slots/?personal_dex=&box=&registered=true\|false&search=` | slots; com `box`, retorna os 30 slots **sem paginação**; `search` = nome da forma (`icontains`) ou número (Pokédex nacional da espécie ou `pokeapi_id` da forma), na ordem das boxes |
@@ -74,6 +75,10 @@ Schema OpenAPI: `GET /api/schema/` · Swagger UI: `GET /api/docs/` (públicos).
  "personal_dex": 1, "form": FormRef | null, "specimen": SpecimenSummary | null,
  "is_shiny_display": true}  // specimen shiny, ou slot vazio (com forma) num dex shiny
 
+// Hunt = Slot +
+{"reasons": ["no_shiny"],   // todos os motivos em que o slot se encaixa (no_shiny, from_go, pokeball)
+ "shiny_lock": null}        // null | "distro-only" | "unobtainable" (só com include_locked)
+
 // PersonalDex
 {"id": 1, "name": "Shiny Living Dex", "is_shiny_dex": true, "force_new_box": true,
  "total": 1227,       // slots do dex com forma
@@ -112,6 +117,36 @@ inválidos são ignorados.
 | `ability` | `levitate` | contém (sem diferenciar maiúsculas) |
 | `captured_after` / `captured_before` | `2026-01-01` | intervalo inclusivo de `captured_at` |
 | `ordering` | `-captured_at` | `dex` (padrão), `captured_at`, `-captured_at` (sem data por último), `-created_at` |
+
+## Caçadas de `/api/personal-dexes/{id}/hunts/`
+
+Slots (com forma) de um shiny dex que ainda precisam ser caçados. Dois
+grupos de filtros:
+
+- **Motivos** (`reasons`, **OU** entre si): por que o slot entra na lista.
+  Sem o parâmetro, vale `no_shiny`; motivos desconhecidos são ignorados
+  (`reasons=` vazio → lista vazia). A resposta traz em `reasons` **todos**
+  os motivos do slot, não só os pedidos.
+- **Escopo** (**E** entre os parâmetros): restringe quais slots contam.
+
+| Parâmetro | Exemplo | Regra |
+| --- | --- | --- |
+| `reasons` | `no_shiny,from_go` | `no_shiny`: sem espécime ou espécime não shiny; `from_go`: shiny com `is_from_go`; `pokeball`: shiny com pokébola **informada** fora de `accepted_balls` |
+| `accepted_balls` | `poke-ball,premier-ball` | usado só pelo motivo `pokeball`; sem ele, o motivo é ignorado. Espécime sem pokébola não entra por esse motivo |
+| `generation` | `generation-vii` | geração da espécie |
+| `type` | `water,flying` | **qualquer um** dos tipos (diferente de `/specimens/`) |
+| `category` | `legendary,mythical,ultra-beast` | qualquer uma de `legendary`, `mythical`, `ultra-beast`, `baby`, `regular` (nenhuma das outras). Ultra Beast = pokémon com a habilidade Beast Boost (a PokéAPI não marca UBs) |
+| `search` | `pika`, `25` | igual ao de `/slots/` |
+| `include_locked` | `true` | inclui formas com shiny lock `unobtainable` (fora por padrão); `distro-only` aparece sempre, com `shiny_lock` |
+
+Exemplos:
+
+```text
+# Gen VII, lendário/mítico/UB, sem shiny ou shiny do GO
+?generation=generation-vii&category=legendary,mythical,ultra-beast&reasons=no_shiny,from_go
+# Sem shiny, ou shiny numa bola fora de Poké/Premier Ball
+?reasons=no_shiny,pokeball&accepted_balls=poke-ball,premier-ball
+```
 
 ## Regras
 

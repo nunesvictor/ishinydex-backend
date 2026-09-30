@@ -12,8 +12,10 @@ from rest_framework import serializers
 from core.consts import TYPES_DICT
 from home.models import Box, OriginalTrainer, PersonalDex, Slot, Specimen
 from home.services import allowed_genders
-from pokedex.models import PokemonForm, Version
+from pokedex.models import PokemonForm, ShinyLock, Version
 from pokedex.renderers import HomeSpriteRenderer
+
+from ..filters import HUNT_REASONS
 
 
 def absolute_url(request, path) -> str:
@@ -248,6 +250,34 @@ class SlotSerializer(serializers.ModelSerializer):
             return obj.specimen.is_shiny
 
         return bool(obj.form and obj.personal_dex and obj.personal_dex.is_shiny_dex)
+
+
+class HuntSerializer(SlotSerializer):
+    """Slot da lista de caçadas; requer as anotações de ``filter_hunts``."""
+
+    reasons = serializers.SerializerMethodField()
+    shiny_lock = serializers.SerializerMethodField()
+
+    class Meta(SlotSerializer.Meta):
+        fields = SlotSerializer.Meta.fields + ("reasons", "shiny_lock")
+
+    @extend_schema_field(
+        serializers.ListField(child=serializers.ChoiceField(choices=HUNT_REASONS))
+    )
+    def get_reasons(self, obj: Slot) -> list[str]:
+        return [r for r in HUNT_REASONS if getattr(obj, f"hunt_{r}", False)]
+
+    @extend_schema_field(
+        serializers.ChoiceField(
+            choices=ShinyLock.LockTypeChoices.values, allow_null=True
+        )
+    )
+    def get_shiny_lock(self, obj: Slot) -> str | None:
+        if obj.hunt_unobtainable:
+            return ShinyLock.LockTypeChoices.UNOBTAINABLE
+        if obj.hunt_distro_only:
+            return ShinyLock.LockTypeChoices.DISTRO_ONLY
+        return None
 
 
 class PersonalDexSerializer(serializers.ModelSerializer):
