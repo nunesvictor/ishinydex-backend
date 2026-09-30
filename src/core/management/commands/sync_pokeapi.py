@@ -1,9 +1,10 @@
 import time
 
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import CommandError
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy as _lazy
 
+from core.management.base import BaseCommand
 from core.services.pokeapi import PokeAPIClient
 from pokedex.importer import PokeAPIImporter, UnknownSpeciesError
 
@@ -18,7 +19,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "species",
             nargs="*",
-            help=_lazy(
+            help=_(
                 "Species names to import (default: all). Their pokémon, forms "
                 "and versions are imported too."
             ),
@@ -26,13 +27,13 @@ class Command(BaseCommand):
         parser.add_argument(
             "--refresh",
             action="store_true",
-            help=_lazy("Download everything again, ignoring the local cache."),
+            help=_("Download everything again, ignoring the local cache."),
         )
         parser.add_argument(
             "--workers",
             type=int,
             default=8,
-            help=_lazy("Number of parallel downloads (default: 8)."),
+            help=_("Number of parallel downloads (default: 8)."),
         )
 
     def get_client(self, **options) -> PokeAPIClient:

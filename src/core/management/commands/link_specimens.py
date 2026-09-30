@@ -1,10 +1,11 @@
 from collections import defaultdict
 
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import CommandError
 from django.db import transaction
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy as _lazy
 
+from core.management.base import BaseCommand
 from home.models import PersonalDex, Slot, Specimen
 
 
@@ -19,12 +20,12 @@ class Command(BaseCommand):
         parser.add_argument(
             "dex",
             nargs="*",
-            help=_lazy("PersonalDex names or IDs (default: all)."),
+            help=_("PersonalDex names or IDs (default: all)."),
         )
         parser.add_argument(
             "--strict",
             action="store_true",
-            help=_lazy(
+            help=_(
                 "Only deposit specimens matching the dex shininess (shiny specimens "
                 "for shiny dexes and vice-versa)."
             ),
@@ -32,7 +33,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--dry-run",
             action="store_true",
-            help=_lazy("Show what would be linked without saving."),
+            help=_("Show what would be linked without saving."),
         )
 
     def _get_dexes(self, identifiers: list[str]) -> list[PersonalDex]:

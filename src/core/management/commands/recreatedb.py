@@ -1,10 +1,11 @@
 from django.conf import settings
 from django.core.management import call_command
-from django.core.management.base import BaseCommand
 from django.db import connections
 
 from psycopg2 import sql
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
+
+from core.management.base import BaseCommand
 
 
 class Command(BaseCommand):
