@@ -960,6 +960,67 @@ class SpecimenViewSetTests(HomeAPITestCase):
             format="json",
         )
 
+    def test_origin_version_and_mark(self):
+        sv = f.make_version_group(name="scarlet-violet")
+        ot = f.make_ot(version=f.make_version(name="violet", version_group=sv))
+        specimen = f.make_specimen(self.charmander, ot=ot)
+        go = f.make_specimen(self.charmander, ot=ot, is_from_go=True)
+        unmarked = f.make_specimen(self.charmander)
+
+        def detail(obj):
+            url = reverse("api:specimen-detail", args=[obj.pk])
+            data = self.client.get(url).data
+            return data["origin_version"], data["origin_mark"]
+
+        self.assertEqual(detail(specimen), ("violet", "paldea"))
+        self.assertEqual(detail(go), ("violet", "go"))
+        self.assertEqual(detail(unmarked), (None, None))
+
+    def test_origin_version_is_read_only(self):
+        red = f.make_version(name="red")
+        specimen = f.make_specimen(self.charmander)
+
+        response = self.client.patch(
+            reverse("api:specimen-detail", args=[specimen.pk]),
+            {"origin_version": red.name, "origin_mark": "go"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        specimen.refresh_from_db()
+        self.assertIsNone(specimen.origin_version)
+        self.assertIsNone(response.data["origin_mark"])
+
+    def test_filter_origin_mark(self):
+        def ot(version_group, version):
+            group = f.make_version_group(name=version_group)
+            return f.make_ot(version=f.make_version(name=version, version_group=group))
+
+        scarlet_ot, violet_ot = ot("scarlet-violet", "scarlet"), ot(
+            "the-teal-mask", "tm"
+        )
+        sword_ot, emerald_ot = ot("sword-shield", "sword"), ot("emerald", "emerald")
+        scarlet = f.make_specimen(self.charmander, ot=scarlet_ot)
+        teal_mask = f.make_specimen(self.charmander, ot=violet_ot)
+        sword = f.make_specimen(self.charmander, ot=sword_ot)
+        go = f.make_specimen(self.charmander, ot=scarlet_ot, is_from_go=True)
+        emerald = f.make_specimen(self.charmander, ot=emerald_ot)
+
+        def ids(value):
+            response = self.client.get(
+                reverse("api:specimen-list"), {"origin_mark": value}
+            )
+            return {s["id"] for s in response.data["results"]}
+
+        self.assertEqual(ids("paldea"), {scarlet.pk, teal_mask.pk})
+        self.assertEqual(ids("paldea,galar"), {scarlet.pk, teal_mask.pk, sword.pk})
+        self.assertEqual(ids("go"), {go.pk})
+        self.assertEqual(
+            ids("none"), {emerald.pk, self.bulbasaur_specimen.pk}
+        )  # emerald: Gen 3; bulbasaur: sem OT
+        self.assertEqual(ids("galar,go"), {sword.pk, go.pk})
+        self.assertEqual(ids("unknown"), set())
+
     def test_bulk_updates_only_given_fields(self):
         ot = f.make_ot()
         a = f.make_specimen(self.charmander, nature="bold", is_alpha=True)
@@ -989,6 +1050,26 @@ class SpecimenViewSetTests(HomeAPITestCase):
         self.assertTrue(Specimen.objects.get(pk=a.pk).is_alpha)
         self.assertGreater(Specimen.objects.get(pk=a.pk).updated_at, before)
         self.assertIsNone(Specimen.objects.get(pk=untouched.pk).pokeball)
+
+    def test_bulk_ot_change_derives_origin_version(self):
+        scarlet = f.make_version(
+            name="scarlet", version_group=f.make_version_group(name="scarlet-violet")
+        )
+        with_version = f.make_ot(version=scarlet)
+        specimen = f.make_specimen(self.charmander)
+        kept = f.make_specimen(self.charmander, ot=with_version)
+
+        self.bulk([specimen.pk], {"ot": with_version.pk})
+        specimen.refresh_from_db()
+        self.assertEqual(specimen.origin_version, scarlet)
+
+        self.bulk([specimen.pk], {"ot": None})
+        specimen.refresh_from_db()
+        self.assertIsNone(specimen.origin_version)
+
+        self.bulk([kept.pk], {"nature": "bold"})  # sem ot: jogo mantido
+        kept.refresh_from_db()
+        self.assertEqual(kept.origin_version, scarlet)
 
     def test_bulk_null_removes_value(self):
         specimen = f.make_specimen(
@@ -1092,7 +1173,35 @@ class SpecimenViewSetTests(HomeAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             set(response.data),
-            {"language", "gender", "nature", "pokeball", "type", "generation"},
+            {
+                "language",
+                "gender",
+                "nature",
+                "pokeball",
+                "type",
+                "generation",
+                "origin_mark",
+            },
+        )
+        self.assertEqual(
+            [m["value"] for m in response.data["origin_mark"]],
+            [
+                "game-boy",
+                "kalos",
+                "alola",
+                "lets-go",
+                "galar",
+                "bdsp",
+                "hisui",
+                "paldea",
+                "lumiose",
+                "go",
+                "none",
+            ],
+        )
+        self.assertIn(
+            {"value": "paldea", "label": "Scarlet e Violet"},
+            response.data["origin_mark"],
         )
         self.assertEqual(len(response.data["type"]), 18)
         self.assertIn(

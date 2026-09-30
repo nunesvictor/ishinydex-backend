@@ -12,6 +12,7 @@ from core.models import OrderedModel, TimestampedModel
 from home.choices import Pokeball
 from pokedex.models import PokemonForm, Version
 
+from .origin_marks import origin_mark_for
 from .utils import col_choices, row_choices
 
 DEFAULT_POKEMON_BOX_SIZE = 30
@@ -55,6 +56,26 @@ class OriginalTrainer(TimestampedModel):
     class Meta:
         ordering = ("version__version_group__order", "version__name")
         unique_together = ("name", "trainer_id")
+
+    @classmethod
+    def from_db(cls, db, field_names, values):
+        instance = super().from_db(db, field_names, values)
+        instance._loaded_version_id = instance.version_id
+        return instance
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        # Ganhou ou trocou de versão: leva a nova versão aos espécimes que
+        # estavam sem jogo de origem ou com a versão antiga. Um espécime
+        # corrigido à mão (outra versão) fica como está.
+        old_version_id = getattr(self, "_loaded_version_id", None)
+        if self.version_id != old_version_id:
+            Specimen.objects.filter(ot=self).filter(
+                models.Q(origin_version__isnull=True)
+                | models.Q(origin_version_id=old_version_id)
+            ).update(origin_version_id=self.version_id)
+        self._loaded_version_id = self.version_id
 
     def __str__(self):
         version_suffix = f" ({self.version})" if self.version else ""
@@ -151,6 +172,16 @@ class Specimen(TimestampedModel):
     ot = models.ForeignKey(
         OriginalTrainer, on_delete=models.SET_NULL, blank=True, null=True
     )
+    # Jogo de origem (define a marca de origem): derivado do OT no save, ver
+    # home.origin_marks. Editável só no admin, para exceções (eventos, trocas).
+    origin_version = models.ForeignKey(
+        Version,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="origin_specimens",
+        verbose_name=_("origin game"),
+    )
     captured_at = models.DateField(_("captured at"), blank=True, null=True)
     pokeball = models.CharField(
         _("pokéball"), choices=Pokeball.choices, max_length=255, blank=True, null=True
@@ -162,11 +193,32 @@ class Specimen(TimestampedModel):
         verbose_name_plural = _("specimens")
         ordering = ("form__order",)
 
+    @classmethod
+    def from_db(cls, db, field_names, values):
+        instance = super().from_db(db, field_names, values)
+        instance._loaded_ot_id = instance.ot_id
+        return instance
+
     def save(self, *args, **kwargs):
         if self.form and not self.form_name:
             self.form_name = self.form.name.strip()
 
+        # Novo espécime ou OT trocado: o jogo de origem passa a ser o do OT
+        # (vazio se o OT não tiver versão).
+        if self._state.adding or self.ot_id != getattr(self, "_loaded_ot_id", None):
+            self.origin_version_id = self.ot.version_id if self.ot else None
+            if "update_fields" in kwargs and kwargs["update_fields"] is not None:
+                kwargs["update_fields"] = {*kwargs["update_fields"], "origin_version"}
+
         super().save(*args, **kwargs)
+        self._loaded_ot_id = self.ot_id
+
+    @property
+    def origin_mark(self) -> str | None:
+        version = self.origin_version
+        return origin_mark_for(
+            version.version_group.name if version else None, self.is_from_go
+        )
 
     def __str__(self):
         badges = "%(shiny)s%(alpha)s%(pk_go)s%(obsrv)s" % {

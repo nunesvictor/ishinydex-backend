@@ -3,7 +3,7 @@ from django.test import TestCase
 from django.utils import translation
 
 from core.tests import factories as f
-from home.models import DEFAULT_POKEMON_BOX_SIZE, Box, Slot
+from home.models import DEFAULT_POKEMON_BOX_SIZE, Box, Slot, Specimen
 
 
 class BoxTests(TestCase):
@@ -173,3 +173,108 @@ class OriginalTrainerTests(TestCase):
 
         ot.version = f.make_version(name="red")
         self.assertEqual(str(ot), "123456:Ash (red)")
+
+
+class OriginVersionTests(TestCase):
+    """``Specimen.origin_version`` é derivado do OT (ver home.origin_marks)."""
+
+    def setUp(self):
+        _, _, self.form = f.make_full_pokemon("bulbasaur", 1)
+        sv = f.make_version_group(name="scarlet-violet")
+        self.scarlet = f.make_version(name="scarlet", version_group=sv)
+        self.violet = f.make_version(name="violet", version_group=sv)
+        self.sword = f.make_version(
+            name="sword", version_group=f.make_version_group(name="sword-shield")
+        )
+
+    def reload(self, specimen) -> Specimen:
+        return Specimen.objects.get(pk=specimen.pk)
+
+    def test_new_specimen_gets_ot_version(self):
+        specimen = f.make_specimen(self.form, ot=f.make_ot(version=self.scarlet))
+
+        self.assertEqual(self.reload(specimen).origin_version, self.scarlet)
+
+    def test_ot_without_version_or_no_ot_leaves_it_empty(self):
+        without_version = f.make_specimen(self.form, ot=f.make_ot())
+        without_ot = f.make_specimen(self.form)
+
+        self.assertIsNone(self.reload(without_version).origin_version)
+        self.assertIsNone(self.reload(without_ot).origin_version)
+
+    def test_changing_ot_derives_again(self):
+        specimen = f.make_specimen(self.form, ot=f.make_ot(version=self.scarlet))
+        specimen = self.reload(specimen)
+
+        specimen.ot = f.make_ot(version=self.sword)
+        specimen.save()
+        self.assertEqual(self.reload(specimen).origin_version, self.sword)
+
+        specimen.ot = None
+        specimen.save(update_fields=["ot"])
+        self.assertIsNone(self.reload(specimen).origin_version)
+
+    def test_saving_without_changing_ot_keeps_manual_correction(self):
+        specimen = self.reload(
+            f.make_specimen(self.form, ot=f.make_ot(version=self.scarlet))
+        )
+        specimen.origin_version = self.sword  # correção manual (admin)
+        specimen.save()
+
+        specimen = self.reload(specimen)
+        specimen.nickname = "Bulba"
+        specimen.save()
+
+        self.assertEqual(self.reload(specimen).origin_version, self.sword)
+
+    def test_ot_gaining_version_fills_its_specimens(self):
+        ot = f.make_ot()
+        specimens = [f.make_specimen(self.form, ot=ot) for _ in range(2)]
+        other = f.make_specimen(self.form, ot=f.make_ot(trainer_id="999"))
+
+        ot = type(ot).objects.get(pk=ot.pk)
+        ot.version = self.scarlet
+        ot.save()
+
+        for specimen in specimens:
+            self.assertEqual(self.reload(specimen).origin_version, self.scarlet)
+        self.assertIsNone(self.reload(other).origin_version)
+
+    def test_ot_changing_version_keeps_manual_corrections(self):
+        ot = f.make_ot(version=self.scarlet)
+        derived = f.make_specimen(self.form, ot=ot)
+        corrected = self.reload(f.make_specimen(self.form, ot=ot))
+        corrected.origin_version = self.sword
+        corrected.save()
+
+        ot = type(ot).objects.get(pk=ot.pk)
+        ot.version = self.violet
+        ot.save()
+        self.assertEqual(self.reload(derived).origin_version, self.violet)
+        self.assertEqual(self.reload(corrected).origin_version, self.sword)
+
+        ot.version = None
+        ot.save()
+        self.assertIsNone(self.reload(derived).origin_version)
+        self.assertEqual(self.reload(corrected).origin_version, self.sword)
+
+    def test_saving_ot_without_changing_version_does_not_touch_specimens(self):
+        ot = f.make_ot(version=self.scarlet)
+        specimen = self.reload(f.make_specimen(self.form, ot=ot))
+        specimen.origin_version = None
+        specimen.save()
+
+        ot = type(ot).objects.get(pk=ot.pk)
+        ot.name = "Red"
+        ot.save()
+
+        self.assertIsNone(self.reload(specimen).origin_version)
+
+    def test_origin_mark(self):
+        specimen = f.make_specimen(self.form, ot=f.make_ot(version=self.scarlet))
+        self.assertEqual(self.reload(specimen).origin_mark, "paldea")
+
+        specimen.is_from_go = True
+        self.assertEqual(specimen.origin_mark, "go")
+
+        self.assertIsNone(f.make_specimen(self.form).origin_mark)

@@ -13,7 +13,7 @@ from core.admin_mixins import CustomFieldsRendererMixin
 from home.views import SpecimenBulkUpdateView
 from pokedex.renderers import HomeSpriteRenderer
 
-from .admin_filters import RegistrationStatusFilter
+from .admin_filters import OriginMarkListFilter, RegistrationStatusFilter
 from .forms import SpecimenAdminForm
 from .models import DEFAULT_POKEMON_BOX_SIZE as BOX_SIZE
 from .models import (
@@ -382,6 +382,7 @@ class SpecimenAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
         "nature",
         "ability",
         "ot",
+        "origin_version",
         "is_shiny",
         "is_alpha",
         "is_from_go",
@@ -403,6 +404,7 @@ class SpecimenAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
         "captured_at",
     )
     list_filter = (
+        OriginMarkListFilter,
         "ot",
         "gender",
         "nature",

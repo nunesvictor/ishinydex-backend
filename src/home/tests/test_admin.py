@@ -266,6 +266,20 @@ class SpecimenAdminTests(AdminTestCase):
         self.assertContains(response, "/media/sprites/pokemon/other/home/shiny/1.png")
         self.assertContains(response, "♀️")
 
+    def test_changelist_filter_by_origin_mark(self):
+        sv = f.make_version_group(name="scarlet-violet")
+        ot = f.make_ot(version=f.make_version(name="scarlet", version_group=sv))
+        paldea = f.make_specimen(self.form, ot=ot, nickname="Paldeano")
+        f.make_specimen(self.form, nickname="Sem marca")
+
+        response = self.client.get(
+            reverse("admin:home_specimen_changelist"), {"origin_mark": "paldea"}
+        )
+        unfiltered = self.client.get(reverse("admin:home_specimen_changelist"))
+
+        self.assertEqual(list(response.context["cl"].queryset), [paldea])
+        self.assertEqual(unfiltered.context["cl"].queryset.count(), 2)
+
     def test_add_view_initial_from_querystring(self):
         dex = f.make_personal_dex(is_shiny_dex=True)
 
@@ -338,6 +352,22 @@ class SpecimenBulkUpdateViewTests(AdminTestCase):
         messages = [m for m in get_messages(response.wsgi_request)]
         self.assertEqual(len(messages), 1)
         self.assertEqual(messages[0].level_tag, "success")
+
+    def test_changing_ot_derives_origin_version(self):
+        red = f.make_version(name="red")
+        ot = f.make_ot(version=red)
+
+        self.client.post(
+            reverse(self.url_name),
+            {"specimens": [self.specimens[0].pk], "ot": ot.pk},
+        )
+
+        self.assertEqual(
+            list(
+                Specimen.objects.order_by("pk").values_list("origin_version", flat=True)
+            ),
+            [red.pk, None, None],
+        )
 
     def test_updates_updated_at_of_selected_specimens(self):
         """``update()`` não aciona o ``auto_now``: a view atualiza à parte."""

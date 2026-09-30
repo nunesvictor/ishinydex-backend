@@ -8,6 +8,7 @@ from django.utils.translation import gettext_lazy as _
 
 from core.consts import GENDER_CHOICES, LANGUAGES_CHOICES, NATURE_CHOICES
 from home.choices import Pokeball
+from home.origin_marks import origin_mark_options
 
 LANGUAGE_LABELS = {
     "ja-hrkt": _("Japanese (kana)"),
@@ -111,4 +112,5 @@ def specimen_options() -> dict[str, list[dict]]:
             }
             for roman in GENERATIONS
         ],
+        "origin_mark": origin_mark_options(),
     }

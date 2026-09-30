@@ -11,7 +11,8 @@ from rest_framework import serializers
 
 from core.consts import TYPES_DICT
 from home.models import Box, OriginalTrainer, PersonalDex, Slot, Specimen
-from home.services import allowed_genders
+from home.origin_marks import ORIGIN_MARK_LABELS
+from home.services import allowed_genders, with_origin_version
 from pokedex.models import PokemonForm, ShinyLock, Version
 from pokedex.renderers import HomeSpriteRenderer
 
@@ -157,6 +158,11 @@ class SpecimenSerializer(serializers.ModelSerializer):
     form_ref = FormRefSerializer(source="form", read_only=True)
     pokeball_sprite_url = serializers.SerializerMethodField()
     slot = serializers.IntegerField(source="slot_id", read_only=True, allow_null=True)
+    # Derivados do OT (ver home.origin_marks): nunca escritos pela API.
+    origin_version = serializers.SlugRelatedField(slug_field="name", read_only=True)
+    origin_mark = serializers.ChoiceField(
+        choices=list(ORIGIN_MARK_LABELS), read_only=True, allow_null=True
+    )
 
     class Meta:
         model = Specimen
@@ -412,6 +418,7 @@ class SpecimenOptionsSerializer(serializers.Serializer):
     pokeball = PokeballChoiceSerializer(many=True)
     type = TypeChoiceSerializer(many=True)
     generation = ChoiceSerializer(many=True)
+    origin_mark = ChoiceSerializer(many=True)
 
 
 class SpecimenChangesSerializer(serializers.ModelSerializer):
@@ -502,8 +509,9 @@ class SpecimenBulkUpdateSerializer(serializers.Serializer):
 
     def save(self) -> int:
         """Número de espécimes atualizados."""
+        changes = with_origin_version(self.validated_data["changes"])
         return Specimen.objects.filter(pk__in=self.validated_data["ids"]).update(
-            **self.validated_data["changes"], updated_at=timezone.now()
+            **changes, updated_at=timezone.now()
         )
 
 
