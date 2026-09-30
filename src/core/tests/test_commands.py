@@ -8,7 +8,7 @@ from pathlib import Path
 from unittest import mock
 
 from django.conf import settings
-from django.core.management import call_command
+from django.core.management import call_command, get_commands, load_command_class
 from django.core.management.base import CommandError
 from django.test import SimpleTestCase, TestCase, override_settings
 from django.utils import translation
@@ -49,6 +49,34 @@ class CommandOutputTests(TestCase):
             output = run("create_personal_dex", "Main")
 
         self.assertIn("Trabalhando no PersonalDex: `Main`", output)
+
+
+class CommandHelpTests(SimpleTestCase):
+    """Regressão (#27): `--help` quebrava com `gettext_lazy` no Python 3.14."""
+
+    def test_help_of_every_core_command(self):
+        commands = sorted(name for name, app in get_commands().items() if app == "core")
+        self.assertIn("sync_pokeapi", commands)
+
+        for name in commands:
+            for language in ("en", "pt-br"):
+                with self.subTest(command=name, language=language):
+                    command = load_command_class("core", name)
+
+                    with translation.override(language):
+                        text = command.create_parser("manage.py", name).format_help()
+
+                    self.assertIn(f"manage.py {name}", text)
+                    self.assertIn(" ".join(str(command.help).split()[:3]), text)
+
+    def test_call_command_help_exits_cleanly(self):
+        out = StringIO()
+
+        with mock.patch("sys.stdout", out), self.assertRaises(SystemExit) as exit:
+            call_command("sync_pokeapi", "--help")
+
+        self.assertEqual(exit.exception.code, 0)
+        self.assertIn("--workers", out.getvalue())
 
 
 class CreateHomeBoxesTests(TestCase):
