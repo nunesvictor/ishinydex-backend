@@ -1,3 +1,15 @@
+# Ambiente de DESENVOLVIMENTO e TESTES do backend. Não é para deploy: o app
+# completo (backend + frontend) sobe pelo repositório principal
+# https://github.com/nunesvictor/ishinydex, que usa o Dockerfile daqui.
+#
+#   cp .env.example src/.env && ln -s src/.env .env   # e troque os change-me
+#   docker compose up -d --build      # runserver em http://localhost:8008
+#   docker compose exec web python manage.py compilemessages -l pt_BR  # 1ª vez
+#   docker compose run --rm web python manage.py test
+#
+# Cada cópia do repositório (clone ou worktree) vira um projeto compose
+# próprio, com banco e volumes isolados.
+
 volumes:
   data:
   sprites:
@@ -17,8 +29,8 @@ services:
 
   db:
     # Fixo em 17: precisa bater com o pg_dump/pg_restore da imagem (Debian trixie
-    # → postgresql-client 17). Alpine para manter a collation (musl) dos dados já
-    # existentes no volume `data`.
+    # → postgresql-client 17). Sem porta publicada: só o `web` acessa, pela rede
+    # interna do compose.
     image: postgres:17-alpine
     env_file:
       - .env
@@ -26,35 +38,10 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-ishinydex}
-    ports:
-      - "${X_POSTGRES_PORT:-5432}:5432"
-    restart: always
+    restart: unless-stopped
     volumes:
       - data:/var/lib/postgresql/data
       - ./backups:/var/lib/postgresql/backups
-
-  jupyter:
-    command: jupyter lab --ServerApp.token='${JUPYTER_TOKEN:-}' --ip=0.0.0.0 --port=8888 --allow-root --no-browser --notebook-dir=notebooks
-    depends_on:
-      db:
-        condition: service_started
-      web:
-        condition: service_started
-      sprites:
-        condition: service_completed_successfully
-    env_file:
-      - .env
-    environment:
-      JUPYTER_TOKEN: ${JUPYTER_TOKEN:-}
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    image: ${APP_NAME:-ishinydex}:${APP_VERSION:-latest}
-    ports:
-      - "${X_JUPYTER_PORT:-8888}:8888"
-    pull_policy: never
-    volumes:
-      - .:/home/guest/ishinydex
-      - sprites:/home/guest/ishinydex/src/media/sprites:ro
 
   web:
     build:
@@ -69,47 +56,15 @@ services:
     env_file:
       - .env
     environment:
+      POSTGRES_HOST: db
       DJANGO_SUPERUSER_EMAIL: ${DJANGO_SUPERUSER_EMAIL:-admin@localhost}
       DJANGO_SUPERUSER_PASSWORD: ${DJANGO_SUPERUSER_PASSWORD:-admin}
       DJANGO_SUPERUSER_USERNAME: ${DJANGO_SUPERUSER_USERNAME:-admin}
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     image: ${APP_NAME:-ishinydex}:${APP_VERSION:-latest}
+    # 8008: a porta padrão do `API_BASE_URL` do frontend em desenvolvimento.
     ports:
-      - "${X_WEB_PORT:-8000}:8000"
-    restart: always
-    volumes:
-      - .:/home/guest/ishinydex
-      - sprites:/home/guest/ishinydex/src/media/sprites:ro
-
-  # Execução "de produção" local: imagem prod (uwsgi, DEBUG=False), sem código
-  # montado. Não sobe por padrão; use:
-  #   docker compose --profile prod up -d --build prod
-  # Compartilha o banco `db` e o volume `sprites` com o ambiente de dev.
-  prod:
-    profiles: [prod]
-    build:
-      context: .
-      target: prod
-    depends_on:
-      db:
-        condition: service_started
-      sprites:
-        condition: service_completed_successfully
-    env_file:
-      - .env
-      - path: .env.prod  # overrides opcionais (ex.: SECRET_KEY própria)
-        required: false
-    environment:
-      DEBUG: "False"
-      DEBUG_TOOLBAR: "False"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    image: ${APP_NAME:-ishinydex}-prod:${APP_VERSION:-latest}
-    ports:
-      - "${X_PROD_PORT:-8080}:8000"
+      - "${X_WEB_PORT:-8008}:8000"
     restart: unless-stopped
     volumes:
-      - ./.cache:/home/guest/ishinydex/.cache
-      - ./backups:/home/guest/ishinydex/backups
+      - .:/home/guest/ishinydex
       - sprites:/home/guest/ishinydex/src/media/sprites:ro

@@ -100,7 +100,6 @@ target/
 
 # Jupyter Notebook
 .ipynb_checkpoints
-src/notebooks/untracked
 
 # IPython
 profile_default/
@@ -146,7 +145,7 @@ celerybeat.pid
 # Environments
 .env
 .env.*
-!.env.prod.example
+!.env.example
 .venv
 env/
 venv/

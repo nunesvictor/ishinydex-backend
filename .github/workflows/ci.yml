@@ -36,7 +36,7 @@ jobs:
     name: Testes (Postgres 17)
     runs-on: ubuntu-latest
     services:
-      # Mesma versão do serviço `db` do docker-compose.yml.
+      # Mesma versão do serviço `db` dos composes (dev daqui e o do repositório principal).
       postgres:
         image: postgres:17-alpine
         env:

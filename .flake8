@@ -2,7 +2,6 @@
 count = true
 docstring-convention = google
 exclude =
-    .jupyter,
     .ipynb_checkpoints/,
     *.ipynb,
     **/migrations/*,
