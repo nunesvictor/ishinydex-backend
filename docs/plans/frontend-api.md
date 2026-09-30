@@ -39,7 +39,7 @@ Schema OpenAPI: `GET /api/schema/` · Swagger UI: `GET /api/docs/` (públicos).
 | GET/PUT/PATCH/DELETE | `/api/specimens/{id}/` | PATCH = editar (`form` imutável); DELETE = libertar, inclusive depositado |
 | GET | `/api/specimens/ids/?` + filtros de `/specimens/` | ids de todos os espécimes do filtro, na ordem da lista, **sem paginação**: `[1, 2, ...]` |
 | PATCH | `/api/specimens/bulk/` | edição em lote (ver Regras): `{"ids": [...], "changes": {...}}` → `{"updated": n}` |
-| GET | `/api/specimens/options/` | choices de language, gender, nature, pokeball, type e generation |
+| GET | `/api/specimens/options/` | choices de language, gender, nature, pokeball, type, generation e origin_mark |
 | GET | `/api/forms/?search=` | formas (`FormRef`), busca por nome |
 | GET | `/api/forms/{id}/` | `FormDetail` |
 | GET/POST | `/api/trainers/?search=` | lista/cria OriginalTrainer |
@@ -68,7 +68,9 @@ Schema OpenAPI: `GET /api/schema/` · Swagger UI: `GET /api/docs/` (públicos).
 
 // Specimen: todos os campos do model +
 //   form (id, escrita), form_ref (FormRef, leitura),
-//   pokeball_sprite_url (leitura), slot (id do slot onde está depositado | null)
+//   pokeball_sprite_url (leitura), slot (id do slot onde está depositado | null),
+//   origin_version (nome da Version | null, leitura; derivado do OT, ver Regras),
+//   origin_mark ("paldea" | "galar" | ... | "go" | null, leitura)
 
 // Slot
 {"id": 1, "box": {"id": 1, "name": "HOME 1", "position": 1}, "row": 0, "col": 0,
@@ -98,7 +100,10 @@ Schema OpenAPI: `GET /api/schema/` · Swagger UI: `GET /api/docs/` (públicos).
                "sprite_url": "http://host/media/sprites/items/poke-ball.png"}, ...],
  "type": [{"value": "water", "label": "Água",
            "sprite_url": "http://host/media/sprites/types/.../11.png"}, ...],  // sprite_url pode ser null
- "generation": [{"value": "generation-iv", "label": "Geração IV"}, ...]}
+ "generation": [{"value": "generation-iv", "label": "Geração IV"}, ...],
+ "origin_mark": [{"value": "paldea", "label": "Scarlet e Violet"}, ...,
+                 {"value": "go", "label": "Pokémon GO"},
+                 {"value": "none", "label": "Sem marca de origem"}]}
 ```
 
 ## Filtros de `/api/specimens/`
@@ -113,6 +118,7 @@ inválidos são ignorados.
 | `type` | `water,flying` | a forma precisa ter **todos** os tipos |
 | `ot` | `1,none` | ids de OriginalTrainer; `none` = sem OT |
 | `generation` | `generation-i,generation-iv` | geração da espécie |
+| `origin_mark` | `paldea,go` | marca de origem (ver Regras); `none` = sem marca |
 | `gender` / `nature` / `language` | `female,genderless` | |
 | `ability` | `levitate` | contém (sem diferenciar maiúsculas) |
 | `captured_after` / `captured_before` | `2026-01-01` | intervalo inclusivo de `captured_at` |
@@ -176,5 +182,31 @@ Exemplos:
     fêmea, 1–7 macho ou fêmea). Conflito →
     `{"gender": ["..."], "conflicts": [{"id": 1, "form_name": "latias"}]}`.
   - `updated_at` é atualizado.
+- **Jogo e marca de origem** (`home/origin_marks.py`): a marca de origem do
+  HOME é a do jogo em que o Pokémon foi obtido pela primeira vez
+  ([Bulbapedia](https://bulbapedia.bulbagarden.net/wiki/Origin_mark)).
+  - `origin_version` é **derivado do OT**, sem campo no app: ao criar o
+    espécime ou trocar o OT dele (inclusive na edição em lote), recebe a
+    `version` do OT, ou `null` se o OT não tiver versão. A API ignora
+    `origin_version`/`origin_mark` enviados.
+  - Quando a `version` de um OT muda (inclusive de/para `null`), os espécimes
+    desse OT com `origin_version` `null` ou igual à versão antiga passam para
+    a nova. Correções feitas no admin (outra versão) são preservadas.
+  - `origin_mark`: `is_from_go` → `go` (tem prioridade); senão, o
+    `version_group` do `origin_version`:
+
+    | marca | version_groups |
+    | --- | --- |
+    | `game-boy` | red-green-japan, blue-japan, red-blue, yellow, gold-silver, crystal |
+    | `kalos` | x-y, omega-ruby-alpha-sapphire |
+    | `alola` | sun-moon, ultra-sun-ultra-moon |
+    | `lets-go` | lets-go-pikachu-lets-go-eevee |
+    | `galar` | sword-shield, the-isle-of-armor, the-crown-tundra |
+    | `bdsp` | brilliant-diamond-shining-pearl |
+    | `hisui` | legends-arceus |
+    | `paldea` | scarlet-violet, the-teal-mask, the-indigo-disk |
+    | `lumiose` | legends-za, mega-dimension |
+
+    Os demais (Gen 3–5, Colosseum/XD, Champions) e `null` → sem marca.
 - Labels de nature ainda sem tradução pt-BR (caem no inglês) até definirmos os
   nomes; ver `api/choices.py` e `locale/pt_BR/LC_MESSAGES/django.po`.

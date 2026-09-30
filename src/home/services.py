@@ -235,3 +235,13 @@ def allowed_genders(form: PokemonForm) -> frozenset[str]:
             return frozenset({"female"})
 
     return frozenset({"male", "female"})
+
+
+def with_origin_version(changes: dict) -> dict:
+    """Edição em lote (``QuerySet.update``, que não passa pelo ``save``): ao
+    trocar o OT, o jogo de origem acompanha a versão dele."""
+    if "ot" not in changes:
+        return changes
+
+    ot = changes["ot"]
+    return {**changes, "origin_version": ot.version if ot else None}

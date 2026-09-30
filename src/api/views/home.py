@@ -334,6 +334,13 @@ SPECIMEN_FILTER_PARAMETERS = [
         OpenApiTypes.STR,
         description=_("comma-separated generations (generation-i...)"),
     ),
+    OpenApiParameter(
+        "origin_mark",
+        OpenApiTypes.STR,
+        description=_(
+            "comma-separated origin marks (paldea, galar, go...); none: without mark"
+        ),
+    ),
     OpenApiParameter("gender", OpenApiTypes.STR, description=_("comma-separated")),
     OpenApiParameter("nature", OpenApiTypes.STR, description=_("comma-separated")),
     OpenApiParameter("language", OpenApiTypes.STR, description=_("comma-separated")),
@@ -352,7 +359,9 @@ SPECIMEN_FILTER_PARAMETERS = [
 @extend_schema_view(list=extend_schema(parameters=SPECIMEN_FILTER_PARAMETERS))
 class SpecimenViewSet(viewsets.ModelViewSet):
     queryset = (
-        Specimen.objects.select_related("form__pokemon__species")
+        Specimen.objects.select_related(
+            "form__pokemon__species", "origin_version__version_group"
+        )
         .annotate(
             slot_id=Subquery(
                 Slot.objects.filter(specimen=OuterRef("pk")).values("pk")[:1]
@@ -366,7 +375,8 @@ class SpecimenViewSet(viewsets.ModelViewSet):
     @extend_schema(responses=SpecimenOptionsSerializer)
     @action(detail=False, pagination_class=None, filter_backends=[])
     def options(self, request):
-        """Choices de language, gender, nature, pokeball, type e generation,
+        """Choices de language, gender, nature, pokeball, type, generation e
+        origin_mark,
         com labels traduzidos. Pokébolas e tipos trazem também a URL absoluta
         do sprite (``null`` se o tipo não tiver ícone)."""
         options = specimen_options()

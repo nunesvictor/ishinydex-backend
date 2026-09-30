@@ -6,6 +6,7 @@ from django.utils.translation import ngettext
 from django.views.generic import FormView
 
 from .forms import SpecimenBulkUpdateForm
+from .services import with_origin_version
 
 
 class SpecimenBulkUpdateView(FormView):
@@ -14,7 +15,7 @@ class SpecimenBulkUpdateView(FormView):
 
     def form_valid(self, form):
         specimens_queryset = form.cleaned_data["specimens"]
-        update_fields = form.get_updates()
+        update_fields = with_origin_version(form.get_updates())
 
         if update_fields:
             # update() não aciona o auto_now: o updated_at vai explícito.

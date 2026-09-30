@@ -1,4 +1,6 @@
 from datetime import date
+from functools import reduce
+from operator import or_
 
 from django.db.models import (
     BooleanField,
@@ -12,6 +14,7 @@ from django.db.models import (
 
 from rest_framework import filters
 
+from home.origin_marks import origin_mark_q
 from pokedex.models import PokemonAbility, PokemonForm, PokemonFormType, ShinyLock
 
 
@@ -144,6 +147,10 @@ class SpecimenFilterBackend(filters.BaseFilterBackend):
             queryset = queryset.filter(
                 with_none(Q(ot_id__in=ids), ots, Q(ot__isnull=True))
             )
+
+        # Marcas somam (OU): "paldea,go" traz os dois.
+        if marks := parse_list(params.get("origin_mark")):
+            queryset = queryset.filter(reduce(or_, map(origin_mark_q, marks)))
 
         # Com mais de um tipo, a forma precisa ter todos (ex.: água + voador).
         for type_ in parse_list(params.get("type")):

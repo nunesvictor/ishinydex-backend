@@ -1099,3 +1099,60 @@ msgstr "padrão: dex"
 #: templates/admin/base_site.html
 msgid "development environment"
 msgstr "ambiente de desenvolvimento"
+
+#: api/views/home.py
+msgid "comma-separated origin marks (paldea, galar, go...); none: without mark"
+msgstr ""
+"marcas de origem separadas por vírgula (paldea, galar, go...); none: sem marca"
+
+#: home/models.py
+msgid "origin game"
+msgstr "jogo de origem"
+
+#: home/admin_filters.py
+msgid "origin mark"
+msgstr "marca de origem"
+
+#: home/origin_marks.py
+msgid "Game Boy"
+msgstr "Game Boy"
+
+#: home/origin_marks.py
+msgid "Blue pentagon"
+msgstr "Pentágono azul"
+
+#: home/origin_marks.py
+msgid "Black clover"
+msgstr "Trevo preto"
+
+#: home/origin_marks.py
+msgid "Let's Go"
+msgstr "Let's Go"
+
+#: home/origin_marks.py
+msgid "Galar"
+msgstr "Galar"
+
+#: home/origin_marks.py
+msgid "Brilliant Diamond and Shining Pearl"
+msgstr "Brilliant Diamond e Shining Pearl"
+
+#: home/origin_marks.py
+msgid "Legends: Arceus"
+msgstr "Legends: Arceus"
+
+#: home/origin_marks.py
+msgid "Scarlet and Violet"
+msgstr "Scarlet e Violet"
+
+#: home/origin_marks.py
+msgid "Legends: Z-A"
+msgstr "Legends: Z-A"
+
+#: home/origin_marks.py
+msgid "Pokémon GO"
+msgstr "Pokémon GO"
+
+#: home/origin_marks.py
+msgid "No origin mark"
+msgstr "Sem marca de origem"
