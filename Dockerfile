@@ -186,7 +186,6 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 COPY --from=deps-dev /opt/venv /opt/venv
-COPY --chown=1000:1000 .jupyter/ ${HOME}/.jupyter/
 COPY --from=app --chown=1000:1000 /build/src/ ${APP_HOME}/src/
 
 USER guest
