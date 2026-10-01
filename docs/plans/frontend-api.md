@@ -33,20 +33,29 @@ Schema OpenAPI: `GET /api/schema/` · Swagger UI: `GET /api/docs/` (públicos).
 | GET | `/api/personal-dexes/{id}/hunts/` | lista de caçadas de um **shiny dex** (paginada, na ordem das boxes): `Hunt[]`; dex que não é shiny dex → 400 `{"detail": ...}`. Filtros em [Caçadas](#caçadas-de-apipersonal-dexesidhunts) |
 | GET | `/api/personal-dexes/preview/?force_new_box=` | simula um dex padrão sem criar: `{forms, boxes_needed, largest_free_run, enough_space, boxes_to_create, first_box: BoxRef \| null}`; sem sequência livre que caiba, completa a sequência livre do fim com `boxes_to_create` boxes novas (até 200, o limite do HOME); `first_box` é `null` sem espaço ou quando o dex fica todo em boxes novas |
 | POST | `/api/personal-dexes/` | `{name, is_shiny_dex?, force_new_box?}` → 201 com o dex (e contagens); cria com o conjunto padrão de formas, na [ordem canônica](#ordem-canônica-das-formas) (com `force_new_box`, cada geração da espécie começa no 1º slot de uma box), e instala o esquema na 1ª sequência de boxes livres (ou cria no fim as boxes que faltam, como no preview). Nome repetido → `{"name": [...]}`; sem espaço → `{"non_field_errors": [...]}` |
-| GET | `/api/slots/?personal_dex=&box=&registered=true\|false&search=` | slots; com `box`, retorna os 30 slots **sem paginação**; `search` = nome da forma (`icontains`) ou número (Pokédex nacional da espécie ou `pokeapi_id` da forma), na ordem das boxes |
+| GET | `/api/slots/?personal_dex=&box=&registered=true\|false&search=` | slots; com `box`, retorna os 30 slots **sem paginação**; `search` = nome da forma (`icontains`, [como slug](#busca-por-nome)) ou número (Pokédex nacional da espécie ou `pokeapi_id` da forma), na ordem das boxes |
 | GET | `/api/slots/{id}/` | um slot |
 | POST | `/api/slots/{id}/deposit/` | `{specimen_id}` → 200 com o slot, ou 400 |
 | POST | `/api/slots/{id}/withdraw/` | 200 com o slot (`specimen: null`); o app não usa mais (libertar = DELETE do specimen) |
-| GET/POST | `/api/specimens/?form_id=&available=&is_shiny=&is_alpha=&is_from_go=&search=` + filtros abaixo | lista/cria specimens; `search` = apelido ou nome da forma (`icontains`) ou, se for número, Pokédex nacional da espécie ou `pokeapi_id` da forma |
+| GET/POST | `/api/specimens/?form_id=&available=&is_shiny=&is_alpha=&is_from_go=&search=` + filtros abaixo | lista/cria specimens; `search` = apelido (texto cru) ou nome da forma ([como slug](#busca-por-nome)), `icontains`, ou, se for número, Pokédex nacional da espécie ou `pokeapi_id` da forma |
 | GET/PUT/PATCH/DELETE | `/api/specimens/{id}/` | PATCH = editar (`form` imutável); DELETE = libertar, inclusive depositado |
 | GET | `/api/specimens/ids/?` + filtros de `/specimens/` | ids de todos os espécimes do filtro, na ordem da lista, **sem paginação**: `[1, 2, ...]` |
 | PATCH | `/api/specimens/bulk/` | edição em lote (ver Regras): `{"ids": [...], "changes": {...}}` → `{"updated": n}` |
 | GET | `/api/specimens/options/` | choices de language, gender, nature, pokeball, type, generation e origin_mark |
-| GET | `/api/forms/?search=` | formas (`FormRef`), busca por nome, na [ordem canônica](#ordem-canônica-das-formas) |
+| GET | `/api/forms/?search=` | formas (`FormRef`), busca por nome ([como slug](#busca-por-nome)), na [ordem canônica](#ordem-canônica-das-formas) |
 | GET | `/api/forms/{id}/` | `FormDetail` |
 | GET/POST | `/api/trainers/?search=` | lista/cria OriginalTrainer |
 | GET | `/api/versions/` | versões de jogo em ordem de lançamento, **sem paginação**: `[{name, version_group, generation}]`; `name` é o valor de `version` no POST de trainers |
 | GET | `/api/pokemon/` | (já existia; agora exige autenticação) |
+
+### Busca por nome
+
+Nomes de forma (`name`, `form_name` do espécime) e habilidades são slugs da
+PokéAPI (`iron-hands`, `solar-power`). A busca converte o texto digitado com o
+`slugify` do Django antes do `icontains`: minúsculas, sem acento, espaços
+viram `-` e pontuação some (`Iron Hands` → `iron-hands`, `Mr. Mime` →
+`mr-mime`, `Flabébé` → `flabebe`). Se não sobrar nada (só pontuação), usa o
+texto cru. Apelido e treinador são texto livre e não passam por isso.
 
 ## Shapes
 
@@ -124,7 +133,7 @@ inválidos são ignorados.
 | `generation` | `generation-i,generation-iv` | geração da espécie |
 | `origin_mark` | `paldea,go` | marca de origem (ver Regras); `none` = sem marca |
 | `gender` / `nature` / `language` | `female,genderless` | |
-| `ability` | `levitate` | contém (sem diferenciar maiúsculas) |
+| `ability` | `levitate`, `solar power` | contém (sem diferenciar maiúsculas, [como slug](#busca-por-nome)) |
 | `captured_after` / `captured_before` | `2026-01-01` | intervalo inclusivo de `captured_at` |
 | `ordering` | `-captured_at` | `box` (padrão: posição nas boxes — o próprio slot se depositado, senão o 1º slot com a forma, em qualquer dex; fora das boxes por último), `national` (nº da Pokédex nacional; formas da mesma espécie juntas, por `form_order`), `captured_at`, `-captured_at` (sem data por último), `-created_at`. Valor desconhecido → `box` |
 

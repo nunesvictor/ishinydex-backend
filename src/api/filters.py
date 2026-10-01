@@ -13,6 +13,7 @@ from django.db.models import (
     Subquery,
 )
 from django.db.models.functions import Coalesce
+from django.utils.text import slugify
 
 from rest_framework import filters
 
@@ -52,12 +53,19 @@ def parse_bool(value: str | None) -> bool | None:
     return None
 
 
+def slug_search(search: str) -> str:
+    """Texto digitado no formato dos slugs da PokéAPI, para buscar em nomes de
+    forma e habilidade: "Iron Hands" → "iron-hands", "Mr. Mime" → "mr-mime",
+    "Flabébé" → "flabebe". Se não sobrar nada (só pontuação), o texto cru."""
+    return slugify(search) or search
+
+
 def search_forms(search: str) -> QuerySet[PokemonForm]:
-    """Formas por nome (``icontains``) ou, se ``search`` for um número, pelo
-    número da Pokédex nacional da espécie ou pelo ``pokeapi_id`` da forma (o
-    número que o app mostra)."""
+    """Formas por nome (``icontains``, como slug) ou, se ``search`` for um
+    número, pelo número da Pokédex nacional da espécie ou pelo ``pokeapi_id``
+    da forma (o número que o app mostra)."""
     if not search.isdigit():
-        return PokemonForm.objects.filter(name__icontains=search)
+        return PokemonForm.objects.filter(name__icontains=slug_search(search))
 
     number = int(search)
     return PokemonForm.objects.filter(
@@ -192,7 +200,9 @@ class SpecimenFilterBackend(filters.BaseFilterBackend):
             queryset = queryset.filter(
                 Q(form__in=search_forms(search))
                 if search.isdigit()
-                else Q(nickname__icontains=search) | Q(form_name__icontains=search)
+                # O apelido é texto livre; o nome da forma, um slug.
+                else Q(nickname__icontains=search)
+                | Q(form_name__icontains=slug_search(search))
             )
 
         if balls := parse_list(params.get("pokeball")):
@@ -219,7 +229,7 @@ class SpecimenFilterBackend(filters.BaseFilterBackend):
                 queryset = queryset.filter(**{f"{field}__in": values})
 
         if ability := params.get("ability", "").strip():
-            queryset = queryset.filter(ability__icontains=ability)
+            queryset = queryset.filter(ability__icontains=slug_search(ability))
 
         if after := parse_date(params.get("captured_after", "")):
             queryset = queryset.filter(captured_at__gte=after)
@@ -241,7 +251,7 @@ class SpecimenFilterBackend(filters.BaseFilterBackend):
 class FormSearchFilterBackend(filters.BaseFilterBackend):
     def filter_queryset(self, request, queryset, view):
         if search := request.query_params.get("search", "").strip():
-            queryset = queryset.filter(name__icontains=search)
+            queryset = queryset.filter(name__icontains=slug_search(search))
 
         return queryset
 
