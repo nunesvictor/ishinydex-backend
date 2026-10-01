@@ -304,6 +304,9 @@ class SlotViewSet(viewsets.ReadOnlyModelViewSet):
 SPECIMEN_FILTER_PARAMETERS = [
     OpenApiParameter("form_id", OpenApiTypes.INT),
     OpenApiParameter(
+        "id", OpenApiTypes.STR, description=_("comma-separated specimen ids")
+    ),
+    OpenApiParameter(
         "available",
         OpenApiTypes.BOOL,
         description=_("true: only specimens not deposited in any slot"),

@@ -124,6 +124,10 @@ class SpecimenFilterBackend(filters.BaseFilterBackend):
         if form_id := params.get("form_id"):
             queryset = queryset.filter(form_id=form_id)
 
+        # Ids escolhidos (ex.: "só selecionados" do lote no app).
+        if ids := parse_list(params.get("id")):
+            queryset = queryset.filter(pk__in=[i for i in ids if i.isdigit()])
+
         if (available := parse_bool(params.get("available"))) is not None:
             # slot_id é anotado na queryset da view
             queryset = queryset.filter(slot_id__isnull=available)

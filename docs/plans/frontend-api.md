@@ -114,6 +114,7 @@ inválidos são ignorados.
 
 | Parâmetro | Exemplo | Regra |
 | --- | --- | --- |
+| `id` | `3,7,12` | ids dos espécimes (ex.: "só selecionados" do lote); não numéricos são ignorados |
 | `pokeball` | `dive-ball,none` | `none` = sem pokébola |
 | `type` | `water,flying` | a forma precisa ter **todos** os tipos |
 | `ot` | `1,none` | ids de OriginalTrainer; `none` = sem OT |

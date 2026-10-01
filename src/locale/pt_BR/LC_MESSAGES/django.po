@@ -1116,3 +1116,7 @@ msgstr "marca de origem"
 #: home/origin_marks.py
 msgid "No origin mark"
 msgstr "Sem marca de origem"
+
+#: api/views/home.py
+msgid "comma-separated specimen ids"
+msgstr "ids de espécimes separados por vírgula"
