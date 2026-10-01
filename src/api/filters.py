@@ -138,7 +138,9 @@ class SpecimenFilterBackend(filters.BaseFilterBackend):
 
         if search := params.get("search", "").strip():
             queryset = queryset.filter(
-                Q(nickname__icontains=search) | Q(form_name__icontains=search)
+                Q(form__in=search_forms(search))
+                if search.isdigit()
+                else Q(nickname__icontains=search) | Q(form_name__icontains=search)
             )
 
         if balls := parse_list(params.get("pokeball")):

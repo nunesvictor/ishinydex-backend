@@ -921,8 +921,12 @@ msgid "true: only specimens not deposited in any slot"
 msgstr "true: apenas espécimes não depositados em nenhum slot"
 
 #: api/views/home.py
-msgid "nickname or form name"
-msgstr "apelido ou nome da forma"
+msgid ""
+"nickname or form name; a number: national dex number or the form's PokéAPI "
+"ID"
+msgstr ""
+"apelido ou nome da forma; um número: nº da Pokédex nacional ou o PokéAPI ID "
+"da forma"
 
 #: api/serializers/home.py
 msgid "this field can't be changed in bulk."

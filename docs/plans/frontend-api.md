@@ -35,7 +35,7 @@ Schema OpenAPI: `GET /api/schema/` · Swagger UI: `GET /api/docs/` (públicos).
 | GET | `/api/slots/{id}/` | um slot |
 | POST | `/api/slots/{id}/deposit/` | `{specimen_id}` → 200 com o slot, ou 400 |
 | POST | `/api/slots/{id}/withdraw/` | 200 com o slot (`specimen: null`); o app não usa mais (libertar = DELETE do specimen) |
-| GET/POST | `/api/specimens/?form_id=&available=&is_shiny=&is_alpha=&is_from_go=&search=` + filtros abaixo | lista/cria specimens |
+| GET/POST | `/api/specimens/?form_id=&available=&is_shiny=&is_alpha=&is_from_go=&search=` + filtros abaixo | lista/cria specimens; `search` = apelido ou nome da forma (`icontains`) ou, se for número, Pokédex nacional da espécie ou `pokeapi_id` da forma |
 | GET/PUT/PATCH/DELETE | `/api/specimens/{id}/` | PATCH = editar (`form` imutável); DELETE = libertar, inclusive depositado |
 | GET | `/api/specimens/ids/?` + filtros de `/specimens/` | ids de todos os espécimes do filtro, na ordem da lista, **sem paginação**: `[1, 2, ...]` |
 | PATCH | `/api/specimens/bulk/` | edição em lote (ver Regras): `{"ids": [...], "changes": {...}}` → `{"updated": n}` |
@@ -49,8 +49,9 @@ Schema OpenAPI: `GET /api/schema/` · Swagger UI: `GET /api/docs/` (públicos).
 ## Shapes
 
 ```jsonc
-// FormRef (URLs absolutas; sprites HOME)
-{"id": 1, "name": "bulbasaur", "form_name": "", "pokeapi_id": 1,
+// FormRef (URLs absolutas; sprites HOME). national_number: nº da espécie na
+// Pokédex nacional (igual para formas alternativas; null se não houver)
+{"id": 1, "name": "bulbasaur", "form_name": "", "pokeapi_id": 1, "national_number": 1,
  "sprite_url": "http://host/media/sprites/pokemon/other/home/1.png",
  "shiny_sprite_url": "http://host/media/sprites/pokemon/other/home/shiny/1.png"}
 

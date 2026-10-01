@@ -41,6 +41,7 @@ from ..serializers.home import (
     SpecimenSerializer,
     TrainerSerializer,
     VersionSerializer,
+    national_number_prefetch,
     pokeball_sprite_url,
     type_sprite_url,
 )
@@ -225,9 +226,9 @@ class PersonalDexViewSet(mixins.CreateModelMixin, viewsets.ReadOnlyModelViewSet)
             )
 
         slots = filter_hunts(
-            Slot.objects.filter(personal_dex=dex).select_related(
-                "box", "personal_dex", "specimen", "form__pokemon__species"
-            ),
+            Slot.objects.filter(personal_dex=dex)
+            .select_related("box", "personal_dex", "specimen", "form__pokemon__species")
+            .prefetch_related(national_number_prefetch("form__")),
             request.query_params,
         )
         page = self.paginate_queryset(slots)
@@ -260,7 +261,7 @@ class PersonalDexViewSet(mixins.CreateModelMixin, viewsets.ReadOnlyModelViewSet)
 class SlotViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Slot.objects.select_related(
         "box", "personal_dex", "specimen", "form__pokemon__species"
-    )
+    ).prefetch_related(national_number_prefetch("form__"))
     serializer_class = SlotSerializer
     filter_backends = (SlotFilterBackend,)
 
@@ -315,7 +316,12 @@ SPECIMEN_FILTER_PARAMETERS = [
     OpenApiParameter("is_alpha", OpenApiTypes.BOOL),
     OpenApiParameter("is_from_go", OpenApiTypes.BOOL),
     OpenApiParameter(
-        "search", OpenApiTypes.STR, description=_("nickname or form name")
+        "search",
+        OpenApiTypes.STR,
+        description=_(
+            "nickname or form name; a number: national dex number or the form's "
+            "PokéAPI ID"
+        ),
     ),
     OpenApiParameter(
         "pokeball",
@@ -365,6 +371,7 @@ class SpecimenViewSet(viewsets.ModelViewSet):
         Specimen.objects.select_related(
             "form__pokemon__species", "origin_version__version_group"
         )
+        .prefetch_related(national_number_prefetch("form__"))
         .annotate(
             slot_id=Subquery(
                 Slot.objects.filter(specimen=OuterRef("pk")).values("pk")[:1]
@@ -436,8 +443,10 @@ class SpecimenViewSet(viewsets.ModelViewSet):
     )
 )
 class FormViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = PokemonForm.objects.select_related("pokemon__species").order_by(
-        "order", "pk"
+    queryset = (
+        PokemonForm.objects.select_related("pokemon__species")
+        .prefetch_related(national_number_prefetch())
+        .order_by("order", "pk")
     )
     filter_backends = (FormSearchFilterBackend,)
 

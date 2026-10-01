@@ -451,7 +451,7 @@ class HuntTests(HomeAPITestCase):
             _, _, form = f.make_full_pokemon(f"extra-{col}", 900 + col)
             self.set_slot(self.box2, 0, col, form)
 
-        with self.assertNumQueries(3):  # dex, count, página
+        with self.assertNumQueries(4):  # dex, count, página, nº nacional
             response = self.hunts()
 
         self.assertEqual(response.data["count"], 7)
@@ -507,9 +507,63 @@ class SlotSearchTests(HomeAPITestCase):
         self.assertEqual(self.search("999"), [])
 
 
+class NationalNumberTests(HomeAPITestCase):
+    def setUp(self):
+        super().setUp()
+        _, venusaur, self.venusaur = f.make_full_pokemon("venusaur", 3, national_dex=3)
+        self.venusaur_alt = f.make_form(
+            venusaur, name="venusaur-alt", pokeapi_id=10033, form_order=2
+        )
+        self.specimen = f.make_specimen(self.venusaur, nickname="Vovó")
+        self.alt_specimen = f.make_specimen(self.venusaur_alt)
+
+    def search_specimens(self, text):
+        response = self.client.get(reverse("api:specimen-list"), {"search": text})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        return [s["id"] for s in response.data["results"]]
+
+    def test_specimen_search_by_national_dex_includes_alternate_forms(self):
+        self.assertEqual(
+            self.search_specimens("3"), [self.specimen.pk, self.alt_specimen.pk]
+        )
+
+    def test_specimen_search_by_form_pokeapi_id(self):
+        self.assertEqual(self.search_specimens("10033"), [self.alt_specimen.pk])
+        self.assertEqual(self.search_specimens("999"), [])
+
+    def test_specimen_search_by_text_is_unchanged(self):
+        self.assertEqual(self.search_specimens("vov"), [self.specimen.pk])
+
+    def test_form_ref_has_species_national_number(self):
+        response = self.client.get(reverse("api:specimen-list"), {"search": "venu"})
+
+        numbers = {
+            s["form_ref"]["name"]: s["form_ref"]["national_number"]
+            for s in response.data["results"]
+        }
+        self.assertEqual(numbers, {"venusaur": 3, "venusaur-alt": 3})
+
+    def test_national_number_is_null_without_entry(self):
+        response = self.client.get(
+            reverse("api:form-detail", args=[self.charmander.pk])
+        )
+
+        self.assertIsNone(response.data["national_number"])
+
+    def test_national_number_without_prefetch(self):
+        response = self.client.post(
+            reverse("api:specimen-list"),
+            {"form": self.venusaur_alt.pk, "is_shiny": True},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["form_ref"]["national_number"], 3)
+
+
 class SlotViewSetTests(HomeAPITestCase):
     def test_list_by_box_returns_all_slots_without_pagination(self):
-        with self.assertNumQueries(1):
+        with self.assertNumQueries(2):  # slots, nº nacional
             response = self.client.get(reverse("api:slot-list"), {"box": self.box1.pk})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
