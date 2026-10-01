@@ -2,6 +2,7 @@ from pathlib import Path
 
 from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.db.models import Prefetch
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
@@ -13,7 +14,7 @@ from core.consts import TYPES_DICT
 from home.models import Box, OriginalTrainer, PersonalDex, Slot, Specimen
 from home.origin_marks import ORIGIN_MARK_LABELS
 from home.services import allowed_genders, with_origin_version
-from pokedex.models import PokemonForm, ShinyLock, Version
+from pokedex.models import PokemonForm, PokemonSpeciesDexEntry, ShinyLock, Version
 from pokedex.renderers import HomeSpriteRenderer
 
 from ..filters import HUNT_REASONS
@@ -39,9 +40,22 @@ def pokeball_sprite_url(request, pokeball: str | None) -> str | None:
     return absolute_url(request, settings.ITEM_SPRITES_URL / f"{pokeball}.png")
 
 
-class FormRefSerializer(serializers.ModelSerializer):
-    """Requer ``select_related("pokemon__species")`` na queryset."""
+def national_number_prefetch(prefix: str = "") -> Prefetch:
+    """Prefetch do nº da Pokédex nacional lido por ``FormRefSerializer``;
+    ``prefix`` é o caminho até a forma (ex.: ``"form__"``)."""
+    return Prefetch(
+        f"{prefix}pokemon__species__pokedex_numbers",
+        queryset=PokemonSpeciesDexEntry.objects.filter(pokedex="national"),
+        to_attr="national_entries",
+    )
 
+
+class FormRefSerializer(serializers.ModelSerializer):
+    """Requer ``select_related("pokemon__species")`` e
+    ``national_number_prefetch`` na queryset (sem o prefetch, uma consulta
+    por forma)."""
+
+    national_number = serializers.SerializerMethodField()
     sprite_url = serializers.SerializerMethodField()
     shiny_sprite_url = serializers.SerializerMethodField()
 
@@ -52,9 +66,21 @@ class FormRefSerializer(serializers.ModelSerializer):
             "name",
             "form_name",
             "pokeapi_id",
+            "national_number",
             "sprite_url",
             "shiny_sprite_url",
         )
+
+    def get_national_number(self, obj: PokemonForm) -> int | None:
+        species = obj.pokemon.species if obj.pokemon else None
+        if species is None:
+            return None
+
+        entries = getattr(species, "national_entries", None)
+        if entries is None:
+            entries = species.pokedex_numbers.filter(pokedex="national")
+
+        return next((entry.entry_number for entry in entries), None)
 
     @extend_schema_field(OpenApiTypes.URI)
     def get_sprite_url(self, obj: PokemonForm) -> str | None:
