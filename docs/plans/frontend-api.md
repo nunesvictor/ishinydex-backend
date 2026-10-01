@@ -29,7 +29,7 @@ Schema OpenAPI: `GET /api/schema/` · Swagger UI: `GET /api/docs/` (públicos).
 | PATCH | `/api/personal-dexes/{id}/` | `{name?, is_shiny_dex?}` → 200 com o dex (e contagens); `force_new_box` é ignorado (o esquema já está nas boxes). Nome repetido → `{"name": [...]}`. Sem `PUT` (405) |
 | DELETE | `/api/personal-dexes/{id}/` | 204; libera os slots do dex (sem forma, dex nem espécime), deixando as boxes livres para outro dex. Os espécimes depositados **continuam** no inventário, disponíveis |
 | GET | `/api/personal-dexes/{id}/boxes/` | boxes com slots do dex, por `position`, **sem paginação** |
-| GET | `/api/personal-dexes/{id}/generations/` | progresso por geração, **sem paginação**: `[{generation, total, registered, first_box: BoxRef}]`, na ordem em que as gerações aparecem nas boxes; `generation` é `null` para formas sem pokémon |
+| GET | `/api/personal-dexes/{id}/generations/` | progresso por geração, **sem paginação**: `[{generation, total, registered, first_box: BoxRef}]` (`registered` com a regra do `PersonalDex`), na ordem em que as gerações aparecem nas boxes; `generation` é `null` para formas sem pokémon |
 | GET | `/api/personal-dexes/{id}/hunts/` | lista de caçadas de um **shiny dex** (paginada, na ordem das boxes): `Hunt[]`; dex que não é shiny dex → 400 `{"detail": ...}`. Filtros em [Caçadas](#caçadas-de-apipersonal-dexesidhunts) |
 | GET | `/api/personal-dexes/preview/?force_new_box=` | simula um dex padrão sem criar: `{forms, boxes_needed, largest_free_run, enough_space, boxes_to_create, first_box: BoxRef \| null}`; sem sequência livre que caiba, completa a sequência livre do fim com `boxes_to_create` boxes novas (até 200, o limite do HOME); `first_box` é `null` sem espaço ou quando o dex fica todo em boxes novas |
 | POST | `/api/personal-dexes/` | `{name, is_shiny_dex?, force_new_box?}` → 201 com o dex (e contagens); cria com o conjunto padrão de formas, na [ordem canônica](#ordem-canônica-das-formas) (com `force_new_box`, cada geração da espécie começa no 1º slot de uma box), e instala o esquema na 1ª sequência de boxes livres (ou cria no fim as boxes que faltam, como no preview). Nome repetido → `{"name": [...]}`; sem espaço → `{"non_field_errors": [...]}` |
@@ -87,9 +87,11 @@ Schema OpenAPI: `GET /api/schema/` · Swagger UI: `GET /api/docs/` (públicos).
 // PersonalDex
 {"id": 1, "name": "Shiny Living Dex", "is_shiny_dex": true, "force_new_box": true,
  "total": 1227,       // slots do dex com forma
- "registered": 1158}  // slots do dex com forma e specimen
+ "registered": 1158}  // slots do dex com forma e specimen que conta no progresso:
+                      // num shiny dex, só shiny (o não shiny pode estar no slot,
+                      // mas não conta); num dex normal, qualquer um
 
-// BoxSummary (contagens restritas ao dex)
+// BoxSummary (contagens restritas ao dex; registered com a mesma regra)
 {"id": 1, "name": "HOME 1", "position": 1, "total": 30, "registered": 28}
 
 // Trainer (version pelo nome da Version, opcional)
