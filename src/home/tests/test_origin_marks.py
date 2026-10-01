@@ -43,6 +43,12 @@ class OriginMarkForTests(SimpleTestCase):
             ["go", "none"],
         )
         self.assertEqual(options[-1]["label"], "Sem marca de origem")
+        # Siglas dos jogos, sem tradução.
+        labels = {o["value"]: o["label"] for o in options}
+        self.assertEqual(labels["alola"], "SM/USUM")
+        self.assertEqual(labels["kalos"], "XY/ORAS")
+        self.assertEqual(labels["bdsp"], "BDSP")
+        self.assertEqual(labels["galar"], "SwSh")
 
 
 class FillOriginVersionMigrationTests(TestCase):

@@ -34,17 +34,19 @@ ORIGIN_MARK_VERSION_GROUPS: dict[str, tuple[str, ...]] = {
     "lumiose": ("legends-za", "mega-dimension"),
 }
 
+# Siglas dos jogos, como os jogadores conhecem; não precisam de tradução.
+# Só "sem marca" é texto e passa pelo gettext.
 ORIGIN_MARK_LABELS = {
-    "game-boy": _("Game Boy"),
-    "kalos": _("Blue pentagon"),
-    "alola": _("Black clover"),
-    "lets-go": _("Let's Go"),
-    "galar": _("Galar"),
-    "bdsp": _("Brilliant Diamond and Shining Pearl"),
-    "hisui": _("Legends: Arceus"),
-    "paldea": _("Scarlet and Violet"),
-    "lumiose": _("Legends: Z-A"),
-    GO: _("Pokémon GO"),
+    "game-boy": "GB",
+    "kalos": "XY/ORAS",
+    "alola": "SM/USUM",
+    "lets-go": "LGPE",
+    "galar": "SwSh",
+    "bdsp": "BDSP",
+    "hisui": "PLA",
+    "paldea": "SV",
+    "lumiose": "PLZA",
+    GO: "GO",
     NONE: _("No origin mark"),
 }
 

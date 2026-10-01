@@ -101,7 +101,7 @@ Schema OpenAPI: `GET /api/schema/` · Swagger UI: `GET /api/docs/` (públicos).
  "type": [{"value": "water", "label": "Água",
            "sprite_url": "http://host/media/sprites/types/.../11.png"}, ...],  // sprite_url pode ser null
  "generation": [{"value": "generation-iv", "label": "Geração IV"}, ...],
- "origin_mark": [{"value": "paldea", "label": "Scarlet e Violet"}, ...,
+ "origin_mark": [{"value": "paldea", "label": "SV"}, ...,
                  {"value": "go", "label": "Pokémon GO"},
                  {"value": "none", "label": "Sem marca de origem"}]}
 ```
