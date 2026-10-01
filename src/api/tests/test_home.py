@@ -770,6 +770,9 @@ class SlotViewSetTests(HomeAPITestCase):
         )
 
     def test_slot_representation(self):
+        Specimen.objects.filter(pk=self.bulbasaur_specimen.pk).update(
+            gender="female", is_from_go=True
+        )
         response = self.client.get(
             reverse("api:slot-list"), {"box": self.box1.pk, "personal_dex": self.dex.pk}
         )
@@ -789,6 +792,8 @@ class SlotViewSetTests(HomeAPITestCase):
             "http://testserver/media/sprites/pokemon/other/home/shiny/1.png",
         )
         self.assertEqual(registered["specimen"]["id"], self.bulbasaur_specimen.pk)
+        self.assertEqual(registered["specimen"]["gender"], "female")
+        self.assertIs(registered["specimen"]["is_from_go"], True)
         self.assertTrue(registered["is_shiny_display"])
 
         # slot vazio num dex shiny também é exibido como shiny
