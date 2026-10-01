@@ -365,6 +365,58 @@ class PersonalDexViewSetTests(HomeAPITestCase):
             ],
         )
 
+    def test_progress_of_shiny_dex_counts_only_shiny(self):
+        # Não shiny pode ficar no slot de um shiny dex, mas não conta.
+        self.charmander_slot.specimen = f.make_specimen(self.charmander)
+        self.charmander_slot.save()
+        url = reverse("api:personal-dex-detail", args=[self.dex.pk])
+
+        dex = self.client.get(url).data
+        boxes = self.client.get(reverse("api:personal-dex-boxes", args=[self.dex.pk]))
+        generations = self.client.get(
+            reverse("api:personal-dex-generations", args=[self.dex.pk])
+        )
+
+        self.assertEqual((dex["total"], dex["registered"]), (3, 1))
+        self.assertEqual(
+            [(b["total"], b["registered"]) for b in boxes.data], [(2, 1), (1, 0)]
+        )
+        self.assertEqual(
+            [(g["total"], g["registered"]) for g in generations.data], [(3, 1)]
+        )
+
+    def test_progress_of_regular_dex_counts_shiny_and_not_shiny(self):
+        living = f.make_personal_dex(name="Living Dex")
+        self.set_slot(
+            self.other_box,
+            0,
+            0,
+            self.charmander,
+            f.make_specimen(self.charmander),
+            living,
+        )
+        self.set_slot(
+            self.other_box,
+            0,
+            1,
+            self.squirtle,
+            f.make_specimen(self.squirtle, is_shiny=True),
+            living,
+        )
+        url = reverse("api:personal-dex-detail", args=[living.pk])
+
+        dex = self.client.get(url).data
+        boxes = self.client.get(reverse("api:personal-dex-boxes", args=[living.pk]))
+        generations = self.client.get(
+            reverse("api:personal-dex-generations", args=[living.pk])
+        )
+
+        self.assertEqual((dex["total"], dex["registered"]), (2, 2))
+        self.assertEqual([(b["total"], b["registered"]) for b in boxes.data], [(2, 2)])
+        self.assertEqual(
+            [(g["total"], g["registered"]) for g in generations.data], [(2, 2)]
+        )
+
     def test_boxes_count_only_slots_of_the_dex(self):
         other_dex = f.make_personal_dex()
         self.set_slot(self.box1, 4, 5, self.squirtle, dex=other_dex)

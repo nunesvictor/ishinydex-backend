@@ -54,16 +54,25 @@ from ..serializers.home import (
 )
 
 
+def counts_for_progress(prefix: str = "") -> Q:
+    """Slot que conta no progresso: com specimen e, num shiny dex, só se ele
+    for shiny (o não shiny pode ficar no slot, mas não completa o dex)."""
+    return Q(**{f"{prefix}specimen__isnull": False}) & (
+        Q(**{f"{prefix}personal_dex__is_shiny_dex": False})
+        | Q(**{f"{prefix}specimen__is_shiny": True})
+    )
+
+
 def count_slots(prefix: str, **filters) -> dict:
-    """Anotações ``total`` (slots com forma) e ``registered`` (com specimen)."""
+    """Anotações ``total`` (slots com forma) e ``registered`` (que contam no
+    progresso, ver ``counts_for_progress``)."""
     base = Q(**{f"{prefix}form__isnull": False}) & Q(
         **{f"{prefix}{k}": v for k, v in filters.items()}
     )
     return {
         "total": Count(prefix.rstrip("_"), filter=base),
         "registered": Count(
-            prefix.rstrip("_"),
-            filter=base & Q(**{f"{prefix}specimen__isnull": False}),
+            prefix.rstrip("_"), filter=base & counts_for_progress(prefix)
         ),
     }
 
@@ -176,7 +185,7 @@ class PersonalDexViewSet(
             .values(generation=F("form__pokemon__species__generation"))
             .annotate(
                 total=Count("id"),
-                registered=Count("id", filter=Q(specimen__isnull=False)),
+                registered=Count("id", filter=counts_for_progress()),
                 first_box_position=Min("box__position"),
             )
             .order_by("first_box_position", "generation")
