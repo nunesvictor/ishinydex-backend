@@ -336,6 +336,15 @@ class PersonalDexCreateSerializer(serializers.ModelSerializer):
         fields = ("name", "is_shiny_dex", "force_new_box")
 
 
+class PersonalDexUpdateSerializer(serializers.ModelSerializer):
+    """Renomear o dex ou trocar se é shiny dex. ``force_new_box`` não muda:
+    o esquema já está instalado nas boxes."""
+
+    class Meta:
+        model = PersonalDex
+        fields = ("name", "is_shiny_dex")
+
+
 class PersonalDexPreviewSerializer(serializers.Serializer):
     """Simulação de um dex padrão: o que seria criado, sem criar nada."""
 

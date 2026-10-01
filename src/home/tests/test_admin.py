@@ -93,6 +93,40 @@ class BoxAdminTests(AdminTestCase):
         self.assertEqual(response.status_code, 403)
 
 
+class PersonalDexAdminTests(AdminTestCase):
+    def setUp(self):
+        super().setUp()
+        self.dex = f.make_personal_dex(self.form, name="Living")
+        Slot.objects.filter(pk=self.slot.pk).update(personal_dex=self.dex)
+
+    def assert_slot_freed(self):
+        self.slot.refresh_from_db()
+        self.assertIsNone(self.slot.form)
+        self.assertIsNone(self.slot.personal_dex)
+
+    def test_delete_view_frees_slots(self):
+        response = self.client.post(
+            reverse("admin:home_personaldex_delete", args=[self.dex.pk]),
+            {"post": "yes"},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assert_slot_freed()
+
+    def test_delete_action_frees_slots(self):
+        response = self.client.post(
+            reverse("admin:home_personaldex_changelist"),
+            {
+                "action": "delete_selected",
+                "_selected_action": [self.dex.pk],
+                "post": "yes",
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assert_slot_freed()
+
+
 class SlotAdminTests(AdminTestCase):
     def test_changelist_shows_grid_of_first_box_by_default(self):
         f.make_box(name="HOME 2")
