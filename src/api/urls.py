@@ -6,6 +6,7 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from .views.home import (
     FormViewSet,
     PersonalDexViewSet,
+    SaveViewSet,
     SlotViewSet,
     SpecimenViewSet,
     TrainerViewSet,
@@ -23,6 +24,7 @@ router.register(r"slots", SlotViewSet, basename="slot")
 router.register(r"specimens", SpecimenViewSet, basename="specimen")
 router.register(r"forms", FormViewSet, basename="form")
 router.register(r"trainers", TrainerViewSet, basename="trainer")
+router.register(r"saves", SaveViewSet, basename="save")
 router.register(r"versions", VersionViewSet, basename="version")
 
 urlpatterns = [

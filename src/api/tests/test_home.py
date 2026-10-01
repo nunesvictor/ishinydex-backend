@@ -12,7 +12,7 @@ from rest_framework.test import APITestCase
 
 from api.serializers.home import type_sprite_url
 from core.tests import factories as f
-from home.models import Box, PersonalDex, Slot, Specimen
+from home.models import Box, PersonalDex, Save, Slot, Specimen
 from pokedex.models import PokemonForm, PokemonSpeciesDexEntry
 
 
@@ -77,6 +77,7 @@ class PersonalDexViewSetTests(HomeAPITestCase):
                     "force_new_box": False,
                     "total": 1,
                     "registered": 0,
+                    "away": 0,
                 },
                 {
                     "id": self.dex.pk,
@@ -85,6 +86,7 @@ class PersonalDexViewSetTests(HomeAPITestCase):
                     "force_new_box": False,
                     "total": 3,
                     "registered": 1,
+                    "away": 0,
                 },
             ],
         )
@@ -123,12 +125,14 @@ class PersonalDexViewSetTests(HomeAPITestCase):
                     "generation": "generation-i",
                     "total": 3,
                     "registered": 1,
+                    "away": 0,
                     "first_box": box1,
                 },
                 {
                     "generation": "generation-ii",
                     "total": 1,
                     "registered": 0,
+                    "away": 0,
                     "first_box": box2,
                 },
             ],
@@ -198,6 +202,7 @@ class PersonalDexViewSetTests(HomeAPITestCase):
                 "force_new_box": True,
                 "total": 3,
                 "registered": 0,
+                "away": 0,
             },
         )
         self.assertEqual(
@@ -275,6 +280,7 @@ class PersonalDexViewSetTests(HomeAPITestCase):
                 "force_new_box": False,
                 "total": 3,
                 "registered": 1,
+                "away": 0,
             },
         )
 
@@ -354,6 +360,7 @@ class PersonalDexViewSetTests(HomeAPITestCase):
                     "position": self.box1.position,
                     "total": 2,
                     "registered": 1,
+                    "away": 0,
                 },
                 {
                     "id": self.box2.pk,
@@ -361,6 +368,7 @@ class PersonalDexViewSetTests(HomeAPITestCase):
                     "position": self.box2.position,
                     "total": 1,
                     "registered": 0,
+                    "away": 0,
                 },
             ],
         )
@@ -1764,3 +1772,258 @@ class VersionViewSetTests(APITestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
+class SaveTests(HomeAPITestCase):
+    """Saves e localização. No setUp do pai: bulbasaur shiny depositado
+    (HOME 1), charmander vazio (HOME 1), squirtle vazio (HOME 2)."""
+
+    def setUp(self):
+        super().setUp()
+        self.scarlet = f.make_version(name="scarlet")
+        self.lets_go = f.make_version(name="lets-go-pikachu")
+        self.ot = f.make_ot(name="Victor", trainer_id="947543", version=self.scarlet)
+        self.save_file = Save.objects.create(trainer=self.ot, label="Switch Lite")
+
+    def transfer(self, ids, save):
+        return self.client.post(
+            reverse("api:specimen-transfer"),
+            {"ids": ids, "save": save},
+            format="json",
+        )
+
+    def test_list_and_create_saves(self):
+        other = f.make_ot(name="Victor", trainer_id="683580", version=self.scarlet)
+
+        created = self.client.post(
+            reverse("api:save-list"), {"trainer": other.pk}, format="json"
+        )
+        listed = self.client.get(reverse("api:save-list"))
+
+        self.assertEqual(created.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(
+            created.data,
+            {
+                "id": created.data["id"],
+                "label": "",
+                "trainer": {
+                    "id": other.pk,
+                    "name": "Victor",
+                    "trainer_id": "683580",
+                    "version": "scarlet",
+                },
+            },
+        )
+        self.assertEqual(
+            [s["label"] for s in listed.data], ["Switch Lite", ""]
+        )  # sem paginação
+
+    def test_create_rejects_invalid_trainers(self):
+        no_version = f.make_ot()
+        lets_go = f.make_ot(version=self.lets_go)
+        url = reverse("api:save-list")
+
+        for trainer in (no_version, lets_go, self.ot):
+            with self.subTest(trainer=str(trainer)):
+                response = self.client.post(url, {"trainer": trainer.pk})
+                self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+                self.assertIn("trainer", response.data)
+
+    def test_update_label_but_not_trainer(self):
+        url = reverse("api:save-detail", args=[self.save_file.pk])
+        other = f.make_ot(version=self.scarlet)
+
+        renamed = self.client.patch(url, {"label": "OLED"}, format="json")
+        moved = self.client.patch(url, {"trainer": other.pk}, format="json")
+
+        self.assertEqual(renamed.data["label"], "OLED")
+        self.assertEqual(moved.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("trainer", moved.data)
+
+    def test_delete_only_without_specimens(self):
+        url = reverse("api:save-detail", args=[self.save_file.pk])
+        self.transfer([self.bulbasaur_specimen.pk], self.save_file.pk)
+
+        blocked = self.client.delete(url)
+        self.transfer([self.bulbasaur_specimen.pk], None)
+        deleted = self.client.delete(url)
+
+        self.assertEqual(blocked.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("detail", blocked.data)
+        self.assertEqual(deleted.status_code, status.HTTP_204_NO_CONTENT)
+
+    @mock.patch("django.utils.timezone.localdate", return_value=date(2026, 3, 12))
+    def test_transfer_and_bring_back(self, _localdate):
+        loose = f.make_specimen(self.charmander)
+
+        sent = self.transfer([self.bulbasaur_specimen.pk, loose.pk], self.save_file.pk)
+        again = self.transfer([loose.pk], self.save_file.pk)
+        detail = self.client.get(
+            reverse("api:specimen-detail", args=[self.bulbasaur_specimen.pk])
+        )
+
+        self.assertEqual(sent.data, {"transferred": 2})
+        self.assertEqual(again.data, {"transferred": 0})  # já estava lá
+        self.assertEqual(detail.data["location"]["id"], self.save_file.pk)
+        self.assertEqual(detail.data["location"]["trainer"]["version"], "scarlet")
+        self.assertEqual(detail.data["location_since"], "2026-03-12")
+        # Continua no slot (reservado).
+        self.bulbasaur_slot.refresh_from_db()
+        self.assertEqual(self.bulbasaur_slot.specimen, self.bulbasaur_specimen)
+
+        back = self.transfer([self.bulbasaur_specimen.pk], None)
+
+        self.assertEqual(back.data, {"transferred": 1})
+        self.bulbasaur_specimen.refresh_from_db()
+        self.assertIsNone(self.bulbasaur_specimen.location)
+        self.assertIsNone(self.bulbasaur_specimen.location_since)
+
+    def test_transfer_is_all_or_nothing(self):
+        missing = self.transfer([self.bulbasaur_specimen.pk, 999999], None)
+        bad_save = self.transfer([self.bulbasaur_specimen.pk], 999999)
+        no_save = self.client.post(
+            reverse("api:specimen-transfer"),
+            {"ids": [self.bulbasaur_specimen.pk]},
+            format="json",
+        )
+
+        self.assertIn("ids", missing.data)
+        self.assertIn("save", bad_save.data)
+        self.assertIn("save", no_save.data)
+        self.bulbasaur_specimen.refresh_from_db()
+        self.assertIsNone(self.bulbasaur_specimen.location)
+
+    def test_location_in_slot_and_filter(self):
+        loose = f.make_specimen(self.charmander)
+        self.transfer([self.bulbasaur_specimen.pk], self.save_file.pk)
+
+        slots = self.client.get(
+            reverse("api:slot-list"), {"box": self.box1.pk, "personal_dex": self.dex.pk}
+        )
+        url = reverse("api:specimen-list")
+
+        def ids(location):
+            response = self.client.get(url, {"location": location})
+            return [s["id"] for s in response.data["results"]]
+
+        summary = slots.data[0]["specimen"]
+        self.assertEqual(summary["location"]["label"], "Switch Lite")
+        self.assertIsNotNone(summary["location_since"])
+        self.assertEqual(ids("away"), [self.bulbasaur_specimen.pk])
+        self.assertEqual(ids(str(self.save_file.pk)), [self.bulbasaur_specimen.pk])
+        self.assertEqual(ids("home"), [loose.pk])
+        self.assertEqual(len(ids("anything")), 2)  # valor desconhecido: ignorado
+
+    def test_away_counts_and_still_registered(self):
+        self.transfer([self.bulbasaur_specimen.pk], self.save_file.pk)
+
+        dex = self.client.get(reverse("api:personal-dex-detail", args=[self.dex.pk]))
+        boxes = self.client.get(reverse("api:personal-dex-boxes", args=[self.dex.pk]))
+        generations = self.client.get(
+            reverse("api:personal-dex-generations", args=[self.dex.pk])
+        )
+
+        self.assertEqual((dex.data["registered"], dex.data["away"]), (1, 1))
+        self.assertEqual(
+            [(b["registered"], b["away"]) for b in boxes.data], [(1, 1), (0, 0)]
+        )
+        self.assertEqual(
+            [(g["registered"], g["away"]) for g in generations.data], [(1, 1)]
+        )
+
+    def test_reserved_slot_refuses_another_specimen(self):
+        other = f.make_specimen(self.bulbasaur, is_shiny=True)
+        url = reverse("api:slot-deposit", args=[self.bulbasaur_slot.pk])
+        self.transfer([self.bulbasaur_specimen.pk], self.save_file.pk)
+
+        refused = self.client.post(url, {"specimen_id": other.pk}, format="json")
+        same = self.client.post(
+            url, {"specimen_id": self.bulbasaur_specimen.pk}, format="json"
+        )
+        self.client.post(reverse("api:slot-withdraw", args=[self.bulbasaur_slot.pk]))
+        freed = self.client.post(url, {"specimen_id": other.pk}, format="json")
+
+        self.assertEqual(refused.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("reservado", str(refused.data))
+        self.assertEqual(same.status_code, status.HTTP_200_OK)
+        self.assertEqual(freed.status_code, status.HTTP_200_OK)
+
+    def test_admin_action_creates_saves(self):
+        admin = User.objects.create_superuser("admin")
+        self.client.force_login(admin)
+        violet = f.make_version(name="violet")
+        eligible = f.make_ot(version=violet)
+        event = f.make_ot()
+
+        response = self.client.post(
+            reverse("admin:home_originaltrainer_changelist"),
+            {
+                "action": "create_saves",
+                "_selected_action": [eligible.pk, event.pk, self.ot.pk],
+            },
+            follow=True,
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(Save.objects.filter(trainer=eligible).exists())
+        self.assertFalse(Save.objects.filter(trainer=event).exists())
+        self.assertContains(response, "1 save(s) criado(s); 2 treinador(es)")
+
+
+class EvolveTests(HomeAPITestCase):
+    def setUp(self):
+        super().setUp()
+        self.ivysaur_species, _, self.ivysaur = f.make_full_pokemon(
+            "ivysaur", 2, abilities=("overgrow", "chlorophyll")
+        )
+        self.ivysaur_species.evolves_from_species = self.bulbasaur.pokemon.species
+        self.ivysaur_species.save()
+        Specimen.objects.filter(pk=self.bulbasaur_specimen.pk).update(
+            ability="chlorophyll"
+        )
+
+    def evolve(self, specimen, form):
+        return self.client.post(
+            reverse("api:specimen-evolve", args=[specimen.pk]),
+            {"form": form.pk},
+            format="json",
+        )
+
+    def test_evolve_changes_form_ability_and_leaves_slot(self):
+        response = self.evolve(self.bulbasaur_specimen, self.ivysaur)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["form"], self.ivysaur.pk)
+        self.assertEqual(response.data["form_name"], "ivysaur")
+        self.assertEqual(response.data["ability"], "chlorophyll")  # mesmo slot
+        self.assertIsNone(response.data["slot"])
+        self.bulbasaur_slot.refresh_from_db()
+        self.assertIsNone(self.bulbasaur_slot.specimen)
+        self.assertEqual(self.bulbasaur_slot.form, self.bulbasaur)
+
+    def test_evolve_across_two_stages_and_unknown_ability(self):
+        venusaur_species, _, venusaur = f.make_full_pokemon(
+            "venusaur", 3, abilities=("overgrow",)
+        )
+        venusaur_species.evolves_from_species = self.ivysaur_species
+        venusaur_species.save()
+
+        response = self.evolve(self.bulbasaur_specimen, venusaur)
+
+        self.assertEqual(response.data["form"], venusaur.pk)
+        self.assertIsNone(response.data["ability"])  # sem o slot 2
+
+    def test_evolve_rejects_non_evolutions(self):
+        backwards = f.make_specimen(self.ivysaur)
+
+        for specimen, form in (
+            (self.bulbasaur_specimen, self.charmander),
+            (self.bulbasaur_specimen, self.bulbasaur),
+            (backwards, self.bulbasaur),
+        ):
+            with self.subTest(form=form.name):
+                response = self.evolve(specimen, form)
+                self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+                self.assertIn("form", response.data)
+        self.bulbasaur_slot.refresh_from_db()
+        self.assertEqual(self.bulbasaur_slot.specimen, self.bulbasaur_specimen)

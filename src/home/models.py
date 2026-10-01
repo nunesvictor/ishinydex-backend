@@ -82,6 +82,59 @@ class OriginalTrainer(TimestampedModel):
         return f"{self.trainer_id}:{self.name}{version_suffix}"
 
 
+# Jogos que recebem Pokémon do HOME (e os devolvem). Let's Go, GO e Bank só
+# enviam: não podem ser destino.
+HOME_TRANSFER_VERSIONS = (
+    "sword",
+    "shield",
+    "brilliant-diamond",
+    "shining-pearl",
+    "legends-arceus",
+    "scarlet",
+    "violet",
+    "legends-za",
+)
+
+
+class Save(TimestampedModel):
+    """Um save do usuário: um lugar fora do HOME onde um espécime pode estar.
+
+    A identidade (nome, TID e versão) é a do ``OriginalTrainer`` do save; o
+    OT continua sendo um dado do Pokémon (inclusive de trocas e eventos),
+    enquanto o save é só dos jogos do usuário."""
+
+    trainer = models.OneToOneField(
+        OriginalTrainer, on_delete=models.PROTECT, related_name="save_file"
+    )
+    label = models.CharField(_("label"), max_length=255, blank=True)
+
+    class Meta:
+        verbose_name = _("save")
+        verbose_name_plural = _("saves")
+        ordering = (
+            "trainer__version__version_group__order",
+            "trainer__version__name",
+            "pk",
+        )
+
+    def clean(self):
+        super().clean()
+
+        version = self.trainer.version if self.trainer_id else None
+        if version is None or version.name not in HOME_TRANSFER_VERSIONS:
+            raise ValidationError(
+                {
+                    "trainer": _(
+                        "only trainers from games that receive Pokémon from "
+                        "HOME can be saves."
+                    )
+                }
+            )
+
+    def __str__(self):
+        return f"{self.label} — {self.trainer}" if self.label else str(self.trainer)
+
+
 class PersonalDex(TimestampedModel):
     name = models.CharField(_("name"), max_length=255, unique=True)
     forms = models.ManyToManyField(PokemonForm, blank=True)
@@ -187,6 +240,17 @@ class Specimen(TimestampedModel):
         _("pokéball"), choices=Pokeball.choices, max_length=255, blank=True, null=True
     )
     observation = models.TextField(_("observation"), blank=True, null=True)
+    # Fora do HOME: o save onde o espécime está (nulo = no HOME). Continua
+    # no slot, que fica reservado para a volta.
+    location = models.ForeignKey(
+        Save,
+        verbose_name=_("location"),
+        on_delete=models.PROTECT,
+        related_name="specimens",
+        blank=True,
+        null=True,
+    )
+    location_since = models.DateField(_("location since"), blank=True, null=True)
 
     class Meta:
         verbose_name = _("specimen")

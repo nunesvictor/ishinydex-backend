@@ -1126,3 +1126,49 @@ msgstr "Sem marca de origem"
 #: api/views/home.py
 msgid "comma-separated specimen ids"
 msgstr "ids de espécimes separados por vírgula"
+
+msgid "label"
+msgstr "apelido"
+
+msgid "save"
+msgstr "save"
+
+msgid "saves"
+msgstr "saves"
+
+msgid "location"
+msgstr "localização"
+
+msgid "location since"
+msgstr "localização desde"
+
+msgid "only trainers from games that receive Pokémon from HOME can be saves."
+msgstr "só treinadores de jogos que recebem Pokémon do HOME podem ser saves."
+
+msgid "the trainer of a save can't be changed."
+msgstr "o treinador de um save não pode ser trocado."
+
+msgid "this trainer is already a save."
+msgstr "este treinador já é um save."
+
+msgid ""
+"this slot is reserved for a specimen that is out of HOME; bring it back or "
+"withdraw it first."
+msgstr ""
+"este slot está reservado para um espécime que está fora do HOME; traga-o "
+"de volta ou retire-o antes."
+
+msgid "this save still has specimens; bring them back to HOME first."
+msgstr "este save ainda tem espécimes; traga-os de volta ao HOME antes."
+
+msgid "this form is not an evolution of the specimen."
+msgstr "esta forma não é uma evolução do espécime."
+
+msgid "home, away (in any save) or a save id"
+msgstr "home, away (em qualquer save) ou o id de um save"
+
+msgid "Mark as my saves"
+msgstr "Marcar como meus saves"
+
+msgid "%(created)d save(s) created; %(skipped)d trainer(s) skipped."
+msgstr "%(created)d save(s) criado(s); %(skipped)d treinador(es) ignorado(s)."

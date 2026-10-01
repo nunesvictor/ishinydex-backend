@@ -11,7 +11,15 @@ from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from core.consts import TYPES_DICT
-from home.models import Box, OriginalTrainer, PersonalDex, Slot, Specimen
+from home.models import (
+    HOME_TRANSFER_VERSIONS,
+    Box,
+    OriginalTrainer,
+    PersonalDex,
+    Save,
+    Slot,
+    Specimen,
+)
 from home.origin_marks import ORIGIN_MARK_LABELS
 from home.services import allowed_genders, with_origin_version
 from pokedex.models import PokemonForm, PokemonSpeciesDexEntry, ShinyLock, Version
@@ -153,8 +161,68 @@ class FormDetailSerializer(FormRefSerializer):
         return FormAbilitySerializer(abilities, many=True).data
 
 
+class TrainerSerializer(serializers.ModelSerializer):
+    version = serializers.SlugRelatedField(
+        slug_field="name",
+        queryset=Version.objects.all(),
+        allow_null=True,
+        required=False,
+    )
+
+    class Meta:
+        model = OriginalTrainer
+        fields = ("id", "name", "trainer_id", "version")
+
+
+class SaveRefSerializer(serializers.ModelSerializer):
+    """Save do usuário, com o treinador completo (somente leitura)."""
+
+    trainer = TrainerSerializer(read_only=True)
+
+    class Meta:
+        model = Save
+        fields = ("id", "label", "trainer")
+
+
+class SaveSerializer(serializers.ModelSerializer):
+    """Cria/edita um save: ``trainer`` pelo id (fixo depois de criado). A
+    resposta é um ``SaveRefSerializer``."""
+
+    trainer = serializers.PrimaryKeyRelatedField(
+        queryset=OriginalTrainer.objects.select_related("version")
+    )
+
+    class Meta:
+        model = Save
+        fields = ("id", "label", "trainer")
+
+    def to_representation(self, instance):
+        return SaveRefSerializer(instance).data
+
+    def validate_trainer(self, trainer: OriginalTrainer) -> OriginalTrainer:
+        if self.instance and trainer != self.instance.trainer:
+            raise serializers.ValidationError(
+                _("the trainer of a save can't be changed.")
+            )
+
+        version = trainer.version
+        if version is None or version.name not in HOME_TRANSFER_VERSIONS:
+            raise serializers.ValidationError(
+                _(
+                    "only trainers from games that receive Pokémon from HOME "
+                    "can be saves."
+                )
+            )
+
+        if not self.instance and Save.objects.filter(trainer=trainer).exists():
+            raise serializers.ValidationError(_("this trainer is already a save."))
+
+        return trainer
+
+
 class SpecimenSummarySerializer(serializers.ModelSerializer):
     pokeball_sprite_url = serializers.SerializerMethodField()
+    location = SaveRefSerializer(read_only=True, allow_null=True)
 
     class Meta:
         model = Specimen
@@ -169,6 +237,8 @@ class SpecimenSummarySerializer(serializers.ModelSerializer):
             "gender",
             "pokeball",
             "pokeball_sprite_url",
+            "location",
+            "location_since",
         )
 
     @extend_schema_field(OpenApiTypes.URI)
@@ -191,6 +261,9 @@ class SpecimenSerializer(serializers.ModelSerializer):
     origin_mark = serializers.ChoiceField(
         choices=list(ORIGIN_MARK_LABELS), read_only=True, allow_null=True
     )
+    # Só muda por POST /specimens/transfer/.
+    location = SaveRefSerializer(read_only=True, allow_null=True)
+    location_since = serializers.DateField(read_only=True, allow_null=True)
 
     class Meta:
         model = Specimen
@@ -252,9 +325,10 @@ class BoxRefSerializer(serializers.ModelSerializer):
 class BoxSummarySerializer(BoxRefSerializer):
     total = serializers.IntegerField(read_only=True)
     registered = serializers.IntegerField(read_only=True)
+    away = serializers.IntegerField(read_only=True)
 
     class Meta(BoxRefSerializer.Meta):
-        fields = BoxRefSerializer.Meta.fields + ("total", "registered")
+        fields = BoxRefSerializer.Meta.fields + ("total", "registered", "away")
 
 
 class SlotSerializer(serializers.ModelSerializer):
@@ -317,6 +391,7 @@ class HuntSerializer(SlotSerializer):
 class PersonalDexSerializer(serializers.ModelSerializer):
     total = serializers.IntegerField(read_only=True)
     registered = serializers.IntegerField(read_only=True)
+    away = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = PersonalDex
@@ -327,6 +402,7 @@ class PersonalDexSerializer(serializers.ModelSerializer):
             "force_new_box",
             "total",
             "registered",
+            "away",
         )
 
 
@@ -380,6 +456,16 @@ class DepositSerializer(serializers.Serializer):
                 _("this slot has no form; specimens can't be deposited in it.")
             )
 
+        # Slot reservado: o espécime dele está num save e volta para cá.
+        current = slot.specimen
+        if current and current != specimen and current.location_id:
+            raise serializers.ValidationError(
+                _(
+                    "this slot is reserved for a specimen that is out of HOME; "
+                    "bring it back or withdraw it first."
+                )
+            )
+
         slot.specimen = specimen
 
         try:
@@ -408,6 +494,7 @@ class GenerationProgressSerializer(serializers.Serializer):
     generation = serializers.CharField(allow_null=True)
     total = serializers.IntegerField()
     registered = serializers.IntegerField()
+    away = serializers.IntegerField()
     first_box = BoxRefSerializer()
 
 
@@ -423,19 +510,6 @@ class VersionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Version
         fields = ("name", "version_group", "generation")
-
-
-class TrainerSerializer(serializers.ModelSerializer):
-    version = serializers.SlugRelatedField(
-        slug_field="name",
-        queryset=Version.objects.all(),
-        allow_null=True,
-        required=False,
-    )
-
-    class Meta:
-        model = OriginalTrainer
-        fields = ("id", "name", "trainer_id", "version")
 
 
 class ChoiceSerializer(serializers.Serializer):
@@ -582,3 +656,88 @@ class SpecimenBulkReleaseSerializer(SpecimenIdsSerializer):
 
 class SpecimenBulkReleaseResultSerializer(serializers.Serializer):
     released = serializers.IntegerField()
+
+
+class SpecimenTransferSerializer(SpecimenIdsSerializer):
+    """``POST /specimens/transfer/``: leva os ``ids`` para ``save`` (``null``
+    = de volta ao HOME). Quem já está lá fica como está (inclusive a data)."""
+
+    def get_fields(self):
+        # O campo se chama "save", como o método: declarado aqui para não
+        # ser sobrescrito por ele no corpo da classe.
+        fields = super().get_fields()
+        fields["save"] = serializers.PrimaryKeyRelatedField(
+            queryset=Save.objects.all(), allow_null=True
+        )
+        return fields
+
+    def save(self) -> int:
+        """Número de espécimes que mudaram de lugar."""
+        destination = self.validated_data["save"]
+        return (
+            Specimen.objects.filter(pk__in=self.validated_data["ids"])
+            .exclude(location=destination)
+            .update(
+                location=destination,
+                location_since=timezone.localdate() if destination else None,
+                updated_at=timezone.now(),
+            )
+        )
+
+
+class SpecimenTransferResultSerializer(serializers.Serializer):
+    transferred = serializers.IntegerField()
+
+
+def evolves_into(species, target) -> bool:
+    """``target`` é uma evolução (direta ou não) de ``species``."""
+    current = target.evolves_from_species
+    while current is not None:
+        if current == species:
+            return True
+        current = current.evolves_from_species
+    return False
+
+
+class SpecimenEvolveSerializer(serializers.Serializer):
+    """``POST /specimens/{id}/evolve/``: o espécime (em ``context``) evoluiu
+    fora do HOME e passa a ser ``form``."""
+
+    form = serializers.PrimaryKeyRelatedField(
+        queryset=PokemonForm.objects.select_related(
+            "pokemon__species__evolves_from_species"
+        )
+    )
+
+    def validate_form(self, form: PokemonForm) -> PokemonForm:
+        specimen: Specimen = self.context["specimen"]
+        old = specimen.form.pokemon.species if specimen.form.pokemon else None
+        new = form.pokemon.species if form.pokemon else None
+        if old is None or new is None or not evolves_into(old, new):
+            raise serializers.ValidationError(
+                _("this form is not an evolution of the specimen.")
+            )
+        return form
+
+    def save(self) -> Specimen:
+        """Troca a forma, leva a habilidade para o mesmo slot de habilidade
+        da forma nova (ou limpa) e tira o espécime do slot, que era da forma
+        antiga e volta a faltar."""
+        specimen: Specimen = self.context["specimen"]
+        form: PokemonForm = self.validated_data["form"]
+        specimen.ability = self._evolved_ability(specimen, form)
+        specimen.form = form
+        specimen.form_name = form.name.strip()
+        specimen.save()
+        Slot.objects.filter(specimen=specimen).update(specimen=None)
+        return specimen
+
+    @staticmethod
+    def _evolved_ability(specimen: Specimen, form: PokemonForm) -> str | None:
+        old = specimen.form.pokemon.abilities.filter(ability=specimen.ability)
+        if specimen.ability is None or not (match := old.first()):
+            return None
+        new = form.pokemon.abilities.filter(
+            slot=match.slot, is_hidden=match.is_hidden
+        ).first()
+        return new.ability if new else None
