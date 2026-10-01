@@ -10,12 +10,21 @@ from django.db.models import (
     OuterRef,
     Q,
     QuerySet,
+    Subquery,
 )
+from django.db.models.functions import Coalesce
 
 from rest_framework import filters
 
+from home.models import DEFAULT_POKEMON_BOX_SIZE, Slot
 from home.origin_marks import origin_mark_q
-from pokedex.models import PokemonAbility, PokemonForm, PokemonFormType, ShinyLock
+from pokedex.models import (
+    PokemonAbility,
+    PokemonForm,
+    PokemonFormType,
+    PokemonSpeciesDexEntry,
+    ShinyLock,
+)
 
 
 class PokemonFromFormFilterBackend(filters.BaseFilterBackend):
@@ -89,14 +98,54 @@ SPECIMEN_LIST_FILTERS = {
     "language": "language",
 }
 
-# Valor de ``ordering`` → ``order_by``; o padrão é a ordem da dex (queryset da
-# view). ``pk`` desempata para a paginação ficar estável.
+
+def _first_slot_key(slots: QuerySet[Slot]) -> Subquery:
+    """Posição do 1º slot de ``slots`` nas boxes, como um número só: box,
+    depois linha e coluna."""
+    key = (
+        F("box__position") * DEFAULT_POKEMON_BOX_SIZE
+        + F("row") * 6  # 6 colunas por linha
+        + F("col")
+    )
+    return Subquery(slots.annotate(key=key).order_by("key").values("key")[:1])
+
+
+def box_order() -> Coalesce:
+    """Onde o espécime fica nas boxes: o próprio slot, se depositado; senão o
+    1º slot (menor box) com a forma dele, em qualquer dex. ``None`` se a
+    forma não está em nenhuma box."""
+    return Coalesce(
+        _first_slot_key(Slot.objects.filter(specimen=OuterRef("pk"))),
+        _first_slot_key(Slot.objects.filter(form=OuterRef("form"))),
+    )
+
+
+def national_order() -> Subquery:
+    """Nº da espécie do espécime na Pokédex nacional (``None`` se não há)."""
+    return Subquery(
+        PokemonSpeciesDexEntry.objects.filter(
+            pokedex="national",
+            pokemon_species=OuterRef("form__pokemon__species"),
+        ).values("entry_number")[:1]
+    )
+
+
+# Valor de ``ordering`` → (anotações, ``order_by``). ``form__order`` desempata
+# formas no mesmo lugar (ex.: as da mesma espécie) e ``pk``, a paginação.
 SPECIMEN_ORDERINGS = {
-    "dex": ("form__order", "pk"),
-    "captured_at": (F("captured_at").asc(nulls_last=True), "pk"),
-    "-captured_at": (F("captured_at").desc(nulls_last=True), "-pk"),
-    "-created_at": ("-created_at", "-pk"),
+    "box": (
+        {"box_order": box_order},
+        (F("box_order").asc(nulls_last=True), "form__order", "pk"),
+    ),
+    "national": (
+        {"national_order": national_order},
+        (F("national_order").asc(nulls_last=True), "form__order", "pk"),
+    ),
+    "captured_at": ({}, (F("captured_at").asc(nulls_last=True), "pk")),
+    "-captured_at": ({}, (F("captured_at").desc(nulls_last=True), "-pk")),
+    "-created_at": ({}, ("-created_at", "-pk")),
 }
+DEFAULT_SPECIMEN_ORDERING = "box"
 
 
 def parse_list(value: str | None) -> list[str]:
@@ -175,10 +224,15 @@ class SpecimenFilterBackend(filters.BaseFilterBackend):
         if before := parse_date(params.get("captured_before", "")):
             queryset = queryset.filter(captured_at__lte=before)
 
-        if ordering := SPECIMEN_ORDERINGS.get(params.get("ordering", "")):
-            queryset = queryset.order_by(*ordering)
-
-        return queryset
+        # Valor desconhecido (inclusive o antigo "dex") → ordem das boxes.
+        annotations, ordering = SPECIMEN_ORDERINGS.get(
+            params.get("ordering", ""),
+            SPECIMEN_ORDERINGS[DEFAULT_SPECIMEN_ORDERING],
+        )
+        queryset = queryset.annotate(
+            **{name: build() for name, build in annotations.items()}
+        )
+        return queryset.order_by(*ordering)
 
 
 class FormSearchFilterBackend(filters.BaseFilterBackend):
