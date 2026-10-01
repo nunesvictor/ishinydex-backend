@@ -395,7 +395,7 @@ SPECIMEN_FILTER_PARAMETERS = [
         "ordering",
         OpenApiTypes.STR,
         enum=list(SPECIMEN_ORDERINGS),
-        description=_("default: dex"),
+        description=_("default: box"),
     ),
 ]
 
@@ -412,7 +412,6 @@ class SpecimenViewSet(viewsets.ModelViewSet):
                 Slot.objects.filter(specimen=OuterRef("pk")).values("pk")[:1]
             )
         )
-        .order_by("form__order", "pk")
     )
     serializer_class = SpecimenSerializer
     filter_backends = (SpecimenFilterBackend,)

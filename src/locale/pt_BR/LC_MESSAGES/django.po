@@ -1099,8 +1099,8 @@ msgid "comma-separated"
 msgstr "separados por vírgula"
 
 #: api/views/home.py
-msgid "default: dex"
-msgstr "padrão: dex"
+msgid "default: box"
+msgstr "padrão: box"
 
 #: templates/admin/base_site.html
 msgid "development environment"

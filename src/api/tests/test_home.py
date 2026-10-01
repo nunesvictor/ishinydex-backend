@@ -13,6 +13,7 @@ from rest_framework.test import APITestCase
 from api.serializers.home import type_sprite_url
 from core.tests import factories as f
 from home.models import Box, PersonalDex, Slot, Specimen
+from pokedex.models import PokemonForm, PokemonSpeciesDexEntry
 
 
 class HomeAPITestCase(APITestCase):
@@ -1106,10 +1107,12 @@ class SpecimenViewSetTests(HomeAPITestCase):
         self.bulbasaur_specimen.save()
         old = f.make_specimen(self.charmander, captured_at=date(2025, 1, 1))
         undated = f.make_specimen(self.squirtle)
-        dex_order = [self.bulbasaur_specimen.pk, old.pk, undated.pk]
+        box_order = [self.bulbasaur_specimen.pk, old.pk, undated.pk]
 
-        self.assertEqual(self.ids(), dex_order)
-        self.assertEqual(self.ids(ordering="dex"), dex_order)
+        self.assertEqual(self.ids(), box_order)
+        self.assertEqual(self.ids(ordering="box"), box_order)
+        # O antigo "dex" não existe mais: cai no padrão.
+        self.assertEqual(self.ids(ordering="dex"), box_order)
         self.assertEqual(
             self.ids(ordering="captured_at"),
             [old.pk, self.bulbasaur_specimen.pk, undated.pk],
@@ -1122,7 +1125,52 @@ class SpecimenViewSetTests(HomeAPITestCase):
             self.ids(ordering="-created_at"),
             [undated.pk, old.pk, self.bulbasaur_specimen.pk],
         )
-        self.assertEqual(self.ids(ordering="nope"), dex_order)
+        self.assertEqual(self.ids(ordering="nope"), box_order)
+
+    def test_box_and_national_orderings(self):
+        def national(form, number):
+            form.pokemon.species.pokedex_numbers.add(
+                PokemonSpeciesDexEntry.objects.create(
+                    entry_number=number, pokedex="national"
+                )
+            )
+
+        for form, number in (
+            (self.bulbasaur, 1),
+            (self.charmander, 4),
+            (self.squirtle, 7),
+        ):
+            national(form, number)
+        eevee = f.make_full_pokemon("eevee", 133, national_dex=133)[2]
+        glaceon = f.make_full_pokemon("glaceon", 471, national_dex=471)[2]
+        mew = f.make_full_pokemon("mew", 151, national_dex=151)[2]
+        # Como na PokéAPI, o `order` agrupa a família: Glaceon vem primeiro.
+        PokemonForm.objects.filter(pk=glaceon.pk).update(order=0)
+        self.set_slot(self.box2, 0, 1, eevee)
+        self.set_slot(self.box2, 0, 2, glaceon)
+        # Squirtle também num 2º dex, na HOME 3, com um espécime depositado.
+        other_dex = f.make_personal_dex(name="Outro")
+        deposited = f.make_specimen(self.squirtle)
+        self.set_slot(self.other_box, 0, 0, self.squirtle, deposited, dex=other_dex)
+
+        c = f.make_specimen(self.charmander)
+        s = f.make_specimen(self.squirtle)
+        e = f.make_specimen(eevee)
+        g = f.make_specimen(glaceon)
+        m = f.make_specimen(mew)  # fora das boxes
+        b = self.bulbasaur_specimen
+
+        # Boxes: o próprio slot se depositado (HOME 3); senão o 1º slot da
+        # forma (squirtle na HOME 2); fora das boxes por último.
+        self.assertEqual(
+            self.ids(ordering="box"),
+            [b.pk, c.pk, s.pk, e.pk, g.pk, deposited.pk, m.pk],
+        )
+        # Nacional: 1, 4, 7, 7, 133, 151, 471.
+        self.assertEqual(
+            self.ids(ordering="national"),
+            [b.pk, c.pk, deposited.pk, s.pk, e.pk, m.pk, g.pk],
+        )
 
     def test_ids_follow_filters_and_ordering(self):
         dive = f.make_specimen(self.charmander, pokeball="dive-ball")

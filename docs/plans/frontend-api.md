@@ -126,7 +126,7 @@ inválidos são ignorados.
 | `gender` / `nature` / `language` | `female,genderless` | |
 | `ability` | `levitate` | contém (sem diferenciar maiúsculas) |
 | `captured_after` / `captured_before` | `2026-01-01` | intervalo inclusivo de `captured_at` |
-| `ordering` | `-captured_at` | `dex` (padrão), `captured_at`, `-captured_at` (sem data por último), `-created_at` |
+| `ordering` | `-captured_at` | `box` (padrão: posição nas boxes — o próprio slot se depositado, senão o 1º slot com a forma, em qualquer dex; fora das boxes por último), `national` (nº da Pokédex nacional; formas da mesma espécie juntas), `captured_at`, `-captured_at` (sem data por último), `-created_at`. Valor desconhecido → `box` |
 
 ## Caçadas de `/api/personal-dexes/{id}/hunts/`
 
