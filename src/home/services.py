@@ -20,6 +20,9 @@ from .models import Box, PersonalDex, Slot
 
 BOX_SIZE = 30
 
+# Boxes do Pokémon HOME (plano Premium): o espelho nunca passa disso.
+HOME_MAX_BOXES = 200
+
 # Espécies que ficam só com a forma padrão.
 DEFAULT_FORM_ONLY_LIST = [
     "arceus",
@@ -162,24 +165,58 @@ class DexPlan:
     forms: list[PokemonForm]
     boxes_needed: int
     largest_free_run: int
-    boxes: list[Box] | None  # None: não há sequência livre suficiente
+    # Boxes existentes onde o esquema começa; None: não cabe nem criando boxes.
+    boxes: list[Box] | None
+    # Boxes novas a criar no fim, depois de ``boxes``.
+    boxes_to_create: int = 0
 
     @property
     def enough_space(self) -> bool:
         return self.boxes is not None
 
 
+def _trailing_free_run(runs: list[list[Box]]) -> list[Box]:
+    """A sequência livre que vai até a última box (vazia se a última está em
+    uso): é a única que boxes novas, criadas no fim, podem continuar."""
+    last = Box.objects.order_by("position").last()
+    return runs[-1] if runs and runs[-1][-1] == last else []
+
+
 def plan_default_dex(force_new_box: bool) -> DexPlan:
+    """Usa a 1ª sequência de boxes livres que comporte o dex; se nenhuma
+    comportar, completa a sequência do fim com boxes novas, sem passar de
+    :data:`HOME_MAX_BOXES`."""
     forms = list(default_forms())
     needed = boxes_needed(forms, force_new_box)
     runs = free_box_runs()
+    largest = max((len(r) for r in runs), default=0)
     run = next((r for r in runs if len(r) >= needed), None)
-    return DexPlan(
-        forms=forms,
-        boxes_needed=needed,
-        largest_free_run=max((len(r) for r in runs), default=0),
-        boxes=run[:needed] if run is not None else None,
-    )
+
+    if run is not None:
+        return DexPlan(forms, needed, largest, boxes=run[:needed])
+
+    trailing = _trailing_free_run(runs)
+    missing = needed - len(trailing)
+
+    if Box.objects.count() + missing > HOME_MAX_BOXES:
+        return DexPlan(forms, needed, largest, boxes=None)
+
+    return DexPlan(forms, needed, largest, boxes=trailing, boxes_to_create=missing)
+
+
+def create_boxes(count: int) -> list[Box]:
+    """Cria ``count`` boxes no fim, com os 30 slots, chamadas "HOME n" pela
+    posição (pulando nomes já usados)."""
+    boxes = []
+    number = Box.objects.count()
+
+    for _ in range(count):
+        number += 1
+        while Box.objects.filter(name=f"HOME {number}").exists():
+            number += 1
+        boxes.append(Box.objects.create(name=f"HOME {number}"))
+
+    return boxes
 
 
 class NotEnoughBoxes(Exception):
@@ -193,7 +230,8 @@ def create_default_dex(
     name: str, *, is_shiny_dex: bool = False, force_new_box: bool = False
 ) -> PersonalDex:
     """Cria um PersonalDex com o conjunto padrão de formas e instala o esquema
-    na primeira sequência de boxes livres que comporte todas elas."""
+    na primeira sequência de boxes livres que comporte todas elas (criando as
+    boxes que faltarem no fim, se preciso)."""
     plan = plan_default_dex(force_new_box)
 
     if not plan.enough_space:
@@ -203,7 +241,10 @@ def create_default_dex(
         name=name, is_shiny_dex=is_shiny_dex, force_new_box=force_new_box
     )
     dex.forms.add(*plan.forms)
-    boxes = boxes_with_slots(Box.objects.filter(pk__in=[b.pk for b in plan.boxes]))
+    new_boxes = create_boxes(plan.boxes_to_create)
+    boxes = boxes_with_slots(
+        Box.objects.filter(pk__in=[b.pk for b in [*plan.boxes, *new_boxes]])
+    )
     install_scheme(dex, boxes, plan.forms)
     return dex
 

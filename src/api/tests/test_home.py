@@ -1,6 +1,7 @@
 import tempfile
 from datetime import date
 from pathlib import Path
+from unittest import mock
 
 from django.contrib.auth.models import User
 from django.db.models import Q
@@ -11,7 +12,7 @@ from rest_framework.test import APITestCase
 
 from api.serializers.home import type_sprite_url
 from core.tests import factories as f
-from home.models import PersonalDex, Slot, Specimen
+from home.models import Box, PersonalDex, Slot, Specimen
 
 
 class HomeAPITestCase(APITestCase):
@@ -146,6 +147,7 @@ class PersonalDexViewSetTests(HomeAPITestCase):
                 "boxes_needed": 1,
                 "largest_free_run": 1,
                 "enough_space": True,
+                "boxes_to_create": 0,
                 "first_box": {
                     "id": self.other_box.pk,
                     "name": "HOME 3",
@@ -155,14 +157,27 @@ class PersonalDexViewSetTests(HomeAPITestCase):
         )
         self.assertEqual(PersonalDex.objects.count(), 1)
 
+    def test_preview_creating_boxes(self):
+        # Todas as boxes em uso: o dex iria para uma box nova, no fim.
+        self.set_slot(self.other_box, 0, 0, self.charmander, dex=self.dex)
+
+        response = self.client.get(reverse("api:personal-dex-preview"))
+
+        self.assertTrue(response.data["enough_space"])
+        self.assertEqual(response.data["boxes_to_create"], 1)
+        self.assertIsNone(response.data["first_box"])
+        self.assertEqual(response.data["largest_free_run"], 0)
+        self.assertEqual(Box.objects.count(), 3)
+
+    @mock.patch("home.services.HOME_MAX_BOXES", 3)
     def test_preview_without_space(self):
         self.set_slot(self.other_box, 0, 0, self.charmander, dex=self.dex)
 
         response = self.client.get(reverse("api:personal-dex-preview"))
 
         self.assertFalse(response.data["enough_space"])
+        self.assertEqual(response.data["boxes_to_create"], 0)
         self.assertIsNone(response.data["first_box"])
-        self.assertEqual(response.data["largest_free_run"], 0)
 
     def test_create_default_dex(self):
         response = self.client.post(
@@ -199,6 +214,27 @@ class PersonalDexViewSetTests(HomeAPITestCase):
         self.assertIn("name", duplicate.data)
         self.assertIn("name", missing.data)
 
+    def test_create_creating_boxes(self):
+        self.set_slot(self.other_box, 0, 0, self.charmander, dex=self.dex)
+
+        response = self.client.post(
+            reverse("api:personal-dex-list"), {"name": "Living Dex"}, format="json"
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["total"], 3)
+        dex = PersonalDex.objects.get(name="Living Dex")
+        self.assertEqual(
+            set(
+                Slot.objects.filter(personal_dex=dex).values_list(
+                    "box__name", flat=True
+                )
+            ),
+            {"HOME 4"},
+        )
+
+    @mock.patch("home.services.HOME_MAX_BOXES", 3)
+    @mock.patch("api.views.home.HOME_MAX_BOXES", 3)
     def test_create_without_space(self):
         self.set_slot(self.other_box, 0, 0, self.charmander, dex=self.dex)
 
@@ -212,8 +248,9 @@ class PersonalDexViewSetTests(HomeAPITestCase):
             {
                 "non_field_errors": [
                     "Não há boxes livres seguidas suficientes para este "
-                    "PersonalDex: ele precisa de 1, e a maior sequência livre "
-                    "tem 0."
+                    "PersonalDex: ele precisa de 1, a maior sequência livre "
+                    "tem 0, e criar as boxes que faltam passaria das 3 boxes "
+                    "do Pokémon HOME."
                 ]
             },
         )
