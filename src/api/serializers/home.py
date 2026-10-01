@@ -165,6 +165,8 @@ class SpecimenSummarySerializer(serializers.ModelSerializer):
             "ability",
             "is_shiny",
             "is_alpha",
+            "is_from_go",
+            "gender",
             "pokeball",
             "pokeball_sprite_url",
         )

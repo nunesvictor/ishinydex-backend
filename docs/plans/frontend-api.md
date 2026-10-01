@@ -66,7 +66,7 @@ Schema OpenAPI: `GET /api/schema/` · Swagger UI: `GET /api/docs/` (públicos).
 
 // SpecimenSummary
 {"id": 1, "nickname": null, "form_name": "bulbasaur", "ability": "overgrow", "is_shiny": true,
- "is_alpha": false, "pokeball": "dream-ball",
+ "is_alpha": false, "is_from_go": false, "gender": "female", "pokeball": "dream-ball",
  "pokeball_sprite_url": "http://host/media/sprites/items/dream-ball.png"}
 
 // Specimen: todos os campos do model +
