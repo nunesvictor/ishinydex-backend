@@ -514,9 +514,12 @@ class SpecimenBulkUpdateSerializer(serializers.Serializer):
 
     def validate_ids(self, ids: list[int]) -> list[int]:
         ids = sorted(set(ids))
+        # order_by("pk"): trava sempre na mesma ordem e evita os JOINs da
+        # ordenação padrão (FOR UPDATE não aceita LEFT JOIN).
         found = set(
             Specimen.objects.select_for_update()
             .filter(pk__in=ids)
+            .order_by("pk")
             .values_list("pk", flat=True)
         )
         missing = [pk for pk in ids if pk not in found]

@@ -13,7 +13,6 @@ from operator import or_
 from django.db import transaction
 from django.db.models import Exists, OuterRef, Prefetch, Q, QuerySet
 
-from core.consts import GEN_FIRST_FORM_NAMES
 from pokedex.models import PokemonForm
 
 from .models import Box, PersonalDex, Slot
@@ -63,7 +62,8 @@ DEFAULT_EXTRA_ARGS = (
 def default_forms() -> QuerySet[PokemonForm]:
     """Conjunto padrão de formas de um PersonalDex, na ordem do esquema."""
     return (
-        PokemonForm.objects.filter(is_battle_only=False)
+        PokemonForm.objects.select_related("pokemon__species")
+        .filter(is_battle_only=False)
         .exclude(
             Q(pokemon__species__name__in=DEFAULT_FORM_ONLY_LIST) & Q(is_default=False)
         )
@@ -72,9 +72,16 @@ def default_forms() -> QuerySet[PokemonForm]:
     )
 
 
-def _starts_generation(form: PokemonForm) -> bool:
-    # A 1ª geração não conta: já começa na 1ª box.
-    return form.name in GEN_FIRST_FORM_NAMES[1:]
+def _generation(form: PokemonForm) -> str | None:
+    species = form.pokemon.species if form.pokemon else None
+    return species.generation if species else None
+
+
+def _starts_generation(forms: Sequence[PokemonForm], index: int) -> bool:
+    """A forma ``forms[index]`` é de outra geração que a anterior? Vale pela
+    geração da espécie, então funciona mesmo sem o inicial da geração no dex.
+    A 1ª forma não conta: já começa na 1ª box."""
+    return index > 0 and _generation(forms[index]) != _generation(forms[index - 1])
 
 
 def boxes_needed(forms: Sequence[PokemonForm], force_new_box: bool) -> int:
@@ -90,7 +97,7 @@ def boxes_needed(forms: Sequence[PokemonForm], force_new_box: bool) -> int:
             if index >= len(forms):
                 break
 
-            if force_new_box and position > 0 and _starts_generation(forms[index]):
+            if force_new_box and position > 0 and _starts_generation(forms, index):
                 break
 
             index += 1
@@ -117,7 +124,7 @@ def install_scheme(
             if (
                 p_dex.force_new_box
                 and not slot.is_first
-                and _starts_generation(current_form)
+                and _starts_generation(forms, index)
             ):
                 break
 

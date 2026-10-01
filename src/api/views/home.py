@@ -18,7 +18,7 @@ from home.services import (
     delete_dex,
     plan_default_dex,
 )
-from pokedex.models import PokemonForm, Version
+from pokedex.models import FORM_NATIONAL_ORDERING, PokemonForm, Version
 
 from ..choices import specimen_options
 from ..filters import (
@@ -480,7 +480,7 @@ class FormViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = (
         PokemonForm.objects.select_related("pokemon__species")
         .prefetch_related(national_number_prefetch())
-        .order_by("order", "pk")
+        .order_by(*FORM_NATIONAL_ORDERING)
     )
     filter_backends = (FormSearchFilterBackend,)
 

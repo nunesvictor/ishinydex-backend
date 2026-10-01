@@ -1172,6 +1172,23 @@ class SpecimenViewSetTests(HomeAPITestCase):
             [b.pk, c.pk, deposited.pk, s.pk, e.pk, m.pk, g.pk],
         )
 
+    def test_forms_of_same_species_follow_form_order(self):
+        national = PokemonSpeciesDexEntry.objects.create(
+            entry_number=1, pokedex="national"
+        )
+        self.bulbasaur.pokemon.species.pokedex_numbers.add(national)
+        # O `order` da PokéAPI ao contrário do `form_order`: vale o form_order.
+        other = f.make_form(
+            self.bulbasaur.pokemon, name="bulbasaur-other", form_order=2, order=0
+        )
+        PokemonForm.objects.filter(pk=self.bulbasaur.pk).update(order=99)
+        Specimen.objects.all().delete()
+        later = f.make_specimen(other)
+        first = f.make_specimen(self.bulbasaur)
+
+        self.assertEqual(self.ids(ordering="national"), [first.pk, later.pk])
+        self.assertEqual(self.ids(ordering="box"), [first.pk, later.pk])
+
     def test_ids_follow_filters_and_ordering(self):
         dive = f.make_specimen(self.charmander, pokeball="dive-ball")
         undated = f.make_specimen(self.squirtle)
@@ -1481,6 +1498,21 @@ class FormViewSetTests(HomeAPITestCase):
             [form["name"] for form in response.data["results"]], ["charmander"]
         )
         self.assertNotIn("abilities", response.data["results"][0])
+
+    def test_list_follows_national_dex_not_pokeapi_order(self):
+        # Como o Annihilape: `order` da PokéAPI no fim, espécie no meio.
+        PokemonForm.objects.filter(pk=self.bulbasaur.pk).update(order=1000)
+        # Forma regional: `order` alto, mas fica junto da espécie.
+        regional = f.make_form(
+            self.bulbasaur.pokemon, name="bulbasaur-regional", form_order=2, order=999
+        )
+
+        response = self.client.get(reverse("api:form-list"))
+
+        self.assertEqual(
+            [form["id"] for form in response.data["results"]],
+            [self.bulbasaur.pk, regional.pk, self.charmander.pk, self.squirtle.pk],
+        )
 
     def test_retrieve_detail(self):
         f.make_shinylock(self.bulbasaur)

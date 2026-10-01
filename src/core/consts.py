@@ -1,15 +1,3 @@
-GEN_FIRST_FORM_NAMES = (
-    "bulbasaur",
-    "chikorita",
-    "treecko",
-    "turtwig",
-    "victini",
-    "chespin",
-    "rowlet",
-    "grookey",
-    "sprigatito",
-)
-
 GENDER_CHOICES = (
     ("male", "male"),
     ("female", "female"),

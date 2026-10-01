@@ -32,7 +32,7 @@ Schema OpenAPI: `GET /api/schema/` · Swagger UI: `GET /api/docs/` (públicos).
 | GET | `/api/personal-dexes/{id}/generations/` | progresso por geração, **sem paginação**: `[{generation, total, registered, first_box: BoxRef}]`, na ordem em que as gerações aparecem nas boxes; `generation` é `null` para formas sem pokémon |
 | GET | `/api/personal-dexes/{id}/hunts/` | lista de caçadas de um **shiny dex** (paginada, na ordem das boxes): `Hunt[]`; dex que não é shiny dex → 400 `{"detail": ...}`. Filtros em [Caçadas](#caçadas-de-apipersonal-dexesidhunts) |
 | GET | `/api/personal-dexes/preview/?force_new_box=` | simula um dex padrão sem criar: `{forms, boxes_needed, largest_free_run, enough_space, boxes_to_create, first_box: BoxRef \| null}`; sem sequência livre que caiba, completa a sequência livre do fim com `boxes_to_create` boxes novas (até 200, o limite do HOME); `first_box` é `null` sem espaço ou quando o dex fica todo em boxes novas |
-| POST | `/api/personal-dexes/` | `{name, is_shiny_dex?, force_new_box?}` → 201 com o dex (e contagens); cria com o conjunto padrão de formas e instala o esquema na 1ª sequência de boxes livres (ou cria no fim as boxes que faltam, como no preview). Nome repetido → `{"name": [...]}`; sem espaço → `{"non_field_errors": [...]}` |
+| POST | `/api/personal-dexes/` | `{name, is_shiny_dex?, force_new_box?}` → 201 com o dex (e contagens); cria com o conjunto padrão de formas, na [ordem canônica](#ordem-canônica-das-formas) (com `force_new_box`, cada geração da espécie começa no 1º slot de uma box), e instala o esquema na 1ª sequência de boxes livres (ou cria no fim as boxes que faltam, como no preview). Nome repetido → `{"name": [...]}`; sem espaço → `{"non_field_errors": [...]}` |
 | GET | `/api/slots/?personal_dex=&box=&registered=true\|false&search=` | slots; com `box`, retorna os 30 slots **sem paginação**; `search` = nome da forma (`icontains`) ou número (Pokédex nacional da espécie ou `pokeapi_id` da forma), na ordem das boxes |
 | GET | `/api/slots/{id}/` | um slot |
 | POST | `/api/slots/{id}/deposit/` | `{specimen_id}` → 200 com o slot, ou 400 |
@@ -42,7 +42,7 @@ Schema OpenAPI: `GET /api/schema/` · Swagger UI: `GET /api/docs/` (públicos).
 | GET | `/api/specimens/ids/?` + filtros de `/specimens/` | ids de todos os espécimes do filtro, na ordem da lista, **sem paginação**: `[1, 2, ...]` |
 | PATCH | `/api/specimens/bulk/` | edição em lote (ver Regras): `{"ids": [...], "changes": {...}}` → `{"updated": n}` |
 | GET | `/api/specimens/options/` | choices de language, gender, nature, pokeball, type, generation e origin_mark |
-| GET | `/api/forms/?search=` | formas (`FormRef`), busca por nome |
+| GET | `/api/forms/?search=` | formas (`FormRef`), busca por nome, na [ordem canônica](#ordem-canônica-das-formas) |
 | GET | `/api/forms/{id}/` | `FormDetail` |
 | GET/POST | `/api/trainers/?search=` | lista/cria OriginalTrainer |
 | GET | `/api/versions/` | versões de jogo em ordem de lançamento, **sem paginação**: `[{name, version_group, generation}]`; `name` é o valor de `version` no POST de trainers |
@@ -126,7 +126,7 @@ inválidos são ignorados.
 | `gender` / `nature` / `language` | `female,genderless` | |
 | `ability` | `levitate` | contém (sem diferenciar maiúsculas) |
 | `captured_after` / `captured_before` | `2026-01-01` | intervalo inclusivo de `captured_at` |
-| `ordering` | `-captured_at` | `box` (padrão: posição nas boxes — o próprio slot se depositado, senão o 1º slot com a forma, em qualquer dex; fora das boxes por último), `national` (nº da Pokédex nacional; formas da mesma espécie juntas), `captured_at`, `-captured_at` (sem data por último), `-created_at`. Valor desconhecido → `box` |
+| `ordering` | `-captured_at` | `box` (padrão: posição nas boxes — o próprio slot se depositado, senão o 1º slot com a forma, em qualquer dex; fora das boxes por último), `national` (nº da Pokédex nacional; formas da mesma espécie juntas, por `form_order`), `captured_at`, `-captured_at` (sem data por último), `-created_at`. Valor desconhecido → `box` |
 
 ## Caçadas de `/api/personal-dexes/{id}/hunts/`
 
@@ -160,6 +160,13 @@ Exemplos:
 
 ## Regras
 
+- <a id="ordem-canônica-das-formas"></a>**Ordem canônica das formas**
+  (`FORM_NATIONAL_ORDERING`, em `pokedex/models.py`): nº da Pokédex nacional
+  (o pk da espécie), depois `form_order` dentro da espécie e o `pk` para
+  desempatar. Vale para `/forms/`, para o conjunto padrão do dex e para os
+  desempates de `ordering` em `/specimens/`. O `order` da PokéAPI fica no banco
+  mas não é usado: agrupa famílias até a 6ª geração e é quase arbitrário na 9ª
+  (Annihilape no fim).
 - **Depósito** (`transaction.atomic` + `select_for_update` no slot e no specimen):
   - slot sem forma → `{"non_field_errors": [...]}`
   - forma do specimen ≠ forma do slot (regra de `Slot.clean`) → `{"specimen_id": [...]}`
