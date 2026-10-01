@@ -703,6 +703,25 @@ class SpecimenViewSetTests(HomeAPITestCase):
         self.assertEqual(ids(is_alpha="true", is_from_go="true"), {both.pk})
         self.assertNotIn(alpha.pk, ids(is_alpha="false"))
 
+    def test_filter_ids(self):
+        a = f.make_specimen(self.charmander)
+        b = f.make_specimen(self.charmander, is_shiny=True)
+        f.make_specimen(self.charmander)
+
+        def ids(**params):
+            response = self.client.get(reverse("api:specimen-list"), params)
+            return {s["id"] for s in response.data["results"]}
+
+        self.assertEqual(ids(id=f"{a.pk},{b.pk}"), {a.pk, b.pk})
+        # Combina com os outros filtros (E); valores inválidos são ignorados.
+        self.assertEqual(ids(id=f"{a.pk},{b.pk}", is_shiny="true"), {b.pk})
+        self.assertEqual(ids(id=f"x,{a.pk}"), {a.pk})
+        self.assertEqual(ids(id="x"), set())
+        self.assertEqual(
+            self.client.get(reverse("api:specimen-ids"), {"id": f"{b.pk},{a.pk}"}).data,
+            [a.pk, b.pk],
+        )
+
     def test_filter_available(self):
         free = f.make_specimen(self.bulbasaur)
 
