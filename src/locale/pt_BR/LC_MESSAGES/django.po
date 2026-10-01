@@ -958,10 +958,12 @@ msgstr "nome da forma, número da Pokédex nacional ou o PokéAPI ID da forma"
 #, python-format
 msgid ""
 "There aren't enough free boxes in a row for this PersonalDex: it needs "
-"%(needed)d, and the largest free sequence has %(largest)d."
+"%(needed)d, the largest free sequence has %(largest)d, and creating the "
+"missing boxes would go past the %(max)d boxes of Pokémon HOME."
 msgstr ""
 "Não há boxes livres seguidas suficientes para este PersonalDex: ele precisa "
-"de %(needed)d, e a maior sequência livre tem %(largest)d."
+"de %(needed)d, a maior sequência livre tem %(largest)d, e criar as boxes que "
+"faltam passaria das %(max)d boxes do Pokémon HOME."
 
 #: api/choices.py
 msgid "Normal"

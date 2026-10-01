@@ -352,6 +352,9 @@ class PersonalDexPreviewSerializer(serializers.Serializer):
     boxes_needed = serializers.IntegerField()
     largest_free_run = serializers.IntegerField()
     enough_space = serializers.BooleanField()
+    # Boxes novas que a criação faria no fim (0: só usa boxes existentes).
+    boxes_to_create = serializers.IntegerField()
+    # null sem espaço, ou quando o dex fica todo em boxes novas.
     first_box = BoxRefSerializer(allow_null=True)
 
 

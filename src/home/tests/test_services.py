@@ -1,12 +1,15 @@
+from unittest import mock
+
 from django.test import TestCase
 
 from core.tests import factories as f
-from home.models import PersonalDex, Slot
+from home.models import Box, PersonalDex, Slot
 from home.services import (
     BOX_SIZE,
     NotEnoughBoxes,
     allowed_genders,
     boxes_needed,
+    create_boxes,
     create_default_dex,
     delete_dex,
     free_box_runs,
@@ -88,6 +91,7 @@ class CreateDefaultDexTests(TestCase):
         boxes = {s.box for s in Slot.objects.filter(personal_dex=dex)}
         self.assertEqual(boxes, {self.first})
 
+    @mock.patch("home.services.HOME_MAX_BOXES", 4)
     def test_not_enough_boxes_creates_nothing(self):
         for box in (self.small, self.first, self.second):
             Slot.objects.filter(box=box, row=0, col=0).update(form=self.forms[1])
@@ -98,6 +102,79 @@ class CreateDefaultDexTests(TestCase):
         self.assertEqual(error.exception.plan.boxes_needed, 1)
         self.assertEqual(error.exception.plan.largest_free_run, 0)
         self.assertFalse(PersonalDex.objects.exists())
+        self.assertEqual(Box.objects.count(), 4)
+
+    def occupy(self, *boxes):
+        for box in boxes:
+            Slot.objects.filter(box=box, row=0, col=0).update(form=self.forms[1])
+
+    def test_creates_missing_box_at_the_end(self):
+        self.occupy(self.small, self.first, self.second)
+
+        plan = plan_default_dex(force_new_box=False)
+        self.assertTrue(plan.enough_space)
+        self.assertEqual((plan.boxes, plan.boxes_to_create), ([], 1))
+
+        dex = create_default_dex("Living")
+
+        new_box = Box.objects.get(name="HOME 5")
+        self.assertEqual(new_box.position, 5)
+        self.assertEqual(new_box.slots.count(), BOX_SIZE)
+        installed = Slot.objects.filter(personal_dex=dex).order_by("position")
+        self.assertEqual([s.form for s in installed], self.forms)
+        self.assertEqual({s.box for s in installed}, {new_box})
+
+    @mock.patch("home.services.boxes_needed", return_value=2)
+    def test_completes_the_trailing_free_run(self, _):
+        # Livre só HOME 4 (a última): falta 1 box, criada depois dela.
+        self.occupy(self.small, self.first)
+
+        plan = plan_default_dex(force_new_box=False)
+        self.assertEqual((plan.boxes, plan.boxes_to_create), ([self.second], 1))
+
+        dex = create_default_dex("Living")
+
+        self.assertTrue(Box.objects.filter(name="HOME 5").exists())
+        boxes = {s.box for s in Slot.objects.filter(personal_dex=dex)}
+        self.assertEqual(boxes, {self.second})
+
+    @mock.patch("home.services.boxes_needed", return_value=2)
+    def test_free_run_in_the_middle_is_not_completed(self, _):
+        # HOME 1 livre, mas a última box está em uso: as novas não a continuam.
+        self.occupy(self.first, self.second)
+
+        plan = plan_default_dex(force_new_box=False)
+
+        self.assertEqual((plan.boxes, plan.boxes_to_create), ([], 2))
+
+    @mock.patch("home.services.HOME_MAX_BOXES", 4)
+    def test_never_goes_past_home_limit(self):
+        self.occupy(self.small, self.first, self.second)
+
+        self.assertFalse(plan_default_dex(force_new_box=False).enough_space)
+        with self.assertRaises(NotEnoughBoxes):
+            create_default_dex("Living")
+        self.assertEqual(Box.objects.count(), 4)
+
+    def test_without_boxes_creates_them(self):
+        Box.objects.all().delete()
+
+        dex = create_default_dex("Living")
+
+        self.assertEqual(list(Box.objects.values_list("name", flat=True)), ["HOME 1"])
+        self.assertEqual(Slot.objects.filter(personal_dex=dex).count(), 3)
+
+
+class CreateBoxesTests(TestCase):
+    def test_names_follow_position_skipping_used_names(self):
+        f.make_box(name="HOME 1")
+        f.make_box(name="HOME 3")
+
+        boxes = create_boxes(2)
+
+        self.assertEqual([b.name for b in boxes], ["HOME 4", "HOME 5"])
+        self.assertEqual([b.position for b in boxes], [3, 4])
+        self.assertEqual(create_boxes(0), [])
 
 
 class AllowedGendersTests(TestCase):

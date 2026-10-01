@@ -12,6 +12,7 @@ from rest_framework.response import Response
 
 from home.models import Box, OriginalTrainer, PersonalDex, Slot, Specimen
 from home.services import (
+    HOME_MAX_BOXES,
     NotEnoughBoxes,
     create_default_dex,
     delete_dex,
@@ -70,8 +71,13 @@ def count_slots(prefix: str, **filters) -> dict:
 def not_enough_boxes_message(plan) -> str:
     return _(
         "There aren't enough free boxes in a row for this PersonalDex: it needs "
-        "%(needed)d, and the largest free sequence has %(largest)d."
-    ) % {"needed": plan.boxes_needed, "largest": plan.largest_free_run}
+        "%(needed)d, the largest free sequence has %(largest)d, and creating the "
+        "missing boxes would go past the %(max)d boxes of Pokémon HOME."
+    ) % {
+        "needed": plan.boxes_needed,
+        "largest": plan.largest_free_run,
+        "max": HOME_MAX_BOXES,
+    }
 
 
 class PersonalDexViewSet(
@@ -90,7 +96,8 @@ class PersonalDexViewSet(
     )
     def create(self, request, *args, **kwargs):
         """Cria o dex com o conjunto padrão de formas e instala o esquema na
-        primeira sequência de boxes livres que comporte todas elas."""
+        primeira sequência de boxes livres que comporte todas elas, criando
+        no fim as boxes que faltarem (até o limite do HOME)."""
         serializer = PersonalDexCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
@@ -135,6 +142,7 @@ class PersonalDexViewSet(
             "boxes_needed": plan.boxes_needed,
             "largest_free_run": plan.largest_free_run,
             "enough_space": plan.enough_space,
+            "boxes_to_create": plan.boxes_to_create,
             "first_box": plan.boxes[0] if plan.boxes else None,
         }
         return Response(PersonalDexPreviewSerializer(data).data)
