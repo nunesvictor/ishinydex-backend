@@ -1200,7 +1200,7 @@ class SpecimenViewSetTests(HomeAPITestCase):
             ],
         )
         self.assertIn(
-            {"value": "paldea", "label": "Scarlet e Violet"},
+            {"value": "paldea", "label": "SV"},
             response.data["origin_mark"],
         )
         self.assertEqual(len(response.data["type"]), 18)
