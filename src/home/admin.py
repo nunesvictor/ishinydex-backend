@@ -10,6 +10,7 @@ from django.utils.translation import gettext_lazy as _
 
 from core.admin import TimestampedAdmin
 from core.admin_mixins import CustomFieldsRendererMixin
+from home.services import delete_dex
 from home.views import SpecimenBulkUpdateView
 from pokedex.renderers import HomeSpriteRenderer
 
@@ -125,6 +126,14 @@ class PersonalDexAdmin(admin.ModelAdmin):
 
     forms_count.short_description = _("forms")
     slots_count.short_description = _("slots")
+
+    # Apagar pelo admin também libera os slots (ver home.services.delete_dex).
+    def delete_model(self, request, obj):
+        delete_dex(obj)
+
+    def delete_queryset(self, request, queryset):
+        for dex in queryset:
+            delete_dex(dex)
 
 
 @admin.register(Slot)

@@ -26,6 +26,8 @@ Schema OpenAPI: `GET /api/schema/` · Swagger UI: `GET /api/docs/` (públicos).
 | POST | `/api/auth/token/` | `{username, password}` → `{token}` |
 | GET | `/api/personal-dexes/` | lista paginada de dexes |
 | GET | `/api/personal-dexes/{id}/` | um dex |
+| PATCH | `/api/personal-dexes/{id}/` | `{name?, is_shiny_dex?}` → 200 com o dex (e contagens); `force_new_box` é ignorado (o esquema já está nas boxes). Nome repetido → `{"name": [...]}`. Sem `PUT` (405) |
+| DELETE | `/api/personal-dexes/{id}/` | 204; libera os slots do dex (sem forma, dex nem espécime), deixando as boxes livres para outro dex. Os espécimes depositados **continuam** no inventário, disponíveis |
 | GET | `/api/personal-dexes/{id}/boxes/` | boxes com slots do dex, por `position`, **sem paginação** |
 | GET | `/api/personal-dexes/{id}/generations/` | progresso por geração, **sem paginação**: `[{generation, total, registered, first_box: BoxRef}]`, na ordem em que as gerações aparecem nas boxes; `generation` é `null` para formas sem pokémon |
 | GET | `/api/personal-dexes/{id}/hunts/` | lista de caçadas de um **shiny dex** (paginada, na ordem das boxes): `Hunt[]`; dex que não é shiny dex → 400 `{"detail": ...}`. Filtros em [Caçadas](#caçadas-de-apipersonal-dexesidhunts) |

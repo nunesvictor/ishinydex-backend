@@ -3,6 +3,7 @@ from datetime import date
 from pathlib import Path
 
 from django.contrib.auth.models import User
+from django.db.models import Q
 from django.urls import reverse
 
 from rest_framework import status
@@ -217,6 +218,83 @@ class PersonalDexViewSetTests(HomeAPITestCase):
             },
         )
         self.assertFalse(PersonalDex.objects.filter(name="Living Dex").exists())
+
+    def test_partial_update_renames_and_toggles_shiny(self):
+        response = self.client.patch(
+            reverse("api:personal-dex-detail", args=[self.dex.pk]),
+            {"name": "Living Dex", "is_shiny_dex": False, "force_new_box": True},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.data,
+            {
+                "id": self.dex.pk,
+                "name": "Living Dex",
+                "is_shiny_dex": False,
+                # Não muda: o esquema já está nas boxes.
+                "force_new_box": False,
+                "total": 3,
+                "registered": 1,
+            },
+        )
+
+    def test_partial_update_duplicate_name_is_400(self):
+        f.make_personal_dex(name="Living Dex")
+
+        response = self.client.patch(
+            reverse("api:personal-dex-detail", args=[self.dex.pk]),
+            {"name": "Living Dex"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("name", response.data)
+
+    def test_put_is_not_allowed(self):
+        response = self.client.put(
+            reverse("api:personal-dex-detail", args=[self.dex.pk]),
+            {"name": "Living Dex"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_destroy_frees_slots_and_keeps_specimens(self):
+        other_dex = f.make_personal_dex(name="Living Dex")
+        other_slot = self.set_slot(self.other_box, 0, 0, self.charmander, dex=other_dex)
+
+        response = self.client.delete(
+            reverse("api:personal-dex-detail", args=[self.dex.pk])
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(PersonalDex.objects.filter(pk=self.dex.pk).exists())
+        # Os slots do dex ficam livres (sem forma, dex nem espécime)...
+        self.assertFalse(
+            Slot.objects.filter(
+                Q(form__isnull=False)
+                | Q(personal_dex__isnull=False)
+                | Q(specimen__isnull=False),
+                box__in=[self.box1, self.box2],
+            ).exists()
+        )
+        # ...o espécime continua, agora disponível...
+        specimen = self.client.get(
+            reverse("api:specimen-detail", args=[self.bulbasaur_specimen.pk])
+        )
+        self.assertEqual(specimen.status_code, status.HTTP_200_OK)
+        self.assertIsNone(specimen.data["slot"])
+        # ...e o outro dex não muda.
+        other_slot.refresh_from_db()
+        self.assertEqual(other_slot.personal_dex, other_dex)
+        self.assertEqual(other_slot.form, self.charmander)
+
+    def test_destroy_unknown_dex_is_404(self):
+        response = self.client.delete(reverse("api:personal-dex-detail", args=[9999]))
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_generations_of_unknown_dex_is_404(self):
         response = self.client.get(reverse("api:personal-dex-generations", args=[9999]))

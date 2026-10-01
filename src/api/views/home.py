@@ -11,7 +11,12 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from home.models import Box, OriginalTrainer, PersonalDex, Slot, Specimen
-from home.services import NotEnoughBoxes, create_default_dex, plan_default_dex
+from home.services import (
+    NotEnoughBoxes,
+    create_default_dex,
+    delete_dex,
+    plan_default_dex,
+)
 from pokedex.models import PokemonForm, Version
 
 from ..choices import specimen_options
@@ -34,6 +39,7 @@ from ..serializers.home import (
     PersonalDexCreateSerializer,
     PersonalDexPreviewSerializer,
     PersonalDexSerializer,
+    PersonalDexUpdateSerializer,
     SlotSerializer,
     SpecimenBulkResultSerializer,
     SpecimenBulkUpdateSerializer,
@@ -68,9 +74,16 @@ def not_enough_boxes_message(plan) -> str:
     ) % {"needed": plan.boxes_needed, "largest": plan.largest_free_run}
 
 
-class PersonalDexViewSet(mixins.CreateModelMixin, viewsets.ReadOnlyModelViewSet):
+class PersonalDexViewSet(
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.ReadOnlyModelViewSet,
+):
     queryset = PersonalDex.objects.annotate(**count_slots("slot__")).order_by("name")
     serializer_class = PersonalDexSerializer
+    # Sem PUT: só PATCH (nome e is_shiny_dex).
+    http_method_names = ["get", "post", "patch", "delete", "head", "options"]
 
     @extend_schema(
         request=PersonalDexCreateSerializer, responses={201: PersonalDexSerializer}
@@ -91,6 +104,20 @@ class PersonalDexViewSet(mixins.CreateModelMixin, viewsets.ReadOnlyModelViewSet)
 
         data = PersonalDexSerializer(self.get_queryset().get(pk=dex.pk)).data
         return Response(data, status=status.HTTP_201_CREATED)
+
+    @extend_schema(request=PersonalDexUpdateSerializer, responses=PersonalDexSerializer)
+    def partial_update(self, request, *args, **kwargs):
+        """Renomeia o dex ou troca se é shiny dex."""
+        dex = self.get_object()
+        serializer = PersonalDexUpdateSerializer(dex, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(PersonalDexSerializer(self.get_queryset().get(pk=dex.pk)).data)
+
+    def perform_destroy(self, instance):
+        """Apaga o dex e libera os slots; os espécimes depositados voltam a
+        ficar disponíveis no inventário."""
+        delete_dex(instance)
 
     @extend_schema(
         parameters=[OpenApiParameter("force_new_box", OpenApiTypes.BOOL)],

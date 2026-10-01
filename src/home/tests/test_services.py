@@ -8,6 +8,7 @@ from home.services import (
     allowed_genders,
     boxes_needed,
     create_default_dex,
+    delete_dex,
     free_box_runs,
     plan_default_dex,
 )
@@ -122,3 +123,21 @@ class AllowedGendersTests(TestCase):
             allowed_genders(f.make_form(pokemon=None, name="x")),
             {"male", "female", "genderless"},
         )
+
+
+class DeleteDexTests(TestCase):
+    def test_frees_slots_and_keeps_specimens(self):
+        form = f.make_full_pokemon("bulbasaur", 1)[2]
+        box = f.make_box(name="HOME 1")
+        dex = f.make_personal_dex(form, name="Living")
+        specimen = f.make_specimen(form)
+        Slot.objects.filter(box=box, row=0, col=0).update(
+            form=form, personal_dex=dex, specimen=specimen
+        )
+
+        delete_dex(dex)
+
+        self.assertFalse(PersonalDex.objects.exists())
+        self.assertEqual(free_box_runs(), [[box]])
+        specimen.refresh_from_db()
+        self.assertFalse(Slot.objects.filter(specimen=specimen).exists())

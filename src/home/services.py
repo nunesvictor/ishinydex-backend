@@ -1,7 +1,8 @@
-"""Criação de PersonalDex e instalação do esquema nas boxes do HOME.
+"""Criação (e remoção) de PersonalDex e instalação do esquema nas boxes do
+HOME.
 
 Usado pelos comandos ``create_personal_dex``/``create_home_scheme`` e pela API
-(``POST /personal-dexes/``).
+(``POST``/``DELETE /personal-dexes/``).
 """
 
 from collections.abc import Iterable, Sequence
@@ -205,6 +206,17 @@ def create_default_dex(
     boxes = boxes_with_slots(Box.objects.filter(pk__in=[b.pk for b in plan.boxes]))
     install_scheme(dex, boxes, plan.forms)
     return dex
+
+
+@transaction.atomic
+def delete_dex(dex: PersonalDex) -> None:
+    """Apaga o dex e libera os slots dele (sem forma, sem dex e sem espécime),
+    para as boxes voltarem a ficar livres para outro dex. Os espécimes
+    depositados continuam no inventário, agora disponíveis."""
+    Slot.objects.filter(personal_dex=dex).update(
+        form=None, personal_dex=None, specimen=None
+    )
+    dex.delete()
 
 
 GENDERS = frozenset({"male", "female", "genderless"})
