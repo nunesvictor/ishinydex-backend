@@ -545,6 +545,14 @@ class HuntTests(HomeAPITestCase):
     def test_search(self):
         self.assertEqual(self.names(self.hunts(search="squir")), ["squirtle"])
 
+    def test_search_humanized_name(self):
+        _, _, iron_hands = f.make_full_pokemon("iron-hands", 992)
+        self.set_slot(self.box2, 0, 1, iron_hands)
+
+        for text in ("iron hands", "Iron  Hands", "iron-hands"):
+            with self.subTest(text=text):
+                self.assertEqual(self.names(self.hunts(search=text)), ["iron-hands"])
+
     def test_shiny_locks(self):
         f.make_shinylock(self.charmander, lock_type="unobtainable")
         f.make_shinylock(self.squirtle, lock_type="distro-only")
@@ -622,6 +630,20 @@ class SlotSearchTests(HomeAPITestCase):
         self.assertEqual(self.search("mewtwo"), [])
         self.assertEqual(self.search("999"), [])
 
+    def test_by_humanized_name(self):
+        # Os nomes são slugs da PokéAPI; a busca aceita o nome como se escreve.
+        _, _, mr_mime = f.make_full_pokemon("mr-mime", 122)
+        _, _, flabebe = f.make_full_pokemon("flabebe", 669)
+        mr_mime_slot = self.set_slot(self.box2, 1, 0, mr_mime)
+        flabebe_slot = self.set_slot(self.box2, 1, 1, flabebe)
+
+        for text in ("mr mime", "Mr. Mime", "MR  MIME", "mr-mime"):
+            with self.subTest(text=text):
+                self.assertEqual(self.search(text), [mr_mime_slot.pk])
+        self.assertEqual(self.search("Flabébé"), [flabebe_slot.pk])
+        # Só pontuação: busca o texto cru (e não tudo).
+        self.assertEqual(self.search("."), [])
+
 
 class NationalNumberTests(HomeAPITestCase):
     def setUp(self):
@@ -649,6 +671,12 @@ class NationalNumberTests(HomeAPITestCase):
 
     def test_specimen_search_by_text_is_unchanged(self):
         self.assertEqual(self.search_specimens("vov"), [self.specimen.pk])
+
+    def test_specimen_search_humanized_form_name_and_raw_nickname(self):
+        self.assertEqual(self.search_specimens("venusaur alt"), [self.alt_specimen.pk])
+        # O apelido é texto livre: comparado sem virar slug.
+        nicknamed = f.make_specimen(self.charmander, nickname="Big Boss")
+        self.assertEqual(self.search_specimens("big boss"), [nicknamed.pk])
 
     def test_form_ref_has_species_national_number(self):
         response = self.client.get(reverse("api:specimen-list"), {"search": "venu"})
@@ -1087,6 +1115,8 @@ class SpecimenViewSetTests(HomeAPITestCase):
         self.assertEqual(self.ids(nature="jolly"), [female.pk])
         self.assertEqual(self.ids(language="ja"), [female.pk])
         self.assertEqual(self.ids(ability="BLA"), [blaze.pk])
+        solar = f.make_specimen(self.charmander, ability="solar-power")
+        self.assertEqual(self.ids(ability="Solar Power"), [solar.pk])
         self.assertEqual(self.ids(gender="female", language="en"), [])
 
     def test_filter_captured_range(self):
@@ -1498,6 +1528,15 @@ class FormViewSetTests(HomeAPITestCase):
             [form["name"] for form in response.data["results"]], ["charmander"]
         )
         self.assertNotIn("abilities", response.data["results"][0])
+
+    def test_list_search_by_humanized_name(self):
+        f.make_full_pokemon("iron-hands", 992)
+
+        response = self.client.get(reverse("api:form-list"), {"search": "iron hands"})
+
+        self.assertEqual(
+            [form["name"] for form in response.data["results"]], ["iron-hands"]
+        )
 
     def test_list_follows_national_dex_not_pokeapi_order(self):
         # Como o Annihilape: `order` da PokéAPI no fim, espécie no meio.
