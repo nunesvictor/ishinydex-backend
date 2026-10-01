@@ -10,7 +10,7 @@ from core.consts import (
 )
 from core.models import OrderedModel, TimestampedModel
 from home.choices import Pokeball
-from pokedex.models import PokemonForm, Version
+from pokedex.models import FORM_NATIONAL_ORDERING, PokemonForm, Version
 
 from .origin_marks import origin_mark_for
 from .utils import col_choices, row_choices
@@ -191,7 +191,7 @@ class Specimen(TimestampedModel):
     class Meta:
         verbose_name = _("specimen")
         verbose_name_plural = _("specimens")
-        ordering = ("form__order",)
+        ordering = tuple(f"form__{field}" for field in FORM_NATIONAL_ORDERING)
 
     @classmethod
     def from_db(cls, db, field_names, values):

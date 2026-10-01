@@ -19,6 +19,7 @@ from rest_framework import filters
 from home.models import DEFAULT_POKEMON_BOX_SIZE, Slot
 from home.origin_marks import origin_mark_q
 from pokedex.models import (
+    FORM_NATIONAL_ORDERING,
     PokemonAbility,
     PokemonForm,
     PokemonFormType,
@@ -130,16 +131,18 @@ def national_order() -> Subquery:
     )
 
 
-# Valor de ``ordering`` → (anotações, ``order_by``). ``form__order`` desempata
-# formas no mesmo lugar (ex.: as da mesma espécie) e ``pk``, a paginação.
+# Valor de ``ordering`` → (anotações, ``order_by``). A ordem canônica da forma
+# desempata formas no mesmo lugar (ex.: as da mesma espécie) e ``pk``, a
+# paginação.
+FORM_TIEBREAK = tuple(f"form__{field}" for field in FORM_NATIONAL_ORDERING[:-1])
 SPECIMEN_ORDERINGS = {
     "box": (
         {"box_order": box_order},
-        (F("box_order").asc(nulls_last=True), "form__order", "pk"),
+        (F("box_order").asc(nulls_last=True), *FORM_TIEBREAK, "pk"),
     ),
     "national": (
         {"national_order": national_order},
-        (F("national_order").asc(nulls_last=True), "form__order", "pk"),
+        (F("national_order").asc(nulls_last=True), *FORM_TIEBREAK, "pk"),
     ),
     "captured_at": ({}, (F("captured_at").asc(nulls_last=True), "pk")),
     "-captured_at": ({}, (F("captured_at").desc(nulls_last=True), "-pk")),

@@ -3,6 +3,11 @@ from django.utils.translation import gettext_lazy as _
 
 from core.models import TimestampedModel
 
+# Ordem canônica das formas: nº da dex nacional (o pk da espécie) e, dentro da
+# espécie, ``form_order``; o ``pk`` só desempata. O ``order`` da PokéAPI não
+# serve: agrupa famílias até a 6ª geração e é quase arbitrário na 9ª.
+FORM_NATIONAL_ORDERING = ("pokemon__species__id", "form_order", "pk")
+
 
 class Move(TimestampedModel):
     name = models.CharField(_("name"), max_length=255)
@@ -100,7 +105,7 @@ class PokemonForm(TimestampedModel):
     class Meta:
         verbose_name = _("pokémon form")
         verbose_name_plural = _("pokémon forms")
-        ordering = ("pokemon__species", "form_order")
+        ordering = FORM_NATIONAL_ORDERING
 
     def __str__(self):
         # Sem pk não há como consultar M2M; consultar geraria um erro cuja

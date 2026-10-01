@@ -30,6 +30,17 @@ def _next() -> int:
     return next(_seq)
 
 
+# Último nº da dex nacional de cada geração (I a VIII; o resto é IX).
+_GENERATION_ENDS = (151, 251, 386, 493, 649, 721, 809, 905)
+_ROMAN = ("i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix")
+
+
+def generation_of(national_number: int) -> str:
+    """Geração da espécie pelo nº nacional, no formato da PokéAPI."""
+    index = sum(national_number > end for end in _GENERATION_ENDS)
+    return f"generation-{_ROMAN[index]}"
+
+
 def make_version_group(**kwargs) -> VersionGroup:
     n = _next()
     defaults = {
@@ -108,7 +119,11 @@ def make_full_pokemon(
     national_dex: int | None = None,
 ) -> tuple[PokemonSpecies, Pokemon, PokemonForm]:
     """Cria espécie + pokémon + forma padrão já interligados."""
-    species = make_species(name=name, has_gender_differences=has_gender_differences)
+    species = make_species(
+        name=name,
+        has_gender_differences=has_gender_differences,
+        generation=generation_of(national_dex or pokeapi_id),
+    )
     pokemon = make_pokemon(species, name=name, pokeapi_id=pokeapi_id)
     form = make_form(pokemon, name=name)
 

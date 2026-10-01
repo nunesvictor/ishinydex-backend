@@ -18,23 +18,32 @@ from home.services import (
 
 
 class BoxesNeededTests(TestCase):
-    def forms(self, *names):
-        return [f.make_full_pokemon(name, i)[2] for i, name in enumerate(names, 1)]
+    def forms(self, *entries):
+        """``entries``: pares (nome, nº nacional)."""
+        return [f.make_full_pokemon(name, number)[2] for name, number in entries]
 
     def test_counts_full_and_partial_boxes(self):
         self.assertEqual(boxes_needed([], force_new_box=False), 0)
-        forms = self.forms(*(f"mon-{i}" for i in range(BOX_SIZE + 1)))
+        forms = self.forms(*((f"mon-{i}", i) for i in range(1, BOX_SIZE + 2)))
         self.assertEqual(boxes_needed(forms, force_new_box=False), 2)
 
     def test_force_new_box_starts_each_generation_in_a_new_box(self):
-        forms = self.forms("bulbasaur", "ivysaur", "chikorita", "bayleef")
+        forms = self.forms(
+            ("bulbasaur", 1), ("ivysaur", 2), ("chikorita", 152), ("bayleef", 153)
+        )
 
         self.assertEqual(boxes_needed(forms, force_new_box=False), 1)
         # chikorita (1ª da geração II) vai para o 1º slot da box seguinte.
         self.assertEqual(boxes_needed(forms, force_new_box=True), 2)
 
+    def test_generation_break_does_not_depend_on_the_starter(self):
+        # Sem o Chikorita: a geração II começa no Bayleef, pela espécie.
+        forms = self.forms(("bulbasaur", 1), ("bayleef", 153), ("meganium", 154))
+
+        self.assertEqual(boxes_needed(forms, force_new_box=True), 2)
+
     def test_generation_starting_at_first_slot_does_not_skip(self):
-        forms = self.forms("chikorita", "bayleef")
+        forms = self.forms(("chikorita", 152), ("bayleef", 153))
 
         self.assertEqual(boxes_needed(forms, force_new_box=True), 1)
 

@@ -6,6 +6,7 @@ from core.admin_mixins import CustomFieldsRendererMixin
 from .admin_filters import EggGroupFilter
 from .forms import PokemonSpeciesAdminForm
 from .models import (
+    FORM_NATIONAL_ORDERING,
     Move,
     Pokemon,
     PokemonForm,
@@ -97,8 +98,9 @@ class PokemonAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
     )
     list_per_page = 6
     ordering = (
-        "species__order",
-        "order",
+        "species__id",
+        "-is_default",
+        "pk",
     )
     readonly_fields = (
         "abilities",
@@ -138,10 +140,7 @@ class PokemonFormAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
         "is_mega",
     )
     list_per_page = 6
-    ordering = (
-        "pokemon__species__order",
-        "order",
-    )
+    ordering = FORM_NATIONAL_ORDERING
     search_fields = (
         "name",
         "types__type",
@@ -179,7 +178,7 @@ class PokemonSpeciesAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
         "shape",
     )
     list_per_page = 6
-    ordering = ("order",)
+    ordering = ("pk",)
     search_fields = (
         "name",
         "names__name",
