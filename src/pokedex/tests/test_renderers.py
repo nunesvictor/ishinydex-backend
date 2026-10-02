@@ -4,42 +4,8 @@ from django.test import TestCase
 
 from core.tests import factories as f
 from core.tests.mixins import TempSpritesMixin
-from home.choices import Pokeball
-from home.models import Slot
-from pokedex.models import Pokemon, PokemonForm
-from pokedex.renderers import (
-    HomeSpriteRenderer,
-    ItemSpriteRenderer,
-    PokeballSpriteRenderer,
-    PokemonSpriteRenderer,
-    get_renderer,
-)
+from pokedex.renderers import HomeSpriteRenderer, PokemonSpriteRenderer
 from pokedex.resolvers import SingleSpriteResolver
-
-
-class GetRendererTests(TestCase):
-    def test_mapping_from_settings(self):
-        self.assertIs(get_renderer(Pokemon), HomeSpriteRenderer)
-        self.assertIs(get_renderer(PokemonForm), PokemonSpriteRenderer)
-        self.assertIs(get_renderer(Slot), HomeSpriteRenderer)
-
-    def test_unknown_type_falls_back_to_default(self):
-        class Unknown:
-            pass
-
-        renderer = get_renderer(Unknown)  # type: ignore[arg-type]
-
-        self.assertIs(renderer, PokemonSpriteRenderer)
-
-    def test_invalid_renderer_raises(self):
-        with self.settings(SPRITE_RENDERERS={"default": "pokedex.models.Pokemon"}):
-            with self.assertRaises(ValueError):
-                get_renderer(PokemonForm)
-
-    def test_missing_default_raises(self):
-        with self.settings(SPRITE_RENDERERS={}):
-            with self.assertRaises(AttributeError):
-                get_renderer(PokemonForm)
 
 
 class PokemonSpriteRendererTests(TempSpritesMixin, TestCase):
@@ -97,26 +63,6 @@ class PokemonSpriteRendererTests(TempSpritesMixin, TestCase):
             PokemonSpriteRenderer(self.form).get_sprite_url(
                 default=Path("/media/sprites/pokemon/0.png")
             )
-
-    def test_as_html(self):
-        self.add_sprite("pokemon/1.png")
-
-        html = PokemonSpriteRenderer(self.form).as_html(
-            alt="Bulbasaur", classes=["a", "b"], width=48, height=48
-        )
-
-        self.assertIn('src="/media/sprites/pokemon/1.png"', html)
-        self.assertIn('class="a b"', html)
-        self.assertIn('alt="Bulbasaur"', html)
-        self.assertIn('width="48"', html)
-        self.assertIn('height="48"', html)
-
-    def test_as_html_escapes_alt(self):
-        self.add_sprite("pokemon/1.png")
-
-        html = PokemonSpriteRenderer(self.form).as_html(alt='"><script>')
-
-        self.assertNotIn("<script>", html)
 
     def test_resolver_override_by_pokemon_name(self):
         _, pokemon, form = f.make_full_pokemon("sinistea", 854)
@@ -183,14 +129,3 @@ class SlotSpriteRendererTests(TempSpritesMixin, TestCase):
     def test_invalid_object_raises(self):
         with self.assertRaises(ValueError):
             PokemonSpriteRenderer(object())  # type: ignore[arg-type]
-
-
-class ItemSpriteRendererTests(TempSpritesMixin, TestCase):
-    def test_item_sprite_url(self):
-        url = PokeballSpriteRenderer(Pokeball.MASTER_BALL).get_sprite_url()
-
-        self.assertEqual(url, Path("/media/sprites/items/master-ball.png"))
-
-    def test_missing_item_raises(self):
-        with self.assertRaises(FileNotFoundError):
-            ItemSpriteRenderer("does-not-exist").get_sprite_url()

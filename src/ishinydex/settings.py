@@ -217,13 +217,6 @@ CORS_ALLOWED_ORIGIN_REGEXES = (
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 3000
 
 # First Party ENVS
-SPRITE_RENDERERS = {
-    "default": "pokedex.renderers.PokemonSpriteRenderer",
-    "pokemon": "pokedex.renderers.HomeSpriteRenderer",
-    "pokemonform": "pokedex.renderers.PokemonSpriteRenderer",
-    "slot": "pokedex.renderers.HomeSpriteRenderer",
-}
-
 POKEMON_SPRITE_RESOLVERS = {
     "default": "pokedex.resolvers.PokemonSpriteResolver",
     "sinistea": "pokedex.resolvers.SingleSpriteResolver",

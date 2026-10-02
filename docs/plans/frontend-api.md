@@ -224,7 +224,7 @@ Exemplos:
   - redepositar no mesmo slot é permitido; depositar num slot ocupado substitui
     o specimen anterior (que volta a ficar disponível).
 - **Ability** do specimen deve pertencer às abilities do pokémon da forma
-  (mesma regra do `SpecimenAdminForm`) → `{"ability": [...]}`.
+  → `{"ability": [...]}`.
 - **Editar** (PUT/PATCH): `form` não pode mudar depois de criado → `{"form": [...]}`.
   Enviar a mesma forma é aceito.
 - **Libertar** (DELETE → 204): apaga o specimen, mesmo depositado; o slot

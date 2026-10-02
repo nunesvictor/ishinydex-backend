@@ -3,11 +3,9 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 
 from django.conf import settings
-from django.utils.html import format_html
 from django.utils.module_loading import import_string
 
 from core.typing import SpriteObject, SpriteOption
-from home.choices import Pokeball
 from home.models import Slot
 from pokedex.models import Pokemon, PokemonForm
 from pokedex.resolvers import PokemonSpriteResolver
@@ -45,29 +43,6 @@ class SpriteRenderer(ABC):
         pass
 
 
-class ItemSpriteRenderer(SpriteRenderer):
-    _sprites_url = settings.ITEM_SPRITES_URL
-
-    def get_sprite_url(self, **kwargs):
-        sprite_url = self.sprites_url / f"{self.name}.png"
-        sprite_path = Path(settings.BASE_DIR / sprite_url.relative_to("/"))
-
-        if not sprite_path.exists() or not sprite_path.is_file():
-            raise FileNotFoundError(
-                "%s: sprite file not found: %s" % (self.name, sprite_path.as_posix())
-            )
-
-        return sprite_url
-
-    def __init__(self, name: str):
-        self.name = name
-
-
-class PokeballSpriteRenderer(ItemSpriteRenderer):
-    def __init__(self, name: Pokeball):
-        super().__init__(name)
-
-
 class PokemonSpriteRenderer(SpriteRenderer):
     _sprites_url = settings.POKEMON_SPRITES_URL
     _is_shiny_sprite = False
@@ -103,20 +78,6 @@ class PokemonSpriteRenderer(SpriteRenderer):
             return default
 
         return sprite_url
-
-    def as_html(self, alt=None, classes=[], width=96, height=96, **kwargs):
-        return format_html(
-            '<img src="{img_src}"'
-            'class="{img_class}"'
-            'alt="{img_alt}" '
-            'height="{img_height}" '
-            'width="{img_width}" />',
-            img_src=self.get_sprite_url(**kwargs),
-            img_class=" ".join(classes),
-            img_alt=alt or self.pokemon.__repr__(),
-            img_height=height,
-            img_width=width,
-        )
 
     def _get_sprite_resolver(self) -> PokemonSpriteResolver:
         if not hasattr(settings, "POKEMON_SPRITE_RESOLVERS"):
@@ -197,30 +158,3 @@ class HomeSpriteRenderer(PokemonSpriteRenderer):
 
     def __init__(self, object: SpriteObject, option: SpriteOption = None):
         super().__init__(object, option)
-
-
-def get_renderer(obj_type: type[SpriteObject]) -> type[PokemonSpriteRenderer]:
-    slug = obj_type.__name__.lower().strip()
-
-    if not hasattr(settings, "SPRITE_RENDERERS"):
-        raise AttributeError(
-            "'SPRITE_RENDERERS' must be set in your DJANGO_SETTINGS_MODULE"
-        )
-
-    if not isinstance(settings.SPRITE_RENDERERS, dict):
-        raise AttributeError("'SPRITE_RENDERERS' must be a dict")
-
-    if "default" not in settings.SPRITE_RENDERERS:
-        raise AttributeError("'SPRITE_RENDERERS' must have a 'default' key set")
-
-    try:
-        renderer = import_string(settings.SPRITE_RENDERERS[slug])
-    except KeyError:
-        renderer = import_string(settings.SPRITE_RENDERERS["default"])
-
-    if not (isinstance(renderer, type) and issubclass(renderer, PokemonSpriteRenderer)):
-        raise ValueError(
-            f"{renderer!r} must be a subclass of {PokemonSpriteRenderer.__name__}."
-        )
-
-    return renderer
