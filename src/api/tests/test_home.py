@@ -1293,6 +1293,38 @@ class SpecimenViewSetTests(HomeAPITestCase):
             recent_first.data, [undated.pk, dive.pk, self.bulbasaur_specimen.pk]
         )
 
+    def bulk_release(self, data):
+        return self.client.post(
+            reverse("api:specimen-bulk-release"), data, format="json"
+        )
+
+    def test_bulk_release_deletes_and_frees_slots(self):
+        loose = f.make_specimen(self.charmander)
+        kept = f.make_specimen(self.squirtle)
+
+        response = self.bulk_release(
+            {"ids": [self.bulbasaur_specimen.pk, loose.pk, loose.pk]}
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, {"released": 2})
+        self.assertEqual(list(Specimen.objects.values_list("pk", flat=True)), [kept.pk])
+        # Depositado: o slot continua com a forma, mas volta a faltar.
+        self.bulbasaur_slot.refresh_from_db()
+        self.assertIsNone(self.bulbasaur_slot.specimen)
+        self.assertEqual(self.bulbasaur_slot.form, self.bulbasaur)
+
+    def test_bulk_release_is_all_or_nothing(self):
+        missing = self.bulk_release({"ids": [self.bulbasaur_specimen.pk, 999999]})
+        empty = self.bulk_release({"ids": []})
+        no_ids = self.bulk_release({})
+
+        for response in (missing, empty, no_ids):
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertIn("ids", response.data)
+        self.assertIn("999999", str(missing.data["ids"]))
+        self.assertTrue(Specimen.objects.filter(pk=self.bulbasaur_specimen.pk).exists())
+
     def bulk(self, ids, changes):
         return self.client.patch(
             reverse("api:specimen-bulk"),

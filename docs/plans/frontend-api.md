@@ -41,6 +41,7 @@ Schema OpenAPI: `GET /api/schema/` · Swagger UI: `GET /api/docs/` (públicos).
 | GET/PUT/PATCH/DELETE | `/api/specimens/{id}/` | PATCH = editar (`form` imutável); DELETE = libertar, inclusive depositado |
 | GET | `/api/specimens/ids/?` + filtros de `/specimens/` | ids de todos os espécimes do filtro, na ordem da lista, **sem paginação**: `[1, 2, ...]` |
 | PATCH | `/api/specimens/bulk/` | edição em lote (ver Regras): `{"ids": [...], "changes": {...}}` → `{"updated": n}` |
+| POST | `/api/specimens/bulk-release/` | libertar em lote: `{"ids": [...]}` → `{"released": n}`; tudo ou nada (id inexistente ou lista vazia → `{"ids": [...]}`, nada é apagado); depositados deixam o slot vazio, como o `DELETE` |
 | GET | `/api/specimens/options/` | choices de language, gender, nature, pokeball, type, generation e origin_mark |
 | GET | `/api/forms/?search=` | formas (`FormRef`), busca por nome ([como slug](#busca-por-nome)), na [ordem canônica](#ordem-canônica-das-formas) |
 | GET | `/api/forms/{id}/` | `FormDetail` |

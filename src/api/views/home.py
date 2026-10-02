@@ -42,6 +42,8 @@ from ..serializers.home import (
     PersonalDexSerializer,
     PersonalDexUpdateSerializer,
     SlotSerializer,
+    SpecimenBulkReleaseResultSerializer,
+    SpecimenBulkReleaseSerializer,
     SpecimenBulkResultSerializer,
     SpecimenBulkUpdateSerializer,
     SpecimenOptionsSerializer,
@@ -477,6 +479,19 @@ class SpecimenViewSet(viewsets.ModelViewSet):
             )
 
         return Response({"updated": serializer.save()})
+
+    @extend_schema(
+        request=SpecimenBulkReleaseSerializer,
+        responses=SpecimenBulkReleaseResultSerializer,
+    )
+    @action(detail=False, methods=["post"], url_path="bulk-release", filter_backends=[])
+    @transaction.atomic
+    def bulk_release(self, request):
+        """Liberta em lote, tudo ou nada: apaga os espécimes, inclusive os
+        depositados (o slot volta a faltar)."""
+        serializer = SpecimenBulkReleaseSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response({"released": serializer.save()})
 
 
 @extend_schema_view(

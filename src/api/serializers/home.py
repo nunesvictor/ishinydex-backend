@@ -504,15 +504,15 @@ class SpecimenChangesSerializer(serializers.ModelSerializer):
         return attrs
 
 
-class SpecimenBulkUpdateSerializer(serializers.Serializer):
-    """``PATCH /specimens/bulk/``: aplica ``changes`` a todos os ``ids``.
+class SpecimenIdsSerializer(serializers.Serializer):
+    """``ids`` de uma operação em lote, todos existentes (repetidos contam uma
+    vez).
 
     Deve rodar dentro de uma transação: os espécimes ficam travados
-    (``select_for_update``) entre a validação e o ``update``.
+    (``select_for_update``) entre a validação e a operação.
     """
 
     ids = serializers.ListField(child=serializers.IntegerField(), allow_empty=False)
-    changes = SpecimenChangesSerializer()
 
     def validate_ids(self, ids: list[int]) -> list[int]:
         ids = sorted(set(ids))
@@ -532,6 +532,12 @@ class SpecimenBulkUpdateSerializer(serializers.Serializer):
             )
 
         return ids
+
+
+class SpecimenBulkUpdateSerializer(SpecimenIdsSerializer):
+    """``PATCH /specimens/bulk/``: aplica ``changes`` a todos os ``ids``."""
+
+    changes = SpecimenChangesSerializer()
 
     def gender_conflicts(self) -> list[dict]:
         """Espécimes cuja forma não admite o gênero pedido (vazio se o
@@ -560,3 +566,19 @@ class SpecimenBulkUpdateSerializer(serializers.Serializer):
 
 class SpecimenBulkResultSerializer(serializers.Serializer):
     updated = serializers.IntegerField()
+
+
+class SpecimenBulkReleaseSerializer(SpecimenIdsSerializer):
+    """``POST /specimens/bulk-release/``: liberta (apaga) todos os ``ids``.
+    Os slots onde estavam depositados ficam vazios (``on_delete=SET_NULL``),
+    como no ``DELETE /specimens/{id}/``."""
+
+    def save(self) -> int:
+        """Número de espécimes libertados."""
+        ids = self.validated_data["ids"]
+        Specimen.objects.filter(pk__in=ids).delete()
+        return len(ids)
+
+
+class SpecimenBulkReleaseResultSerializer(serializers.Serializer):
+    released = serializers.IntegerField()
