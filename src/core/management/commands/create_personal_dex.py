@@ -74,7 +74,7 @@ class Command(BaseCommand):
             call_command(
                 "create_home_scheme",
                 personal_dex_id=dex.id,
-                first_box_id=Box.objects.first().id,
+                first_box_id=Box.objects.earliest("position").id,
                 clear=True,
                 stdout=self.stdout,
                 stderr=self.stderr,

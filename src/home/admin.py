@@ -1,3 +1,4 @@
+from typing import Any
 from urllib.parse import parse_qs, urlparse
 
 from django.contrib import admin
@@ -47,7 +48,8 @@ class SlotInline(admin.TabularInline, CustomFieldsRendererMixin):
     class Media:
         css = {"all": ("css/styles.css",)}
 
-    def render_sprite(self, obj: Slot):
+    @admin.display(description=_("sprite"))
+    def render_sprite(self, obj: Slot):  # type: ignore[override]
         p_dex = getattr(obj, "personal_dex", None)
         specimen = getattr(obj, "specimen", None)
         is_registered = False
@@ -60,8 +62,6 @@ class SlotInline(admin.TabularInline, CustomFieldsRendererMixin):
             opt = "shiny" if p_dex.is_shiny_dex else "default"
 
         return super().render_sprite(obj, opt=opt, is_registered=is_registered)
-
-    render_sprite.short_description = _("sprite")
 
 
 @admin.register(Box)
@@ -146,14 +146,13 @@ class PersonalDexAdmin(admin.ModelAdmin):
     list_filter = ("is_shiny_dex",)
     search_fields = ("name",)
 
+    @admin.display(description=_("forms"))
     def forms_count(self, obj):
         return obj.forms.count()
 
+    @admin.display(description=_("slots"))
     def slots_count(self, obj):
         return obj.slot_set.count()
-
-    forms_count.short_description = _("forms")
-    slots_count.short_description = _("slots")
 
     # Apagar pelo admin também libera os slots (ver home.services.delete_dex).
     def delete_model(self, request, obj):
@@ -266,11 +265,15 @@ class SlotAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
                 .order_by("position")[:30]
             )
             for slot in slots:
-                slot.rendered_sprite = self.render_sprite(slot)
+                # Atributo só para o template da grade.
+                setattr(slot, "rendered_sprite", self.render_sprite(slot))
 
             extra_context["grid_slots"] = slots
 
-        self.show_facets = ShowFacets.ALWAYS if is_filtered else ShowFacets.NEVER
+        # Muda o atributo de classe por requisição: o ChangeList só lê
+        # ``show_facets`` e o Django não tem um ``get_show_facets``.
+        show_facets = ShowFacets.ALWAYS if is_filtered else ShowFacets.NEVER
+        self.show_facets = show_facets  # type: ignore[misc]
         return super().changelist_view(request, extra_context=extra_context)
 
     def get_queryset(self, request):
@@ -393,7 +396,7 @@ class SlotAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
     def registration_status(self, obj):
         return obj.specimen_id is not None
 
-    def render_sprite(self, obj: Slot):
+    def render_sprite(self, obj: Slot):  # type: ignore[override]
         specimen = getattr(obj, "specimen", None)
         p_dex = getattr(obj, "personal_dex", None)
         is_registered = False
@@ -472,7 +475,7 @@ class SpecimenAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
         )
 
     def get_changeform_initial_data(self, request):
-        initial = super().get_changeform_initial_data(request)
+        initial: dict[str, Any] = super().get_changeform_initial_data(request)
 
         if "form_id" in request.GET:
             initial["form"] = request.GET["form_id"]
@@ -480,7 +483,7 @@ class SpecimenAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
             personal_dex_id = request.GET["personal_dex_id"]
             p_dex = PersonalDex.objects.filter(id=personal_dex_id).first()
 
-            initial["is_shiny"] = p_dex and p_dex.is_shiny_dex
+            initial["is_shiny"] = bool(p_dex and p_dex.is_shiny_dex)
 
         return initial
 
@@ -507,12 +510,12 @@ class SpecimenAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
         return fields
 
     def get_inlines(self, request, obj=None):
-        inlines = super().get_inlines(request, obj)
-
+        # Lista nova: o ``get_inlines`` padrão devolve o próprio
+        # ``self.inlines``, e esvaziá-lo valeria para todas as requisições.
         if IS_POPUP_VAR in request.GET:
-            inlines.clear()
+            return []
 
-        return inlines
+        return super().get_inlines(request, obj)
 
     def get_urls(self):
         urls = super().get_urls()
@@ -542,7 +545,7 @@ class SpecimenAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
         return "-"
 
     @admin.display(description=_("sprite"))
-    def render_sprite(self, obj: Specimen):
+    def render_sprite(self, obj: Specimen):  # type: ignore[override]
         opt = "shiny" if obj.is_shiny else "default"
 
         return super().render_sprite(

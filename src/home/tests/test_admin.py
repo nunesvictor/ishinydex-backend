@@ -1,7 +1,8 @@
 from datetime import timedelta
+from typing import cast
 
 from django.contrib.admin.sites import site
-from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User
 from django.contrib.messages import get_messages
 from django.test import RequestFactory, TestCase, override_settings
 from django.urls import reverse
@@ -9,14 +10,15 @@ from django.utils import timezone
 
 from core.tests import factories as f
 from core.tests.mixins import TempSpritesMixin
+from home.admin import BoxAdmin
 from home.admin_filters import RegistrationStatusFilter
-from home.models import Slot, Specimen
+from home.models import Box, Slot, Specimen
 
 
 class AdminTestCase(TempSpritesMixin, TestCase):
     def setUp(self):
         super().setUp()
-        self.user = get_user_model().objects.create_superuser("admin", "a@a.com", "pw")
+        self.user = User.objects.create_superuser("admin", "a@a.com", "pw")
         self.client.force_login(self.user)
 
         _, _, self.form = f.make_full_pokemon("bulbasaur", 1, abilities=("overgrow",))
@@ -62,7 +64,7 @@ class BoxAdminTests(AdminTestCase):
     def test_changelist_columns(self):
         self.slot.personal_dex = f.make_personal_dex(self.form)
         self.slot.save()
-        box_admin = site._registry[type(self.box)]
+        box_admin = cast(BoxAdmin, site._registry[Box])
 
         self.assertTrue(box_admin.is_schema_configured(self.box))
         self.assertFalse(box_admin.is_schema_filled_out(self.box))
@@ -75,7 +77,7 @@ class BoxAdminTests(AdminTestCase):
         self.assertEqual(box_admin.empty_slots(self.box), "-")
 
     def test_unconfigured_box(self):
-        box_admin = site._registry[type(self.box)]
+        box_admin = cast(BoxAdmin, site._registry[Box])
         other = f.make_box()
 
         self.assertFalse(box_admin.is_schema_configured(other))
@@ -153,7 +155,7 @@ class SlotAdminTests(AdminTestCase):
 
     def test_filtered_changelist_searches_all_boxes(self):
         other = f.make_box(name="HOME 2")
-        slot = other.slots.first()
+        slot = other.slots.earliest("position")
         slot.form = self.form
         slot.save()
 
@@ -230,7 +232,9 @@ class SlotAdminTests(AdminTestCase):
 
         self.assertRedirects(
             response,
-            reverse("admin:home_slot_change", args=[next_box.slots.first().pk]),
+            reverse(
+                "admin:home_slot_change", args=[next_box.slots.earliest("position").pk]
+            ),
             fetch_redirect_response=False,
         )
 
@@ -333,6 +337,10 @@ class SpecimenAdminTests(AdminTestCase):
         self.assertNotIn("nickname", fields)
         self.assertNotIn("language", fields)
         self.assertEqual(response.context["inline_admin_formsets"], [])
+
+        # O popup não pode esvaziar os inlines das próximas requisições.
+        response = self.client.get(reverse("admin:home_specimen_add"))
+        self.assertEqual(len(response.context["inline_admin_formsets"]), 1)
 
     def test_change_view(self):
         specimen = f.make_specimen(self.form)

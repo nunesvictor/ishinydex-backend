@@ -1,3 +1,5 @@
+from typing import cast
+
 from django import forms
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.db import models
@@ -82,7 +84,7 @@ class SpecimenAdminForm(AdminModelForm):
             )
 
         if "pokeball" in self.fields:
-            field_choices = self.fields["pokeball"].choices
+            field_choices = cast(forms.ChoiceField, self.fields["pokeball"]).choices
             self.fields["pokeball"].widget = ImageSelectWidget(
                 choices=field_choices,
                 image_map={
@@ -140,11 +142,11 @@ class SpecimenBulkUpdateForm(forms.Form):
 
         for field_name in self.UPDATABLE_FIELDS:
             self.fields[field_name] = self._build_update_field(
-                Specimen._meta.get_field(field_name)
+                cast(models.Field, Specimen._meta.get_field(field_name))
             )
 
         self.fields["pokeball"].widget = ImageSelectWidget(
-            choices=self.fields["pokeball"].choices,
+            choices=cast(forms.ChoiceField, self.fields["pokeball"]).choices,
             image_map={
                 ball.value: PokeballSpriteRenderer(ball).get_sprite_url().as_posix()
                 for ball in Pokeball
@@ -173,6 +175,8 @@ class SpecimenBulkUpdateForm(forms.Form):
             )
 
         field = model_field.formfield(required=False)
+        # Todo campo de UPDATABLE_FIELDS tem um campo de formulário.
+        assert field is not None
 
         if isinstance(field, forms.ModelChoiceField):
             field.empty_label = self.KEEP_CURRENT[1]

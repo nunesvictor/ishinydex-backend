@@ -4,7 +4,7 @@ from django.utils.translation import gettext_lazy as _
 
 
 def __choices_from_range(n: int) -> tuple[tuple[int, str], ...]:
-    return ((i, f"{i + 1}") for i in range(n))
+    return tuple((i, f"{i + 1}") for i in range(n))
 
 
 def row_choices() -> tuple[tuple[int, str], ...]:

@@ -9,6 +9,7 @@ from unittest import mock
 from django.test import SimpleTestCase, override_settings
 
 import requests
+from requests.adapters import HTTPAdapter
 
 from core.services.pokeapi import LIST_LIMIT, OFFICIAL_URL, PokeAPIClient, resource_path
 
@@ -158,6 +159,7 @@ class PokeAPIClientTests(SimpleTestCase):
         client = self.make_client(retries=3)
 
         adapter = client.session.get_adapter("https://pokeapi.co")
+        assert isinstance(adapter, HTTPAdapter)
         self.assertEqual(adapter.max_retries.total, 3)
         self.assertIn(503, adapter.max_retries.status_forcelist)
 

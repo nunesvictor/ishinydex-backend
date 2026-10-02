@@ -22,7 +22,9 @@ class Command(BaseCommand):
         self.stderr.write("+-------------------------------------------+")
 
         db_connection = connections["default"]
-        psycopg2_module = db_connection.Database
+        # O módulo do driver fica no wrapper do PostgreSQL; o stub do wrapper
+        # genérico (o tipo de ``connections[...]``) não o declara.
+        psycopg2_module = db_connection.Database  # type: ignore[attr-defined]
 
         # A conexão do próprio Django com o banco impediria o DROP.
         db_connection.close()

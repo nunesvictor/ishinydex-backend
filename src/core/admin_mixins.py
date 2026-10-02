@@ -23,7 +23,7 @@ class CustomFieldsRendererMixin:
         return Path(settings.TYPE_SPRITES_URL / gen / game / f"{type_id}.png")
 
     @admin.display(description=_("sprite"))
-    def render_sprite(self, obj: SpriteObject, **kwargs):
+    def render_sprite(self, obj: SpriteObject | None, **kwargs):
         if not obj:
             return "-"
 

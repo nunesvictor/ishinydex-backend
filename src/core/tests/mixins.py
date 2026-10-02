@@ -1,13 +1,18 @@
 import shutil
 import tempfile
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from django.test import override_settings
+from django.test import SimpleTestCase, override_settings
 
 from home.choices import Pokeball
 
+# Para o pyright, o mixin "é" um TestCase (setUp, addCleanup...); em runtime
+# continua um object, combinado com o TestCase de cada classe de teste.
+_TestCaseBase = SimpleTestCase if TYPE_CHECKING else object
 
-class TempSpritesMixin:
+
+class TempSpritesMixin(_TestCaseBase):
     """Aponta BASE_DIR para um diretório temporário (por teste) com sprites.
 
     Os renderers resolvem caminhos como ``BASE_DIR / "media/sprites/..."`` e

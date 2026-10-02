@@ -1,3 +1,5 @@
+from typing import TYPE_CHECKING
+
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext as __
@@ -15,13 +17,20 @@ from pokedex.models import FORM_NATIONAL_ORDERING, PokemonForm, Version
 from .origin_marks import origin_mark_for
 from .utils import col_choices, row_choices
 
+if TYPE_CHECKING:
+    from django.db.models.fields.related_descriptors import RelatedManager
+
 DEFAULT_POKEMON_BOX_SIZE = 30
 
 
 class Box(OrderedModel, TimestampedModel):
     name = models.CharField(_("name"), max_length=255, unique=True)
 
-    class Meta:
+    # Atributos que o Django cria em runtime (relações reversas e as colunas
+    # ``<fk>_id``): anotados para o pyright/Pylance, que não os enxerga.
+    slots: "RelatedManager[Slot]"
+
+    class Meta(OrderedModel.Meta, TimestampedModel.Meta):
         verbose_name = _("box")
         verbose_name_plural = _("boxes")
 
@@ -52,14 +61,15 @@ class OriginalTrainer(TimestampedModel):
     version = models.ForeignKey(
         Version, on_delete=models.SET_NULL, blank=True, null=True
     )
+    version_id: int | None
 
-    class Meta:
+    class Meta(TimestampedModel.Meta):
         ordering = ("version__version_group__order", "version__name")
         unique_together = ("name", "trainer_id")
 
     @classmethod
-    def from_db(cls, db, field_names, values):
-        instance = super().from_db(db, field_names, values)
+    def from_db(cls, db, field_names, values, **kwargs):
+        instance = super().from_db(db, field_names, values, **kwargs)
         instance._loaded_version_id = instance.version_id
         return instance
 
@@ -107,8 +117,9 @@ class Save(TimestampedModel):
         OriginalTrainer, on_delete=models.PROTECT, related_name="save_file"
     )
     label = models.CharField(_("label"), max_length=255, blank=True)
+    trainer_id: int
 
-    class Meta:
+    class Meta(TimestampedModel.Meta):
         verbose_name = _("save")
         verbose_name_plural = _("saves")
         ordering = (
@@ -141,7 +152,7 @@ class PersonalDex(TimestampedModel):
     is_shiny_dex = models.BooleanField(_("is shiny dex"), default=False)
     force_new_box = models.BooleanField(_("force new Box for each gen"), default=False)
 
-    class Meta:
+    class Meta(TimestampedModel.Meta):
         verbose_name = _("personal dex")
         verbose_name_plural = _("personal dexes")
 
@@ -165,8 +176,9 @@ class Slot(OrderedModel, TimestampedModel):
     specimen = models.ForeignKey(
         "Specimen", on_delete=models.SET_NULL, blank=True, null=True
     )
+    form_id: int | None
 
-    class Meta:
+    class Meta(OrderedModel.Meta, TimestampedModel.Meta):
         verbose_name = _("slot")
         verbose_name_plural = _("slots")
         unique_together = ("box", "row", "col")
@@ -251,15 +263,17 @@ class Specimen(TimestampedModel):
         null=True,
     )
     location_since = models.DateField(_("location since"), blank=True, null=True)
+    form_id: int
+    ot_id: int | None
 
-    class Meta:
+    class Meta(TimestampedModel.Meta):
         verbose_name = _("specimen")
         verbose_name_plural = _("specimens")
         ordering = tuple(f"form__{field}" for field in FORM_NATIONAL_ORDERING)
 
     @classmethod
-    def from_db(cls, db, field_names, values):
-        instance = super().from_db(db, field_names, values)
+    def from_db(cls, db, field_names, values, **kwargs):
+        instance = super().from_db(db, field_names, values, **kwargs)
         instance._loaded_ot_id = instance.ot_id
         return instance
 

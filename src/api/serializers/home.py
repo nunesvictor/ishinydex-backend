@@ -67,7 +67,7 @@ class FormRefSerializer(serializers.ModelSerializer):
     sprite_url = serializers.SerializerMethodField()
     shiny_sprite_url = serializers.SerializerMethodField()
 
-    class Meta:
+    class Meta:  # pyright: ignore[reportIncompatibleVariableOverride]
         model = PokemonForm
         fields: tuple[str, ...] = (
             "id",
@@ -169,7 +169,7 @@ class TrainerSerializer(serializers.ModelSerializer):
         required=False,
     )
 
-    class Meta:
+    class Meta:  # pyright: ignore[reportIncompatibleVariableOverride]
         model = OriginalTrainer
         fields = ("id", "name", "trainer_id", "version")
 
@@ -179,7 +179,7 @@ class SaveRefSerializer(serializers.ModelSerializer):
 
     trainer = TrainerSerializer(read_only=True)
 
-    class Meta:
+    class Meta:  # pyright: ignore[reportIncompatibleVariableOverride]
         model = Save
         fields = ("id", "label", "trainer")
 
@@ -192,7 +192,7 @@ class SaveSerializer(serializers.ModelSerializer):
         queryset=OriginalTrainer.objects.select_related("version")
     )
 
-    class Meta:
+    class Meta:  # pyright: ignore[reportIncompatibleVariableOverride]
         model = Save
         fields = ("id", "label", "trainer")
 
@@ -224,7 +224,7 @@ class SpecimenSummarySerializer(serializers.ModelSerializer):
     pokeball_sprite_url = serializers.SerializerMethodField()
     location = SaveRefSerializer(read_only=True, allow_null=True)
 
-    class Meta:
+    class Meta:  # pyright: ignore[reportIncompatibleVariableOverride]
         model = Specimen
         fields = (
             "id",
@@ -265,7 +265,7 @@ class SpecimenSerializer(serializers.ModelSerializer):
     location = SaveRefSerializer(read_only=True, allow_null=True)
     location_since = serializers.DateField(read_only=True, allow_null=True)
 
-    class Meta:
+    class Meta:  # pyright: ignore[reportIncompatibleVariableOverride]
         model = Specimen
         fields = "__all__"
 
@@ -317,7 +317,7 @@ class SpecimenSerializer(serializers.ModelSerializer):
 
 
 class BoxRefSerializer(serializers.ModelSerializer):
-    class Meta:
+    class Meta:  # pyright: ignore[reportIncompatibleVariableOverride]
         model = Box
         fields: tuple[str, ...] = ("id", "name", "position")
 
@@ -340,7 +340,7 @@ class SlotSerializer(serializers.ModelSerializer):
     specimen = SpecimenSummarySerializer(read_only=True, allow_null=True)
     is_shiny_display = serializers.SerializerMethodField()
 
-    class Meta:
+    class Meta:  # pyright: ignore[reportIncompatibleVariableOverride]
         model = Slot
         fields = (
             "id",
@@ -381,9 +381,9 @@ class HuntSerializer(SlotSerializer):
         )
     )
     def get_shiny_lock(self, obj: Slot) -> str | None:
-        if obj.hunt_unobtainable:
+        if getattr(obj, "hunt_unobtainable", False):
             return ShinyLock.LockTypeChoices.UNOBTAINABLE
-        if obj.hunt_distro_only:
+        if getattr(obj, "hunt_distro_only", False):
             return ShinyLock.LockTypeChoices.DISTRO_ONLY
         return None
 
@@ -393,7 +393,7 @@ class PersonalDexSerializer(serializers.ModelSerializer):
     registered = serializers.IntegerField(read_only=True)
     away = serializers.IntegerField(read_only=True)
 
-    class Meta:
+    class Meta:  # pyright: ignore[reportIncompatibleVariableOverride]
         model = PersonalDex
         fields = (
             "id",
@@ -409,7 +409,7 @@ class PersonalDexSerializer(serializers.ModelSerializer):
 class PersonalDexCreateSerializer(serializers.ModelSerializer):
     """Dados para criar um PersonalDex com o conjunto padrão de formas."""
 
-    class Meta:
+    class Meta:  # pyright: ignore[reportIncompatibleVariableOverride]
         model = PersonalDex
         fields = ("name", "is_shiny_dex", "force_new_box")
 
@@ -418,7 +418,7 @@ class PersonalDexUpdateSerializer(serializers.ModelSerializer):
     """Renomear o dex ou trocar se é shiny dex. ``force_new_box`` não muda:
     o esquema já está instalado nas boxes."""
 
-    class Meta:
+    class Meta:  # pyright: ignore[reportIncompatibleVariableOverride]
         model = PersonalDex
         fields = ("name", "is_shiny_dex")
 
@@ -507,14 +507,16 @@ class VersionSerializer(serializers.ModelSerializer):
     version_group = serializers.CharField(source="version_group.name")
     generation = serializers.CharField(source="version_group.generation")
 
-    class Meta:
+    class Meta:  # pyright: ignore[reportIncompatibleVariableOverride]
         model = Version
         fields = ("name", "version_group", "generation")
 
 
 class ChoiceSerializer(serializers.Serializer):
     value = serializers.CharField()
-    label = serializers.CharField()
+    # O campo some da classe em runtime (vai para ``_declared_fields``); o
+    # stub só vê que ele cobre o ``Field.label`` (o rótulo do serializer).
+    label = serializers.CharField()  # type: ignore[assignment]
 
 
 class PokeballChoiceSerializer(ChoiceSerializer):
@@ -539,7 +541,7 @@ class SpecimenChangesSerializer(serializers.ModelSerializer):
     """Campos editáveis em lote; todos opcionais. ``null`` em ``pokeball``,
     ``ot`` e ``captured_at`` remove o valor."""
 
-    class Meta:
+    class Meta:  # pyright: ignore[reportIncompatibleVariableOverride]
         model = Specimen
         fields = (
             "pokeball",
@@ -630,7 +632,7 @@ class SpecimenBulkUpdateSerializer(SpecimenIdsSerializer):
             if gender not in allowed_genders(specimen.form)
         ]
 
-    def save(self) -> int:
+    def save(self, **kwargs) -> int:
         """Número de espécimes atualizados."""
         changes = with_origin_version(self.validated_data["changes"])
         return Specimen.objects.filter(pk__in=self.validated_data["ids"]).update(
@@ -647,7 +649,7 @@ class SpecimenBulkReleaseSerializer(SpecimenIdsSerializer):
     Os slots onde estavam depositados ficam vazios (``on_delete=SET_NULL``),
     como no ``DELETE /specimens/{id}/``."""
 
-    def save(self) -> int:
+    def save(self, **kwargs) -> int:
         """Número de espécimes libertados."""
         ids = self.validated_data["ids"]
         Specimen.objects.filter(pk__in=ids).delete()
@@ -671,7 +673,7 @@ class SpecimenTransferSerializer(SpecimenIdsSerializer):
         )
         return fields
 
-    def save(self) -> int:
+    def save(self, **kwargs) -> int:
         """Número de espécimes que mudaram de lugar."""
         destination = self.validated_data["save"]
         return (
@@ -719,7 +721,7 @@ class SpecimenEvolveSerializer(serializers.Serializer):
             )
         return form
 
-    def save(self) -> Specimen:
+    def save(self, **kwargs) -> Specimen:
         """Troca a forma, leva a habilidade para o mesmo slot de habilidade
         da forma nova (ou limpa) e tira o espécime do slot, que era da forma
         antiga e volta a faltar."""

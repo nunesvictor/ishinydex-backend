@@ -30,3 +30,11 @@ Toda mudança entra na `main` por pull request, a partir de uma issue.
 docker compose run --rm web python manage.py test
 pre-commit run --all-files
 ```
+
+O pre-commit inclui o **pyright** (o motor do Pylance), com a config em
+`[tool.pyright]` do `pyproject.toml`: o VS Code e o hook mostram os mesmos
+erros, independente das configurações de usuário. O pyright não enxerga o que
+o Django cria em runtime; anote no model o que o código usa (relações
+reversas como `slots: "RelatedManager[Slot]"` e colunas `<fk>_id`). Ao subir
+a versão de uma dependência, atualize também o `additional_dependencies` do
+hook.

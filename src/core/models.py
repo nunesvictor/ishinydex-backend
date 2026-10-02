@@ -24,11 +24,13 @@ class FinalFieldsMetaclass(ModelBase):
 
 
 class OrderedModel(models.Model, metaclass=FinalFieldsMetaclass):
+    # Criado pelo Django em cada modelo concreto; anotado para o pyright.
+    id: int
     position = models.PositiveIntegerField(_("position"), editable=False)
 
     def save(self, *args, **kwargs):
         if not self.id:
-            last_item = self._meta.model.objects.all().order_by("position").last()
+            last_item = type(self).objects.order_by("position").last()
 
             if last_item:
                 self.position = last_item.position + 1
@@ -43,6 +45,7 @@ class OrderedModel(models.Model, metaclass=FinalFieldsMetaclass):
 
 
 class TimestampedModel(models.Model, metaclass=FinalFieldsMetaclass):
+    id: int
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

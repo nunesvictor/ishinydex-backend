@@ -5,9 +5,6 @@ from pokedex.models import Pokemon, PokemonForm
 
 class PokemonSpriteResolver:
     def _resolve_female_path(self) -> Path:
-        if self.pokemon is None or self.form is None:
-            return Path()
-
         if self.pokemon.species.has_gender_differences and not self.form.is_default:
             return Path("female")
 
@@ -29,7 +26,7 @@ class PokemonSpriteResolver:
 
         return sprite_path / f"{self.pokemon.pokeapi_id}.png"
 
-    def __init__(self, pokemon: Pokemon | None, form: PokemonForm | None, shiny: bool):
+    def __init__(self, pokemon: Pokemon, form: PokemonForm, shiny: bool):
         self.pokemon = pokemon
         self.form = form
         self.shiny = shiny

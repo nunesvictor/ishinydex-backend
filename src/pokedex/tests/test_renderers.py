@@ -27,7 +27,9 @@ class GetRendererTests(TestCase):
         class Unknown:
             pass
 
-        self.assertIs(get_renderer(Unknown), PokemonSpriteRenderer)
+        renderer = get_renderer(Unknown)  # type: ignore[arg-type]
+
+        self.assertIs(renderer, PokemonSpriteRenderer)
 
     def test_invalid_renderer_raises(self):
         with self.settings(SPRITE_RENDERERS={"default": "pokedex.models.Pokemon"}):
@@ -138,7 +140,7 @@ class PokemonSpriteRendererTests(TempSpritesMixin, TestCase):
         renderer = PokemonSpriteRenderer(self.form)
 
         with self.assertRaises(AttributeError):
-            renderer.sprites_url = 123
+            renderer.sprites_url = 123  # type: ignore[assignment]
 
         with self.assertRaises(AttributeError):
             renderer.sprites_url = "/media/sprites/does-not-exist"
@@ -148,7 +150,7 @@ class SlotSpriteRendererTests(TempSpritesMixin, TestCase):
     def setUp(self):
         super().setUp()
         _, _, self.form = f.make_full_pokemon("bulbasaur", 1)
-        self.slot = f.make_box().slots.first()
+        self.slot = f.make_box().slots.earliest("position")
         self.slot.form = self.form
 
     def test_slot_uses_its_form(self):
@@ -180,7 +182,7 @@ class SlotSpriteRendererTests(TempSpritesMixin, TestCase):
 
     def test_invalid_object_raises(self):
         with self.assertRaises(ValueError):
-            PokemonSpriteRenderer(object())
+            PokemonSpriteRenderer(object())  # type: ignore[arg-type]
 
 
 class ItemSpriteRendererTests(TempSpritesMixin, TestCase):
