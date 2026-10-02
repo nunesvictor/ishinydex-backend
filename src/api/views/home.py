@@ -1,5 +1,5 @@
 from django.db import transaction
-from django.db.models import Count, F, Min, OuterRef, Q, Subquery
+from django.db.models import Count, F, Min, OuterRef, ProtectedError, Q, Subquery
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 
@@ -10,7 +10,7 @@ from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from home.models import Box, OriginalTrainer, PersonalDex, Slot, Specimen
+from home.models import Box, OriginalTrainer, PersonalDex, Save, Slot, Specimen
 from home.services import (
     HOME_MAX_BOXES,
     NotEnoughBoxes,
@@ -41,18 +41,31 @@ from ..serializers.home import (
     PersonalDexPreviewSerializer,
     PersonalDexSerializer,
     PersonalDexUpdateSerializer,
+    SaveRefSerializer,
+    SaveSerializer,
     SlotSerializer,
     SpecimenBulkReleaseResultSerializer,
     SpecimenBulkReleaseSerializer,
     SpecimenBulkResultSerializer,
     SpecimenBulkUpdateSerializer,
+    SpecimenEvolveSerializer,
     SpecimenOptionsSerializer,
     SpecimenSerializer,
+    SpecimenTransferResultSerializer,
+    SpecimenTransferSerializer,
     TrainerSerializer,
     VersionSerializer,
     national_number_prefetch,
     pokeball_sprite_url,
     type_sprite_url,
+)
+
+# O que o SlotSerializer lê (inclusive o save onde o espécime está).
+SLOT_RELATED = (
+    "box",
+    "personal_dex",
+    "specimen__location__trainer__version",
+    "form__pokemon__species",
 )
 
 
@@ -65,9 +78,17 @@ def counts_for_progress(prefix: str = "") -> Q:
     )
 
 
+def is_away(prefix: str = "") -> Q:
+    """Slot que conta no progresso, mas cujo espécime está num save."""
+    return counts_for_progress(prefix) & Q(
+        **{f"{prefix}specimen__location__isnull": False}
+    )
+
+
 def count_slots(prefix: str, **filters) -> dict:
-    """Anotações ``total`` (slots com forma) e ``registered`` (que contam no
-    progresso, ver ``counts_for_progress``)."""
+    """Anotações ``total`` (slots com forma), ``registered`` (que contam no
+    progresso, ver ``counts_for_progress``) e ``away`` (desses, os que estão
+    fora do HOME)."""
     base = Q(**{f"{prefix}form__isnull": False}) & Q(
         **{f"{prefix}{k}": v for k, v in filters.items()}
     )
@@ -76,6 +97,7 @@ def count_slots(prefix: str, **filters) -> dict:
         "registered": Count(
             prefix.rstrip("_"), filter=base & counts_for_progress(prefix)
         ),
+        "away": Count(prefix.rstrip("_"), filter=base & is_away(prefix)),
     }
 
 
@@ -188,6 +210,7 @@ class PersonalDexViewSet(
             .annotate(
                 total=Count("id"),
                 registered=Count("id", filter=counts_for_progress()),
+                away=Count("id", filter=is_away()),
                 first_box_position=Min("box__position"),
             )
             .order_by("first_box_position", "generation")
@@ -205,6 +228,7 @@ class PersonalDexViewSet(
                 "generation": row["generation"],
                 "total": row["total"],
                 "registered": row["registered"],
+                "away": row["away"],
                 "first_box": boxes[row["first_box_position"]],
             }
             for row in rows
@@ -273,7 +297,7 @@ class PersonalDexViewSet(
 
         slots = filter_hunts(
             Slot.objects.filter(personal_dex=dex)
-            .select_related("box", "personal_dex", "specimen", "form__pokemon__species")
+            .select_related(*SLOT_RELATED)
             .prefetch_related(national_number_prefetch("form__")),
             request.query_params,
         )
@@ -305,9 +329,9 @@ class PersonalDexViewSet(
     )
 )
 class SlotViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Slot.objects.select_related(
-        "box", "personal_dex", "specimen", "form__pokemon__species"
-    ).prefetch_related(national_number_prefetch("form__"))
+    queryset = Slot.objects.select_related(*SLOT_RELATED).prefetch_related(
+        national_number_prefetch("form__")
+    )
     serializer_class = SlotSerializer
     filter_backends = (SlotFilterBackend,)
 
@@ -357,6 +381,11 @@ SPECIMEN_FILTER_PARAMETERS = [
         "available",
         OpenApiTypes.BOOL,
         description=_("true: only specimens not deposited in any slot"),
+    ),
+    OpenApiParameter(
+        "location",
+        OpenApiTypes.STR,
+        description=_("home, away (in any save) or a save id"),
     ),
     OpenApiParameter("is_shiny", OpenApiTypes.BOOL),
     OpenApiParameter("is_alpha", OpenApiTypes.BOOL),
@@ -415,7 +444,9 @@ SPECIMEN_FILTER_PARAMETERS = [
 class SpecimenViewSet(viewsets.ModelViewSet):
     queryset = (
         Specimen.objects.select_related(
-            "form__pokemon__species", "origin_version__version_group"
+            "form__pokemon__species",
+            "origin_version__version_group",
+            "location__trainer__version",
         )
         .prefetch_related(national_number_prefetch("form__"))
         .annotate(
@@ -493,6 +524,36 @@ class SpecimenViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         return Response({"released": serializer.save()})
 
+    @extend_schema(
+        request=SpecimenTransferSerializer,
+        responses=SpecimenTransferResultSerializer,
+    )
+    @action(detail=False, methods=["post"], filter_backends=[])
+    @transaction.atomic
+    def transfer(self, request):
+        """Envia os espécimes para um save (``save: null`` traz de volta ao
+        HOME), tudo ou nada. Depositados continuam no slot, que fica
+        reservado."""
+        serializer = SpecimenTransferSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return Response({"transferred": serializer.save()})
+
+    @extend_schema(request=SpecimenEvolveSerializer, responses=SpecimenSerializer)
+    @action(detail=True, methods=["post"])
+    @transaction.atomic
+    def evolve(self, request, pk=None):
+        """O espécime evoluiu fora do HOME: passa a ser a forma nova e sai do
+        slot da forma antiga (que volta a faltar)."""
+        specimen = self.get_object()
+        serializer = SpecimenEvolveSerializer(
+            data=request.data, context={"specimen": specimen}
+        )
+        serializer.is_valid(raise_exception=True)
+        specimen = serializer.save()
+        return Response(
+            self.get_serializer(self.get_queryset().get(pk=specimen.pk)).data
+        )
+
 
 @extend_schema_view(
     list=extend_schema(
@@ -532,6 +593,42 @@ class TrainerViewSet(
     queryset = OriginalTrainer.objects.select_related("version")
     serializer_class = TrainerSerializer
     filter_backends = (TrainerSearchFilterBackend,)
+
+
+@extend_schema_view(
+    list=extend_schema(responses=SaveRefSerializer(many=True)),
+    retrieve=extend_schema(responses=SaveRefSerializer),
+    create=extend_schema(responses={201: SaveRefSerializer}),
+    partial_update=extend_schema(responses=SaveRefSerializer),
+)
+class SaveViewSet(
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.ReadOnlyModelViewSet,
+):
+    """Saves do usuário (poucos: sem paginação)."""
+
+    queryset = Save.objects.select_related("trainer__version")
+    serializer_class = SaveSerializer
+    pagination_class = None
+    http_method_names = ["get", "post", "patch", "delete", "head", "options"]
+
+    def destroy(self, request, *args, **kwargs):
+        """Save com espécimes nele não pode ser apagado: traga-os de volta
+        antes."""
+        try:
+            return super().destroy(request, *args, **kwargs)
+        except ProtectedError:
+            return Response(
+                {
+                    "detail": _(
+                        "this save still has specimens; bring them back to "
+                        "HOME first."
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
 
 class VersionViewSet(viewsets.ReadOnlyModelViewSet):

@@ -192,6 +192,15 @@ class SpecimenFilterBackend(filters.BaseFilterBackend):
             # slot_id é anotado na queryset da view
             queryset = queryset.filter(slot_id__isnull=available)
 
+        # Onde está: no HOME, fora (em qualquer save) ou num save.
+        match params.get("location", "").strip():
+            case "home":
+                queryset = queryset.filter(location__isnull=True)
+            case "away":
+                queryset = queryset.filter(location__isnull=False)
+            case save if save.isdigit():
+                queryset = queryset.filter(location_id=save)
+
         for flag in ("is_shiny", "is_alpha", "is_from_go"):
             if (value := parse_bool(params.get(flag))) is not None:
                 queryset = queryset.filter(**{flag: value})

@@ -18,9 +18,11 @@ from .admin_filters import OriginMarkListFilter, RegistrationStatusFilter
 from .forms import SpecimenAdminForm
 from .models import DEFAULT_POKEMON_BOX_SIZE as BOX_SIZE
 from .models import (
+    HOME_TRANSFER_VERSIONS,
     Box,
     OriginalTrainer,
     PersonalDex,
+    Save,
     Slot,
     Specimen,
 )
@@ -104,6 +106,32 @@ class OriginalTrainerAdmin(admin.ModelAdmin):
     list_display = ("__str__",)
     list_filter = ("version__name",)
     search_fields = ("trainer_id", "version__name", "name")
+    actions = ("create_saves",)
+
+    @admin.action(description=_("Mark as my saves"))
+    def create_saves(self, request, queryset):
+        """Cria o save dos OTs escolhidos que são de jogos que recebem do
+        HOME e ainda não são saves; os demais são ignorados."""
+        eligible = queryset.filter(
+            version__name__in=HOME_TRANSFER_VERSIONS, save_file__isnull=True
+        )
+        created = Save.objects.bulk_create(Save(trainer=t) for t in eligible)
+        self.message_user(
+            request,
+            _("%(created)d save(s) created; %(skipped)d trainer(s) skipped.")
+            % {"created": len(created), "skipped": queryset.count() - len(created)},
+        )
+
+
+@admin.register(Save)
+class SaveAdmin(admin.ModelAdmin):
+    list_display = ("__str__", "label", "specimens_count")
+    list_select_related = ("trainer__version",)
+    search_fields = ("label", "trainer__name", "trainer__trainer_id")
+
+    @admin.display(description=_("specimens"))
+    def specimens_count(self, obj):
+        return obj.specimens.count()
 
 
 @admin.register(PersonalDex)
