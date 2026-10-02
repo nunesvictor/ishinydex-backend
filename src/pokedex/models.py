@@ -1,7 +1,15 @@
+from typing import TYPE_CHECKING, Any
+
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from core.models import TimestampedModel
+
+if TYPE_CHECKING:
+    from django.db.models.fields.related_descriptors import (
+        ManyRelatedManager,
+        RelatedManager,
+    )
 
 # Ordem canônica das formas: nº da dex nacional (o pk da espécie) e, dentro da
 # espécie, ``form_order``; o ``pk`` só desempata. O ``order`` da PokéAPI não
@@ -23,7 +31,7 @@ class Move(TimestampedModel):
     target = models.CharField(_("target"), max_length=255)
     type = models.CharField(_("type"), max_length=255)
 
-    class Meta:
+    class Meta(TimestampedModel.Meta):
         verbose_name = _("move")
         verbose_name_plural = _("moves")
 
@@ -35,7 +43,7 @@ class Name(TimestampedModel):
     name = models.CharField(_("name"), max_length=255)
     language = models.CharField(_("language"), max_length=255, default="en")
 
-    class Meta:
+    class Meta(TimestampedModel.Meta):
         verbose_name = _("name")
         verbose_name_plural = _("names")
 
@@ -48,7 +56,7 @@ class PokemonAbility(TimestampedModel):
     is_hidden = models.BooleanField(_("is hidden"), default=False)
     ability = models.CharField(_("ability"), max_length=255)
 
-    class Meta:
+    class Meta(TimestampedModel.Meta):
         verbose_name = _("pokémon ability")
         verbose_name_plural = _("pokémon abilities")
         unique_together = ("slot", "ability", "is_hidden")
@@ -61,7 +69,7 @@ class PokemonFormType(TimestampedModel):
     slot = models.PositiveIntegerField(_("slot"))
     type = models.CharField(_("type"), max_length=255)
 
-    class Meta:
+    class Meta(TimestampedModel.Meta):
         verbose_name = _("pokémon form type")
         verbose_name_plural = _("pokémon form types")
         ordering = ("slot",)
@@ -90,6 +98,9 @@ class PokemonForm(TimestampedModel):
         "Pokemon", on_delete=models.CASCADE, related_name="forms", blank=True, null=True
     )
 
+    # Relação reversa criada pelo Django em runtime: anotada para o pyright.
+    shinylocks: "ManyRelatedManager[ShinyLock, Any]"
+
     @property
     def is_distro_only(self):
         return self.shinylocks.filter(
@@ -102,7 +113,7 @@ class PokemonForm(TimestampedModel):
             active=True, lock_type=ShinyLock.LockTypeChoices.UNOBTAINABLE
         ).exists()
 
-    class Meta:
+    class Meta(TimestampedModel.Meta):
         verbose_name = _("pokémon form")
         verbose_name_plural = _("pokémon forms")
         ordering = FORM_NATIONAL_ORDERING
@@ -130,7 +141,7 @@ class PokemonMove(TimestampedModel):
         "PokemonMoveVersion", related_name="moves"
     )
 
-    class Meta:
+    class Meta(TimestampedModel.Meta):
         verbose_name = _("pokémon move")
         verbose_name_plural = _("pokémon moves")
 
@@ -144,7 +155,7 @@ class PokemonMoveVersion(TimestampedModel):
     level_learned_at = models.PositiveIntegerField(_("level learned at"))
     order = models.PositiveIntegerField(_("order"), blank=True, null=True)
 
-    class Meta:
+    class Meta(TimestampedModel.Meta):
         verbose_name = _("pokémon move version")
         verbose_name_plural = _("pokémon move versions")
 
@@ -183,7 +194,9 @@ class PokemonSpecies(TimestampedModel):
         "PokemonSpeciesVariety", related_name="pokemon_species_varieties"
     )
 
-    class Meta:
+    pokemons: "RelatedManager[Pokemon]"
+
+    class Meta(TimestampedModel.Meta):
         verbose_name = _("pokémon species")
         verbose_name_plural = _("pokémon species")
 
@@ -196,8 +209,9 @@ class PokemonSpeciesVariety(TimestampedModel):
     pokemon = models.ForeignKey(
         "Pokemon", on_delete=models.CASCADE, related_name="pokemon_species_varieties"
     )
+    pokemon_id: int
 
-    class Meta:
+    class Meta(TimestampedModel.Meta):
         verbose_name = _("pokémon species variety")
         verbose_name_plural = _("pokémon species varieties")
 
@@ -211,7 +225,7 @@ class PokemonSpeciesDexEntry(TimestampedModel):
     entry_number = models.PositiveIntegerField(_("entry number"))
     pokedex = models.CharField(_("pokédex"), max_length=255)
 
-    class Meta:
+    class Meta(TimestampedModel.Meta):
         verbose_name = _("pokémon species dex entry")
         verbose_name_plural = _("pokémon species dex entries")
 
@@ -224,7 +238,7 @@ class PokemonStat(TimestampedModel):
     effort = models.PositiveIntegerField(_("effort"))
     base_stat = models.PositiveIntegerField(_("base stat"))
 
-    class Meta:
+    class Meta(TimestampedModel.Meta):
         verbose_name = _("pokémon stat")
         verbose_name_plural = _("pokémon stats")
 
@@ -236,7 +250,7 @@ class PokemonType(TimestampedModel):
     slot = models.PositiveIntegerField(_("slot"))
     type = models.CharField(_("type"), max_length=255)
 
-    class Meta:
+    class Meta(TimestampedModel.Meta):
         verbose_name = _("pokémon type")
         verbose_name_plural = _("pokémon types")
         ordering = ("slot",)
@@ -270,7 +284,9 @@ class Pokemon(TimestampedModel):
     stats = models.ManyToManyField(PokemonStat, related_name="pokemons")
     types = models.ManyToManyField(PokemonType, related_name="pokemons")
 
-    class Meta:
+    forms: "RelatedManager[PokemonForm]"
+
+    class Meta(TimestampedModel.Meta):
         verbose_name = _("pokémon")
         verbose_name_plural = _("pokémons")
         ordering = ("order",)
@@ -302,7 +318,7 @@ class Version(TimestampedModel):
     name = models.CharField(_("name"), max_length=255, unique=True)
     version_group = models.ForeignKey("VersionGroup", on_delete=models.CASCADE)
 
-    class Meta:
+    class Meta(TimestampedModel.Meta):
         verbose_name = _("version")
         verbose_name_plural = _("versions")
         ordering = ("version_group__order",)
@@ -315,7 +331,7 @@ class VersionGameIndex(TimestampedModel):
     game_index = models.PositiveIntegerField(_("game index"))
     version = models.ForeignKey(Version, on_delete=models.CASCADE)
 
-    class Meta:
+    class Meta(TimestampedModel.Meta):
         verbose_name = _("version game index")
         verbose_name_plural = _("version game indexes")
 
@@ -331,7 +347,7 @@ class VersionGroup(TimestampedModel):
     regions = models.JSONField(_("regions"), default=list)
     versions = models.JSONField(_("versions"), default=list)
 
-    class Meta:
+    class Meta(TimestampedModel.Meta):
         verbose_name = _("version group")
         verbose_name_plural = _("version groups")
         ordering = ("order",)

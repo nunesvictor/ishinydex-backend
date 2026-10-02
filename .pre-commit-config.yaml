@@ -23,3 +23,25 @@ repos:
     rev: 7.3.0
     hooks:
       - id: flake8
+
+  # Checagem de tipos com o motor do Pylance (config em [tool.pyright] do
+  # pyproject.toml). Roda no projeto todo, não só nos arquivos do commit: um
+  # erro de tipo aparece no arquivo que *usa* o que mudou. O ambiente do hook
+  # é isolado, então leva as libs e os stubs que o código importa (versões do
+  # poetry.lock).
+  - repo: https://github.com/RobertCraigie/pyright-python
+    rev: v1.1.414
+    hooks:
+      - id: pyright
+        pass_filenames: false
+        additional_dependencies:
+          - django==6.0.3
+          - django-cors-headers==4.9.0
+          - django-debug-toolbar==7.0.0
+          - django-stubs==6.1.1
+          - djangorestframework==3.17.1
+          - djangorestframework-stubs==3.18.1
+          - drf-spectacular==0.30.0
+          - psycopg2-binary==2.9.12
+          - python-decouple==3.8
+          - requests==2.34.2

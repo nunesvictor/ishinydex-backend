@@ -3,7 +3,7 @@ from django.db.models import Count, F, Min, OuterRef, ProtectedError, Q, Subquer
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 
-from drf_spectacular.plumbing import build_array_type, build_basic_type
+from drf_spectacular.plumbing import build_array_type
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import mixins, status, viewsets
@@ -459,8 +459,16 @@ class SpecimenViewSet(viewsets.ModelViewSet):
     filter_backends = (SpecimenFilterBackend,)
 
     @extend_schema(responses=SpecimenOptionsSerializer)
-    @action(detail=False, pagination_class=None, filter_backends=[])
-    def options(self, request):
+    # Não pode se chamar ``options``: sobrescreveria o handler do método HTTP
+    # OPTIONS do viewset (e ``OPTIONS /specimens/{id}/`` quebraria).
+    @action(
+        detail=False,
+        url_path="options",
+        url_name="options",
+        pagination_class=None,
+        filter_backends=[],
+    )
+    def choice_options(self, request):
         """Choices de language, gender, nature, pokeball, type, generation e
         origin_mark,
         com labels traduzidos. Pokébolas e tipos trazem também a URL absoluta
@@ -477,7 +485,7 @@ class SpecimenViewSet(viewsets.ModelViewSet):
 
     @extend_schema(
         parameters=SPECIMEN_FILTER_PARAMETERS,
-        responses={200: build_array_type(build_basic_type(OpenApiTypes.INT))},
+        responses={200: build_array_type({"type": "integer"})},
     )
     @action(detail=False, pagination_class=None)
     def ids(self, request):

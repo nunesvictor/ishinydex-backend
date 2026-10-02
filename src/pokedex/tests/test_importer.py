@@ -19,7 +19,9 @@ from pokedex.tests.pokeapi_fixtures import FakePokeAPIClient
 class ImporterTestCase(TestCase):
     def setUp(self):
         self.client_api = FakePokeAPIClient()
-        self.importer = PokeAPIImporter(self.client_api, log=lambda msg: None)
+        self.importer = PokeAPIImporter(
+            self.client_api, log=lambda msg: None  # type: ignore[arg-type]
+        )
 
     def run_import(self, species=None):
         return self.importer.run(species)

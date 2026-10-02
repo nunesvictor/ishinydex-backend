@@ -1,7 +1,7 @@
 from unittest import mock
 
 from django.contrib.admin.sites import site
-from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
@@ -38,7 +38,9 @@ class EggGroupFilterTests(TestCase):
         )
 
     def test_queryset_filters_by_group(self):
-        qs = self._filter("monster").queryset(self.request, PokemonSpecies.objects)
+        qs = self._filter("monster").queryset(
+            self.request, PokemonSpecies.objects.all()
+        )
 
         self.assertQuerySetEqual(
             qs.order_by("name"), ["bulbasaur", "charmander"], transform=str
@@ -55,9 +57,7 @@ class PokedexAdminViewsTests(TempSpritesMixin, TestCase):
 
     def setUp(self):
         super().setUp()
-        self.client.force_login(
-            get_user_model().objects.create_superuser("admin", "a@a.com", "pw")
-        )
+        self.client.force_login(User.objects.create_superuser("admin", "a@a.com", "pw"))
         self.species, self.pokemon, self.form = f.make_full_pokemon(
             "bulbasaur", 1, types=("grass", "poison"), national_dex=1
         )

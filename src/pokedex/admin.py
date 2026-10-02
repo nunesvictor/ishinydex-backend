@@ -196,18 +196,17 @@ class PokemonSpeciesAdmin(admin.ModelAdmin, CustomFieldsRendererMixin):
         variety = obj.varieties.filter(is_default=True).first()
         return variety.pokemon if variety else None
 
+    @admin.display(description=_("national pokedex id"))
     def render_national_pokedex_id(self, obj: PokemonSpecies):
         entry = obj.pokedex_numbers.filter(pokedex="national").first()
         return entry.entry_number if entry else "-"
 
-    def render_sprite(self, obj: PokemonSpecies):
+    def render_sprite(self, obj: PokemonSpecies):  # type: ignore[override]
         return super().render_sprite(obj=self._default_pokemon(obj))
 
-    def render_types(self, obj: PokemonSpecies):
+    def render_types(self, obj: PokemonSpecies):  # type: ignore[override]
         pokemon = self._default_pokemon(obj)
         return super().render_types(pokemon) if pokemon else "-"
-
-    render_national_pokedex_id.short_description = _("national pokedex id")
 
 
 @admin.register(ShinyLock)

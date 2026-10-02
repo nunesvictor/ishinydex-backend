@@ -156,7 +156,7 @@ def free_box_runs() -> list[list[Box]]:
     runs: list[list[Box]] = [[]]
 
     for box in Box.objects.annotate(used=Exists(used)).order_by("position"):
-        if box.used:
+        if box.used:  # type: ignore[attr-defined]  # vem do annotate()
             if runs[-1]:
                 runs.append([])
         else:
@@ -241,7 +241,7 @@ def create_default_dex(
     boxes que faltarem no fim, se preciso)."""
     plan = plan_default_dex(force_new_box)
 
-    if not plan.enough_space:
+    if plan.boxes is None:
         raise NotEnoughBoxes(plan)
 
     dex = PersonalDex.objects.create(

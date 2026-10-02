@@ -15,19 +15,19 @@ STAT_ORDER = (
 
 
 class PokemonAbilitySerializer(serializers.ModelSerializer):
-    class Meta:
+    class Meta:  # pyright: ignore[reportIncompatibleVariableOverride]
         model = PokemonAbility
         fields = ("slot", "ability", "is_hidden")
 
 
 class PokemonStatSerializer(serializers.ModelSerializer):
-    class Meta:
+    class Meta:  # pyright: ignore[reportIncompatibleVariableOverride]
         model = PokemonStat
         fields = ("stat", "base_stat", "effort")
 
 
 class PokemonTypeSerializer(serializers.ModelSerializer):
-    class Meta:
+    class Meta:  # pyright: ignore[reportIncompatibleVariableOverride]
         model = PokemonType
         fields = ("slot", "type")
 
@@ -37,7 +37,7 @@ class PokemonSerializer(serializers.ModelSerializer):
     stats = serializers.SerializerMethodField()
     types = serializers.SerializerMethodField()
 
-    class Meta:
+    class Meta:  # pyright: ignore[reportIncompatibleVariableOverride]
         model = Pokemon
         exclude = (
             "game_indices",

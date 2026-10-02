@@ -6,6 +6,7 @@ importa para cada teste.
 """
 
 from itertools import count
+from typing import Any
 
 from home.models import Box, OriginalTrainer, PersonalDex, Specimen
 from pokedex.models import (
@@ -52,7 +53,7 @@ def make_version_group(**kwargs) -> VersionGroup:
 
 
 def make_version(**kwargs) -> Version:
-    defaults = {"name": f"version-{_next()}"}
+    defaults: dict[str, Any] = {"name": f"version-{_next()}"}
 
     if "version_group" not in kwargs:
         defaults["version_group"] = make_version_group()

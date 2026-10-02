@@ -1,3 +1,6 @@
+from typing import cast
+
+from django import forms
 from django.test import TestCase
 
 from core.tests import factories as f
@@ -133,13 +136,13 @@ class SpecimenBulkUpdateFormTests(TempSpritesMixin, TestCase):
 
         for name in ("language", "gender", "nature", "is_shiny", "pokeball"):
             with self.subTest(field=name):
-                self.assertEqual(
-                    list(form.fields[name].choices)[0],
-                    SpecimenBulkUpdateForm.KEEP_CURRENT,
-                )
+                # Em runtime, ``choices`` de um ChoiceField é sempre uma lista.
+                choices = cast(list, cast(forms.ChoiceField, form.fields[name]).choices)
+                self.assertEqual(choices[0], SpecimenBulkUpdateForm.KEEP_CURRENT)
 
         self.assertEqual(
-            form.fields["ot"].empty_label, SpecimenBulkUpdateForm.KEEP_CURRENT[1]
+            cast(forms.ModelChoiceField, form.fields["ot"]).empty_label,
+            SpecimenBulkUpdateForm.KEEP_CURRENT[1],
         )
 
     def test_nothing_filled_means_no_updates(self):

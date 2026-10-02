@@ -1091,6 +1091,19 @@ class SpecimenViewSetTests(HomeAPITestCase):
         self.bulbasaur_specimen.refresh_from_db()
         self.assertEqual(self.bulbasaur_specimen.form, self.bulbasaur)
 
+    def test_http_options_is_drf_metadata(self):
+        # A action GET /specimens/options/ não pode tomar o lugar do método
+        # HTTP OPTIONS (no detalhe, ela receberia ``pk`` e quebraria).
+        for url in (
+            reverse("api:specimen-list"),
+            reverse("api:specimen-detail", args=[self.bulbasaur_specimen.pk]),
+        ):
+            with self.subTest(url=url):
+                response = self.client.options(url)
+
+                self.assertEqual(response.status_code, status.HTTP_200_OK)
+                self.assertIn("renders", response.data)
+
     def test_delete_deposited_specimen_releases_the_slot(self):
         response = self.client.delete(
             reverse("api:specimen-detail", args=[self.bulbasaur_specimen.pk])

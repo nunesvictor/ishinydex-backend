@@ -1,6 +1,6 @@
 from django.core.management.base import CommandError
 from django.db import transaction
-from django.db.models import QuerySet
+from django.db.models import Model, QuerySet
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy as _lazy
 
@@ -37,19 +37,17 @@ class Command(BaseCommand):
 
         return forms
 
-    def __get_object[T](self, model: type[T], raise_exc: bool, **kwargs) -> T | None:
+    def __get_object_or_raise[T: Model](self, model: type[T], **kwargs) -> T:
         try:
             return model.objects.get(**kwargs)
         except model.DoesNotExist as e:
-            if raise_exc:
-                raise CommandError(e)
+            raise CommandError(e)
+
+    def __get_object_or_none[T: Model](self, model: type[T], **kwargs) -> T | None:
+        try:
+            return self.__get_object_or_raise(model, **kwargs)
+        except CommandError:
             return None
-
-    def __get_object_or_raise[T](self, model: type[T], **kwargs) -> T:
-        return self.__get_object(model, raise_exc=True, **kwargs)
-
-    def __get_object_or_none[T](self, model: type[T], **kwargs) -> T | None:
-        return self.__get_object(model, raise_exc=False, **kwargs)
 
     def __install_scheme(self, p_dex: PersonalDex, boxes: QuerySet[Box]):
         slots_by_box = [list(box.slots.all()) for box in boxes]
@@ -92,13 +90,16 @@ class Command(BaseCommand):
         )
 
         if choice in ("y", "yes"):
+            # Nunca vazia: começa na box escolhida (ver ``__get_boxes``).
+            first_box, last_box = boxes.first(), boxes.last()
+            assert first_box is not None and last_box is not None
             self.stdout.write(
                 self.style.MIGRATE_LABEL(
                     _("%(action)s previous scheme from %(f_box)s to %(l_box)s... ")
                     % {
                         "action": _("Pruning") if prune else _("Clearing"),
-                        "f_box": boxes.first().name,
-                        "l_box": boxes.last().name,
+                        "f_box": first_box.name,
+                        "l_box": last_box.name,
                     }
                 ),
                 ending="",

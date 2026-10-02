@@ -181,7 +181,7 @@ class CreateHomeSchemeTests(TestCase):
         self.assertIn("No forms to install", output)
 
     def _occupy_last_slot(self):
-        slot = self.boxes[0].slots.last()
+        slot = self.boxes[0].slots.latest("position")
         slot.form = self.forms[0]
         slot.specimen = f.make_specimen(self.forms[0])
         slot.save()

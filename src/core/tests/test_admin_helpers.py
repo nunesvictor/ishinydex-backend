@@ -60,7 +60,7 @@ class CustomFieldsRendererMixinTests(TempSpritesMixin, TestCase):
         self.assertNotIn("status-unregistred", html)
 
     def test_render_sprite_free_slot(self):
-        slot = f.make_box().slots.first()
+        slot = f.make_box().slots.earliest("position")
 
         with translation.override("en"):
             self.assertIn("free slot", self.mixin.render_sprite(slot))
@@ -68,7 +68,7 @@ class CustomFieldsRendererMixinTests(TempSpritesMixin, TestCase):
     def test_render_sprite_slot_with_mismatched_specimen_blinks(self):
         _, _, other_form = f.make_full_pokemon("charmander", 4)
         self.add_sprite("pokemon/other/home/1.png")
-        slot = f.make_box().slots.first()
+        slot = f.make_box().slots.earliest("position")
         slot.form = self.form
         slot.specimen = f.make_specimen(other_form)
 
@@ -144,7 +144,7 @@ class SpriteTemplateTagTests(TempSpritesMixin, TestCase):
         _, _, self.form = f.make_full_pokemon("bulbasaur", 1)
         self.add_sprite("pokemon/other/home/1.png")
         self.add_sprite("pokemon/other/home/shiny/1.png")
-        self.slot = f.make_box().slots.first()
+        self.slot = f.make_box().slots.earliest("position")
         self.slot.form = self.form
 
     def render(self, obj):

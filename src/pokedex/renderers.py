@@ -129,6 +129,9 @@ class PokemonSpriteRenderer(SpriteRenderer):
                 "'POKEMON_SPRITE_RESOLVERS' must have a 'default' key set"
             )
 
+        if self.pokemon is None or self.form is None:
+            raise ValueError(f"{self!r}: no pokémon/form to resolve the sprite.")
+
         r_module = settings.POKEMON_SPRITE_RESOLVERS.get("default")
 
         if self.pokemon.name in settings.POKEMON_SPRITE_RESOLVERS:
@@ -148,8 +151,8 @@ class PokemonSpriteRenderer(SpriteRenderer):
             return True
 
         if not option and isinstance(object, Slot):
-            p_dex = object.personal_dex or None
-            return p_dex and p_dex.is_shiny_dex
+            p_dex = object.personal_dex
+            return bool(p_dex and p_dex.is_shiny_dex)
 
         return False
 
@@ -188,9 +191,9 @@ class PokemonSpriteRenderer(SpriteRenderer):
 
 
 class HomeSpriteRenderer(PokemonSpriteRenderer):
-    @property
-    def sprites_url(self) -> Path:
-        return super().sprites_url / "other/home"
+    # Atributo de classe, não uma property sem setter: assim o
+    # ``sprites_url`` continua atribuível como nos outros renderers.
+    _sprites_url = PokemonSpriteRenderer._sprites_url / "other/home"
 
     def __init__(self, object: SpriteObject, option: SpriteOption = None):
         super().__init__(object, option)

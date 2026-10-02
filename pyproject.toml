@@ -29,6 +29,7 @@ dev = [
     "black (>=26.5.1,<27.0.0)",
     "django-debug-toolbar (>=7.0.0,<8.0.0)",
     "django-stubs (>=6.0.7,<7.0.0)",
+    "djangorestframework-stubs (>=3.17,<4.0)",
     "djlint (>=1.40.4,<2.0.0)",
     "flake8 (>=7.3.0,<8.0.0)",
     "isort (>=8.0.1,<9.0.0)",
@@ -80,3 +81,12 @@ known_third_party = ["corsheaders", "decouple", "drf_spectacular", "requests", "
 sections = ["FUTURE", "STDLIB", "DJANGO", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
 multi_line_output = 3
 skip = [".gitignore", ".dockerignore", ".venv", "migrations"]
+
+[tool.pyright]
+# Mesmo motor do Pylance: com isto, o VS Code e o CLI veem os mesmos erros,
+# independente das configurações de usuário de cada um.
+include = ["src"]
+exclude = ["src/**/migrations"]
+extraPaths = ["src"]
+pythonVersion = "3.14"
+typeCheckingMode = "standard"

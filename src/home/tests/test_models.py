@@ -33,6 +33,13 @@ class BoxTests(TestCase):
             list(Slot.objects.values_list("position", flat=True)), list(range(1, 61))
         )
 
+    def test_default_ordering_is_position(self):
+        # Box.Meta herda o ``ordering`` de OrderedModel.Meta.
+        first, second = f.make_box(), f.make_box()
+        Box.objects.filter(pk=first.pk).update(position=3)
+
+        self.assertEqual(list(Box.objects.all()), [second, first])
+
     def test_position_is_kept_on_update(self):
         box = f.make_box()
         f.make_box()
@@ -51,7 +58,7 @@ class BoxTests(TestCase):
         box = f.make_box()
         self.assertTrue(box.is_empty)
 
-        slot = box.slots.first()
+        slot = box.slots.earliest("position")
         slot.form = f.make_full_pokemon("bulbasaur", 1)[2]
         slot.save()
 
