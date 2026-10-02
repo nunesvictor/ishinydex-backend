@@ -294,8 +294,7 @@ class SpecimenSerializer(serializers.ModelSerializer):
         form = attrs.get("form", getattr(self.instance, "form", None))
         ability = attrs.get("ability", getattr(self.instance, "ability", None))
 
-        # Mesma regra do SpecimenAdminForm: a ability deve ser uma das
-        # abilities do pokémon da forma.
+        # A ability deve ser uma das abilities do pokémon da forma.
         if ability and form is not None:
             abilities = (
                 set(form.pokemon.abilities.values_list("ability", flat=True))

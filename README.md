@@ -6,6 +6,10 @@ PersonalDexes, espécimes (shiny, alfa, pokébola, OT…) e o depósito nos slot
 
 Django + Django REST Framework, PostgreSQL 17, uWSGI em produção.
 
+O app (Flutter) é a interface do dia a dia. O admin do Django é o padrão, só
+para acesso emergencial e debug: sem telas próprias, sprites ou fluxos de
+lote (estes ficam na API).
+
 > **Este repositório não é para deploy.** Para instalar e rodar o iShinyDex
 > (backend + frontend), clone o repositório principal
 > [**ishinydex**](https://github.com/nunesvictor/ishinydex), que traz este
