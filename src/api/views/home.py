@@ -419,6 +419,14 @@ SPECIMEN_FILTER_PARAMETERS = [
         description=_("comma-separated generations (generation-i...)"),
     ),
     OpenApiParameter(
+        "category",
+        OpenApiTypes.STR,
+        description=_(
+            "comma-separated (any of them): legendary, mythical, "
+            "ultra-beast, baby, regular"
+        ),
+    ),
+    OpenApiParameter(
         "origin_mark",
         OpenApiTypes.STR,
         description=_(

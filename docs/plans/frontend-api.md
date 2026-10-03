@@ -149,6 +149,7 @@ inválidos são ignorados.
 | `type` | `water,flying` | a forma precisa ter **todos** os tipos |
 | `ot` | `1,none` | ids de OriginalTrainer; `none` = sem OT |
 | `generation` | `generation-i,generation-iv` | geração da espécie |
+| `category` | `legendary,ultra-beast` | categoria da espécie, como nas [caçadas](#caçadas-de-apipersonal-dexesidhunts): qualquer uma de `legendary`, `mythical`, `ultra-beast`, `baby`, `regular` |
 | `origin_mark` | `paldea,go` | marca de origem (ver Regras); `none` = sem marca |
 | `gender` / `nature` / `language` | `female,genderless` | |
 | `ability` | `levitate`, `solar power` | contém (sem diferenciar maiúsculas, [como slug](#busca-por-nome)) |
