@@ -29,6 +29,8 @@ jobs:
         image: postgres:17-alpine
         env:
           POSTGRES_HOST_AUTH_METHOD: trust
+          # O migrate usa o banco de verdade (os testes criam o seu próprio).
+          POSTGRES_DB: ishinydex
         ports:
           - 5432:5432
         options: >-
