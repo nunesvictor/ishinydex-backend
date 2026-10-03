@@ -2206,3 +2206,117 @@ class ShinyLockTests(HomeAPITestCase):
         response = self.client.get(reverse("api:shiny-lock-list"))
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class LinkSpecimensTests(HomeAPITestCase):
+    """Depositar automaticamente. No setUp do pai (dex shiny): bulbasaur
+    depositado, charmander e squirtle vazios."""
+
+    def link(self, dex=None, **data):
+        return self.client.post(
+            reverse("api:personal-dex-link-specimens", args=[(dex or self.dex).pk]),
+            data,
+            format="json",
+        )
+
+    def setUp(self):
+        super().setUp()
+        self.charmander_regular = f.make_specimen(self.charmander, is_shiny=False)
+        self.charmander_shiny = f.make_specimen(self.charmander, is_shiny=True)
+        self.squirtle_regular = f.make_specimen(self.squirtle, is_shiny=False)
+
+    def test_dry_run_previews_without_saving(self):
+        response = self.link(dry_run=True)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["linked"], 2)
+        self.assertEqual(response.data["missing"], 0)
+        # Na ordem das boxes, como Slot; o shiny vence num dex shiny.
+        slots = response.data["slots"]
+        self.assertEqual(
+            [(s["id"], s["specimen"]["id"]) for s in slots],
+            [
+                (self.charmander_slot.pk, self.charmander_shiny.pk),
+                (self.squirtle_slot.pk, self.squirtle_regular.pk),
+            ],
+        )
+        self.assertEqual(slots[0]["form"]["name"], "charmander")
+        self.assertEqual(slots[0]["box"]["name"], "HOME 1")
+        self.charmander_slot.refresh_from_db()
+        self.assertIsNone(self.charmander_slot.specimen)
+
+    def test_strict_and_saving(self):
+        strict = self.link(strict=True, dry_run=True)
+        self.assertEqual((strict.data["linked"], strict.data["missing"]), (1, 1))
+
+        response = self.link()
+
+        self.assertEqual(response.data["linked"], 2)
+        self.charmander_slot.refresh_from_db()
+        self.squirtle_slot.refresh_from_db()
+        self.assertEqual(self.charmander_slot.specimen, self.charmander_shiny)
+        self.assertEqual(self.squirtle_slot.specimen, self.squirtle_regular)
+        # De novo: nada a depositar, e o depositado não é reaproveitado.
+        again = self.link()
+        self.assertEqual((again.data["linked"], again.data["missing"]), (0, 0))
+        self.assertEqual(again.data["slots"], [])
+
+    def test_only_this_dex_and_unknown_dex(self):
+        other_dex = f.make_personal_dex(name="Living Dex")
+        other_slot = self.set_slot(self.other_box, 0, 0, self.charmander, dex=other_dex)
+
+        self.link(dex=other_dex)
+
+        other_slot.refresh_from_db()
+        self.charmander_slot.refresh_from_db()
+        # Dex normal: prefere o não shiny; o do dex shiny fica como estava.
+        self.assertEqual(other_slot.specimen, self.charmander_regular)
+        self.assertIsNone(self.charmander_slot.specimen)
+
+        missing = self.client.post(
+            reverse("api:personal-dex-link-specimens", args=[999999]), {}
+        )
+        self.assertEqual(missing.status_code, status.HTTP_404_NOT_FOUND)
+
+
+class FormStatsTests(HomeAPITestCase):
+    def detail(self, form):
+        return self.client.get(reverse("api:form-detail", args=[form.pk]))
+
+    def test_stats_in_game_order(self):
+        pokemon = self.charmander.pokemon
+        for stat, value in (
+            ("speed", 65),
+            ("special-attack", 60),
+            ("hp", 39),
+            ("defense", 43),
+            ("special-defense", 50),
+            ("attack", 52),
+        ):
+            f.make_stat(pokemon, stat, value)
+
+        response = self.detail(self.charmander)
+
+        self.assertEqual(
+            [(s["stat"], s["base_stat"]) for s in response.data["stats"]],
+            [
+                ("hp", 39),
+                ("attack", 52),
+                ("defense", 43),
+                ("special-attack", 60),
+                ("special-defense", 50),
+                ("speed", 65),
+            ],
+        )
+        self.assertEqual(response.data["stats"][0]["effort"], 0)
+
+    def test_unknown_stat_last_and_form_without_pokemon(self):
+        f.make_stat(self.squirtle.pokemon, "accuracy", 10)
+        f.make_stat(self.squirtle.pokemon, "hp", 44)
+        self.assertEqual(
+            [s["stat"] for s in self.detail(self.squirtle).data["stats"]],
+            ["hp", "accuracy"],
+        )
+
+        PokemonForm.objects.filter(pk=self.squirtle.pk).update(pokemon=None)
+        self.assertEqual(self.detail(self.squirtle).data["stats"], [])

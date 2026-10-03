@@ -133,9 +133,20 @@ class FormAbilitySerializer(serializers.Serializer):
     is_hidden = serializers.BooleanField()
 
 
+class FormStatSerializer(serializers.Serializer):
+    stat = serializers.CharField()
+    base_stat = serializers.IntegerField()
+    effort = serializers.IntegerField()
+
+
+# Ordem dos jogos (e do hexágono do app).
+STAT_ORDER = ("hp", "attack", "defense", "special-attack", "special-defense", "speed")
+
+
 class FormDetailSerializer(FormRefSerializer):
     types = serializers.SerializerMethodField()
     abilities = serializers.SerializerMethodField()
+    stats = serializers.SerializerMethodField()
     is_shinylocked = serializers.BooleanField(read_only=True)
     is_distro_only = serializers.BooleanField(read_only=True)
 
@@ -143,6 +154,7 @@ class FormDetailSerializer(FormRefSerializer):
         fields = FormRefSerializer.Meta.fields + (
             "types",
             "abilities",
+            "stats",
             "is_shinylocked",
             "is_distro_only",
         )
@@ -159,6 +171,23 @@ class FormDetailSerializer(FormRefSerializer):
 
         abilities = sorted(obj.pokemon.abilities.all(), key=lambda a: a.slot)
         return FormAbilitySerializer(abilities, many=True).data
+
+    @extend_schema_field(FormStatSerializer(many=True))
+    def get_stats(self, obj: PokemonForm):
+        """Status base do Pokémon da forma, na ordem dos jogos (``STAT_ORDER``;
+        um stat desconhecido vai para o fim). Usa o prefetch da view."""
+        if obj.pokemon is None:
+            return []
+
+        def position(stat) -> int:
+            return (
+                STAT_ORDER.index(stat.stat)
+                if stat.stat in STAT_ORDER
+                else len(STAT_ORDER)
+            )
+
+        stats = sorted(obj.pokemon.stats.all(), key=position)
+        return FormStatSerializer(stats, many=True).data
 
 
 class TrainerSerializer(serializers.ModelSerializer):
@@ -389,6 +418,20 @@ class SlotSerializer(serializers.ModelSerializer):
             return obj.specimen.is_shiny
 
         return bool(obj.form and obj.personal_dex and obj.personal_dex.is_shiny_dex)
+
+
+class LinkSpecimensSerializer(serializers.Serializer):
+    """Depositar automaticamente: ``strict`` só aceita o brilho do dex;
+    ``dry_run`` só simula (a prévia do app)."""
+
+    strict = serializers.BooleanField(default=False)
+    dry_run = serializers.BooleanField(default=False)
+
+
+class LinkSpecimensResultSerializer(serializers.Serializer):
+    linked = serializers.IntegerField()
+    missing = serializers.IntegerField()
+    slots = SlotSerializer(many=True)
 
 
 class HuntSerializer(SlotSerializer):

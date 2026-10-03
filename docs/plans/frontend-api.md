@@ -30,6 +30,7 @@ Schema OpenAPI: `GET /api/schema/` · Swagger UI: `GET /api/docs/` (públicos).
 | DELETE | `/api/personal-dexes/{id}/` | 204; libera os slots do dex (sem forma, dex nem espécime), deixando as boxes livres para outro dex. Os espécimes depositados **continuam** no inventário, disponíveis |
 | GET | `/api/personal-dexes/{id}/boxes/` | boxes com slots do dex, por `position`, **sem paginação** |
 | GET | `/api/personal-dexes/{id}/generations/` | progresso por geração, **sem paginação**: `[{generation, total, registered, away, first_box: BoxRef}]` (`registered` e `away` com as regras do `PersonalDex`), na ordem em que as gerações aparecem nas boxes; `generation` é `null` para formas sem pokémon |
+| POST | `/api/personal-dexes/{id}/link-specimens/` | depositar automaticamente: `{"strict"?: false, "dry_run"?: false}` → `{"linked": n, "missing": m, "slots": Slot[]}` (ver [Depositar automaticamente](#depositar-automaticamente)) |
 | GET | `/api/personal-dexes/{id}/hunts/` | lista de caçadas de um **shiny dex** (paginada, na ordem das boxes): `Hunt[]`; dex que não é shiny dex → 400 `{"detail": ...}`. Filtros em [Caçadas](#caçadas-de-apipersonal-dexesidhunts) |
 | GET | `/api/personal-dexes/preview/?force_new_box=` | simula um dex padrão sem criar: `{forms, boxes_needed, largest_free_run, enough_space, boxes_to_create, first_box: BoxRef \| null}`; sem sequência livre que caiba, completa a sequência livre do fim com `boxes_to_create` boxes novas (até 200, o limite do HOME); `first_box` é `null` sem espaço ou quando o dex fica todo em boxes novas |
 | POST | `/api/personal-dexes/` | `{name, is_shiny_dex?, force_new_box?}` → 201 com o dex (e contagens); cria com o conjunto padrão de formas, na [ordem canônica](#ordem-canônica-das-formas) (com `force_new_box`, cada geração da espécie começa no 1º slot de uma box), e instala o esquema na 1ª sequência de boxes livres (ou cria no fim as boxes que faltam, como no preview). Nome repetido → `{"name": [...]}`; sem espaço → `{"non_field_errors": [...]}` |
@@ -78,6 +79,8 @@ texto cru. Apelido e treinador são texto livre e não passam por isso.
             // ícone 60×60 (sword-shield/small); null se não houver arquivo
             "sprite_url": "http://host/media/sprites/types/generation-viii/sword-shield/small/12.png"}],
  "abilities": [{"slot": 1, "ability": "overgrow", "is_hidden": false}],
+ "stats": [{"stat": "hp", "base_stat": 45, "effort": 0}, ...],  // ordem dos jogos: hp,
+                     // attack, defense, special-attack, special-defense, speed; [] sem pokémon
  "is_shinylocked": false, "is_distro_only": false}
 
 // SpecimenSummary
@@ -214,6 +217,20 @@ Exemplos:
   (`form_name` junto), a habilidade vai para a do mesmo slot de habilidade da
   forma nova (ou `null`), e ele sai do slot da forma antiga, que volta a
   faltar. A localização não muda: trazer de volta é outra chamada.
+
+## Depositar automaticamente
+
+`POST /api/personal-dexes/{id}/link-specimens/` faz o mesmo que o comando
+`link_specimens` para um dex: põe espécimes **livres** (fora de qualquer slot)
+nos slots **vazios com forma**, na ordem das boxes.
+
+- Prefere o brilho do dex (shiny num shiny dex, não shiny num normal); sem
+  `strict`, usa o outro quando não há. `strict: true` só aceita o brilho do dex.
+- Um espécime vai para um slot só; os já depositados não entram.
+- `slots` são os que recebem um espécime, já com ele em `specimen`, como
+  ficariam; `missing` é quantos slots vazios ficaram sem.
+- `dry_run: true` só simula (nada é salvo): é a prévia que o app mostra antes
+  de confirmar.
 
 ## Shiny locks
 

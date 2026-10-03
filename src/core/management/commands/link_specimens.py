@@ -1,12 +1,10 @@
-from collections import defaultdict
-
 from django.core.management.base import CommandError
-from django.db import transaction
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy as _lazy
 
 from core.management.base import BaseCommand
-from home.models import PersonalDex, Slot, Specimen
+from home.models import PersonalDex
+from home.services import link_specimens
 
 
 class Command(BaseCommand):
@@ -54,59 +52,22 @@ class Command(BaseCommand):
 
         return dexes
 
-    @transaction.atomic
     def handle(self, *args, **options):
-        slots = list(
-            Slot.objects.filter(
-                personal_dex__in=self._get_dexes(options["dex"]),
-                form__isnull=False,
-                specimen__isnull=True,
-            )
-            .select_related("personal_dex", "box", "form")
-            .order_by("box__position", "position")
+        linked, missing = link_specimens(
+            self._get_dexes(options["dex"]),
+            strict=options["strict"],
+            dry_run=options["dry_run"],
         )
 
-        # Espécimes livres (fora de qualquer slot), agrupados por forma e brilho.
-        free = defaultdict(list)
-        for specimen in (
-            Specimen.objects.filter(
-                form_id__in={s.form_id for s in slots}, slot__isnull=True
-            )
-            .order_by("id")
-            .iterator()
-        ):
-            free[(specimen.form_id, specimen.is_shiny)].append(specimen)
-
-        linked, missing = [], []
-
-        for slot in slots:
-            wanted = slot.personal_dex.is_shiny_dex
-            candidates = [(slot.form_id, wanted)]
-
-            if not options["strict"]:
-                candidates.append((slot.form_id, not wanted))
-
-            pool = next((free[key] for key in candidates if free[key]), None)
-
-            if pool is None:
-                missing.append(slot)
-                continue
-
-            slot.specimen = pool.pop(0)
-            linked.append(slot)
+        for slot in linked:
             self.stdout.write(
                 f"  [{slot.box}: {slot.row + 1},{slot.col + 1}] "
                 f"{slot.form.name} <- {slot.specimen}"
             )
 
-        if options["dry_run"]:
-            transaction.set_rollback(True)
-        else:
-            Slot.objects.bulk_update(linked, ["specimen"])
-
         self.stdout.write(
             self.style.SUCCESS(
                 _("%(linked)d slots linked, %(missing)d without a free specimen.")
-                % {"linked": len(linked), "missing": len(missing)}
+                % {"linked": len(linked), "missing": missing}
             )
         )

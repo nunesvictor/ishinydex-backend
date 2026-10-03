@@ -5,6 +5,7 @@ Usado pelos comandos ``create_personal_dex``/``create_home_scheme`` e pela API
 (``POST``/``DELETE /personal-dexes/``).
 """
 
+from collections import defaultdict
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from functools import reduce
@@ -15,7 +16,7 @@ from django.db.models import Exists, OuterRef, Prefetch, Q, QuerySet
 
 from pokedex.models import PokemonForm
 
-from .models import Box, PersonalDex, Slot
+from .models import Box, PersonalDex, Slot, Specimen
 
 BOX_SIZE = 30
 
@@ -305,3 +306,62 @@ def with_origin_version(changes: dict) -> dict:
 
     ot = changes["ot"]
     return {**changes, "origin_version": ot.version if ot else None}
+
+
+def plan_specimen_links(
+    dexes: Iterable[PersonalDex], *, strict: bool = False
+) -> tuple[list[Slot], int]:
+    """Espécimes livres (fora de qualquer slot) para os slots vazios, com forma,
+    dos ``dexes``, na ordem das boxes. Prefere o brilho do dex (shiny num shiny
+    dex); sem ``strict``, usa o outro quando não há. Um espécime vai para um
+    slot só.
+
+    Só atribui ``slot.specimen`` em memória (ver ``link_specimens``). Retorna
+    os slots que recebem um espécime e quantos ficaram sem."""
+    slots = list(
+        Slot.objects.filter(
+            personal_dex__in=dexes, form__isnull=False, specimen__isnull=True
+        )
+        .select_related("personal_dex", "box", "form__pokemon__species")
+        .order_by("box__position", "position")
+    )
+
+    # Espécimes livres, agrupados por forma e brilho.
+    free: defaultdict[tuple[int | None, bool], list[Specimen]] = defaultdict(list)
+    for specimen in (
+        Specimen.objects.filter(
+            form_id__in={s.form_id for s in slots}, slot__isnull=True
+        )
+        .select_related("location__trainer__version")
+        .order_by("id")
+    ):
+        free[(specimen.form_id, specimen.is_shiny)].append(specimen)
+
+    linked, missing = [], 0
+    for slot in slots:
+        wanted = slot.personal_dex.is_shiny_dex
+        candidates = [(slot.form_id, wanted)]
+        if not strict:
+            candidates.append((slot.form_id, not wanted))
+
+        pool = next((free[key] for key in candidates if free[key]), None)
+        if pool is None:
+            missing += 1
+            continue
+
+        slot.specimen = pool.pop(0)
+        linked.append(slot)
+
+    return linked, missing
+
+
+@transaction.atomic
+def link_specimens(
+    dexes: Iterable[PersonalDex], *, strict: bool = False, dry_run: bool = False
+) -> tuple[list[Slot], int]:
+    """Deposita os espécimes de ``plan_specimen_links``; com ``dry_run``, só
+    simula (nada é salvo)."""
+    linked, missing = plan_specimen_links(dexes, strict=strict)
+    if not dry_run:
+        Slot.objects.bulk_update(linked, ["specimen"])
+    return linked, missing

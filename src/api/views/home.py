@@ -8,6 +8,7 @@ from django.db.models import (
     ProtectedError,
     Q,
     Subquery,
+    prefetch_related_objects,
 )
 from django.db.models.functions import Lower
 from django.shortcuts import get_object_or_404
@@ -26,6 +27,7 @@ from home.services import (
     NotEnoughBoxes,
     create_default_dex,
     delete_dex,
+    link_specimens,
     plan_default_dex,
 )
 from pokedex.models import FORM_NATIONAL_ORDERING, PokemonForm, ShinyLock, Version
@@ -47,6 +49,8 @@ from ..serializers.home import (
     FormRefSerializer,
     GenerationProgressSerializer,
     HuntSerializer,
+    LinkSpecimensResultSerializer,
+    LinkSpecimensSerializer,
     PersonalDexCreateSerializer,
     PersonalDexPreviewSerializer,
     PersonalDexSerializer,
@@ -170,6 +174,28 @@ class PersonalDexViewSet(
         """Apaga o dex e libera os slots; os espécimes depositados voltam a
         ficar disponíveis no inventário."""
         delete_dex(instance)
+
+    @extend_schema(
+        request=LinkSpecimensSerializer, responses=LinkSpecimensResultSerializer
+    )
+    @action(detail=True, methods=["post"], url_path="link-specimens")
+    def link_specimens(self, request, pk=None):
+        """Depositar automaticamente: espécimes livres (fora de qualquer slot)
+        nos slots vazios do dex, preferindo o brilho do dex. ``slots`` são os
+        que recebem um espécime (já com ele); com ``dry_run``, nada é salvo."""
+        dex = self.get_object()
+        serializer = LinkSpecimensSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        linked, missing = link_specimens([dex], **serializer.validated_data)
+
+        # Os slots ainda não saíram do banco com o nº nacional das formas.
+        prefetch_related_objects(linked, national_number_prefetch("form__"))
+        result = LinkSpecimensResultSerializer(
+            {"linked": len(linked), "missing": missing, "slots": linked},
+            context=self.get_serializer_context(),
+        )
+        return Response(result.data)
 
     @extend_schema(
         parameters=[OpenApiParameter("force_new_box", OpenApiTypes.BOOL)],
@@ -601,7 +627,9 @@ class FormViewSet(viewsets.ReadOnlyModelViewSet):
         queryset = super().get_queryset()
 
         if self.action == "retrieve":
-            queryset = queryset.prefetch_related("types", "pokemon__abilities")
+            queryset = queryset.prefetch_related(
+                "types", "pokemon__abilities", "pokemon__stats"
+            )
 
         return queryset
 
