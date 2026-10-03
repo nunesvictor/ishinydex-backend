@@ -144,7 +144,7 @@ def _species() -> list[dict]:
         {
             "name": s.name,
             "nationalNumber": next(
-                (e.entry_number for e in s.national_entries),  # type: ignore[attr-defined]
+                (e.entry_number for e in getattr(s, "national_entries")),
                 None,
             ),
             "generation": s.generation,
