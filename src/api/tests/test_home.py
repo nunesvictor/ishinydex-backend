@@ -522,6 +522,20 @@ class HuntTests(HomeAPITestCase):
 
         self.assertEqual(self.reasons(response), {"bulbasaur": ["from_go", "pokeball"]})
 
+    def test_registered_filters_by_slot_situation(self):
+        # Oddish não shiny depositado: entra pelo motivo e conta como registrado.
+        _, _, oddish = f.make_full_pokemon("oddish", 43)
+        self.set_slot(self.box2, 0, 1, oddish, f.make_specimen(oddish))
+
+        self.assertEqual(self.names(self.hunts(registered="true")), ["oddish"])
+        self.assertEqual(
+            self.names(self.hunts(registered="false")), ["charmander", "squirtle"]
+        )
+        self.assertEqual(
+            self.names(self.hunts(registered="foo")),
+            ["charmander", "squirtle", "oddish"],
+        )
+
     def test_unknown_or_empty_reasons_list_nothing(self):
         self.assertEqual(self.names(self.hunts(reasons="")), [])
         self.assertEqual(self.names(self.hunts(reasons="foo")), [])
@@ -1625,6 +1639,18 @@ class SpecimenViewSetTests(HomeAPITestCase):
             {"value": "paldea", "label": "SV"},
             response.data["origin_mark"],
         )
+        natures = {n["value"]: n for n in response.data["nature"]}
+        self.assertEqual(len(natures), 25)
+        self.assertEqual(
+            (natures["modest"]["increased"], natures["modest"]["decreased"]),
+            ("special-attack", "attack"),
+        )
+        neutral = [n for n, o in natures.items() if o["increased"] is None]
+        self.assertEqual(
+            sorted(neutral), ["bashful", "docile", "hardy", "quirky", "serious"]
+        )
+        for nature in natures.values():
+            self.assertNotEqual(nature["increased"] or 1, nature["decreased"])
         self.assertEqual(len(response.data["type"]), 18)
         self.assertIn(
             {

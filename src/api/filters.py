@@ -390,6 +390,10 @@ def filter_hunts(queryset: QuerySet, params) -> QuerySet:
     if not parse_bool(params.get("include_locked")):
         queryset = queryset.filter(hunt_unobtainable=False)
 
+    # Situação do slot: vazio (falta registrar) ou com espécime.
+    if (registered := parse_bool(params.get("registered"))) is not None:
+        queryset = queryset.filter(specimen__isnull=not registered)
+
     if generations := parse_list(params.get("generation")):
         queryset = queryset.filter(**{f"{SPECIES}generation__in": generations})
 
