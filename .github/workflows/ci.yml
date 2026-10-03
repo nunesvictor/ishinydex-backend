@@ -84,4 +84,5 @@ jobs:
 
       - name: Testes
         working-directory: src
-        run: poetry run python manage.py test
+        # Um processo por núcleo, cada um com o seu clone do banco de teste.
+        run: poetry run python manage.py test --parallel auto

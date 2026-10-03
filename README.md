@@ -42,7 +42,7 @@ app instalado.
 
 | O que | Comando |
 | --- | --- |
-| Testes | `docker compose run --rm web python manage.py test` |
+| Testes | `docker compose run --rm web python manage.py test --parallel 4` |
 | Lint/format | `pre-commit run --all-files` |
 | Backup / restauração | `python manage.py backupdb` / `restoredb` (em `backups/`) |
 | Dados da PokeAPI | `python manage.py sync_pokeapi` (com `POKEAPI_URL=file:///…/api-data/data`, lê um clone do [api-data](https://github.com/PokeAPI/api-data), offline) |
