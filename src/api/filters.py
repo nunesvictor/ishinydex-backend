@@ -237,6 +237,11 @@ class SpecimenFilterBackend(filters.BaseFilterBackend):
             if values := parse_list(params.get(param)):
                 queryset = queryset.filter(**{f"{field}__in": values})
 
+        # Categoria da espécie, como nas caçadas (qualquer uma das pedidas).
+        queryset = filter_species_categories(
+            queryset, parse_list(params.get("category"))
+        )
+
         if ability := params.get("ability", "").strip():
             queryset = queryset.filter(ability__icontains=slug_search(ability))
 
@@ -314,8 +319,9 @@ def hunt_reason_conditions(accepted_balls: list[str]) -> dict[str, Q]:
     return conditions
 
 
-def hunt_category_conditions() -> dict[str, Q]:
-    """Condição de cada categoria; requer a anotação ``is_ultra_beast``."""
+def species_category_conditions() -> dict[str, Q]:
+    """Condição de cada categoria da espécie; requer a anotação
+    ``is_ultra_beast`` (ver ``filter_species_categories``)."""
     special = {
         "legendary": Q(**{f"{SPECIES}is_legendary": True}),
         "mythical": Q(**{f"{SPECIES}is_mythical": True}),
@@ -326,6 +332,29 @@ def hunt_category_conditions() -> dict[str, Q]:
     for condition in special.values():
         regular &= ~condition
     return special | {"regular": regular}
+
+
+def ultra_beast() -> Exists:
+    """A forma é de uma Ultra Beast (tem a Beast Boost)."""
+    return Exists(
+        PokemonAbility.objects.filter(
+            pokemons=OuterRef("form__pokemon"), ability=ULTRA_BEAST_ABILITY
+        )
+    )
+
+
+def filter_species_categories(queryset: QuerySet, values: list[str]) -> QuerySet:
+    """Só as formas de espécies de qualquer uma das categorias pedidas
+    (``HUNT_CATEGORIES``); vale para slots e espécimes, que chegam à espécie
+    por ``form``. Sem categoria conhecida, não filtra."""
+    categories = species_category_conditions()
+    if not (chosen := [c for c in values if c in categories]):
+        return queryset
+
+    condition = Q(pk__in=[])
+    for category in chosen:
+        condition |= categories[category]
+    return queryset.annotate(is_ultra_beast=ultra_beast()).filter(condition)
 
 
 def filter_hunts(queryset: QuerySet, params) -> QuerySet:
@@ -339,11 +368,6 @@ def filter_hunts(queryset: QuerySet, params) -> QuerySet:
         **{f"hunt_{name}": as_bool(cond) for name, cond in conditions.items()},
         hunt_unobtainable=has_lock(ShinyLock.LockTypeChoices.UNOBTAINABLE),
         hunt_distro_only=has_lock(ShinyLock.LockTypeChoices.DISTRO_ONLY),
-        is_ultra_beast=Exists(
-            PokemonAbility.objects.filter(
-                pokemons=OuterRef("form__pokemon"), ability=ULTRA_BEAST_ABILITY
-            )
-        ),
     )
 
     # Sem ``reasons``, o padrão; motivos desconhecidos são ignorados.
@@ -374,12 +398,7 @@ def filter_hunts(queryset: QuerySet, params) -> QuerySet:
             )
         )
 
-    categories = hunt_category_conditions()
-    if chosen := [c for c in parse_list(params.get("category")) if c in categories]:
-        condition = Q(pk__in=[])
-        for category in chosen:
-            condition |= categories[category]
-        queryset = queryset.filter(condition)
+    queryset = filter_species_categories(queryset, parse_list(params.get("category")))
 
     if search := params.get("search", "").strip():
         queryset = queryset.filter(form__in=search_forms(search))

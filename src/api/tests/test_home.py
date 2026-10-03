@@ -1180,6 +1180,35 @@ class SpecimenViewSetTests(HomeAPITestCase):
             [self.bulbasaur_specimen.pk, specimen.pk],
         )
 
+    def test_filter_category(self):
+        def add(name, number, *, abilities=(), **species_fields):
+            species, _, form = f.make_full_pokemon(name, number, abilities=abilities)
+            for field, value in species_fields.items():
+                setattr(species, field, value)
+            species.save()
+            return f.make_specimen(form).pk
+
+        mewtwo = add("mewtwo", 150, is_legendary=True)
+        mew = add("mew", 151, is_mythical=True)
+        nihilego = add("nihilego", 793, abilities=("beast-boost",))
+        pichu = add("pichu", 172, is_baby=True)
+        special = {mewtwo, mew, nihilego, pichu}
+
+        self.assertEqual(self.ids(category="legendary"), [mewtwo])
+        self.assertEqual(self.ids(category="mythical"), [mew])
+        self.assertEqual(self.ids(category="ultra-beast"), [nihilego])
+        self.assertEqual(self.ids(category="baby"), [pichu])
+        self.assertEqual(
+            set(self.ids(category="legendary,mythical,ultra-beast")),
+            {mewtwo, mew, nihilego},
+        )
+        regular = self.ids(category="regular")
+        self.assertIn(self.bulbasaur_specimen.pk, regular)
+        self.assertFalse(special & set(regular))
+        # Desconhecida é ignorada; combina com os outros filtros (E).
+        self.assertEqual(set(self.ids(category="foo")), set(self.ids()))
+        self.assertEqual(self.ids(category="legendary", is_shiny="true"), [])
+
     def test_filter_gender_nature_language_and_ability(self):
         female = f.make_specimen(
             self.charmander, gender="female", nature="jolly", language="ja"
