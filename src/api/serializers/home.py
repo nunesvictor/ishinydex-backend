@@ -174,6 +174,38 @@ class TrainerSerializer(serializers.ModelSerializer):
         fields = ("id", "name", "trainer_id", "version")
 
 
+class ShinyLockRefSerializer(serializers.ModelSerializer):
+    """Shiny lock com as formas por extenso (somente leitura). Requer o
+    prefetch das formas de ``ShinyLockViewSet`` (sem ele, consultas por
+    forma)."""
+
+    forms = FormRefSerializer(many=True, read_only=True)
+
+    class Meta:  # pyright: ignore[reportIncompatibleVariableOverride]
+        model = ShinyLock
+        fields = ("id", "caption", "description", "lock_type", "active", "forms")
+
+
+class ShinyLockSerializer(serializers.ModelSerializer):
+    """Cria/edita um shiny lock: ``forms`` pelos ids, ao menos uma. A
+    resposta é um ``ShinyLockRefSerializer``."""
+
+    forms = serializers.PrimaryKeyRelatedField(
+        queryset=PokemonForm.objects.all(), many=True, allow_empty=False
+    )
+
+    class Meta:  # pyright: ignore[reportIncompatibleVariableOverride]
+        model = ShinyLock
+        fields = ("id", "caption", "description", "lock_type", "active", "forms")
+
+    def to_representation(self, instance):
+        return ShinyLockRefSerializer(instance, context=self.context).data
+
+    def validate_description(self, value: str | None) -> str | None:
+        """Descrição em branco vira ``None``, como nos locks antigos."""
+        return (value or "").strip() or None
+
+
 class SaveRefSerializer(serializers.ModelSerializer):
     """Save do usuário, com o treinador completo (somente leitura)."""
 

@@ -7,6 +7,7 @@ from .views.home import (
     FormViewSet,
     PersonalDexViewSet,
     SaveViewSet,
+    ShinyLockViewSet,
     SlotViewSet,
     SpecimenViewSet,
     TrainerViewSet,
@@ -25,6 +26,7 @@ router.register(r"specimens", SpecimenViewSet, basename="specimen")
 router.register(r"forms", FormViewSet, basename="form")
 router.register(r"trainers", TrainerViewSet, basename="trainer")
 router.register(r"saves", SaveViewSet, basename="save")
+router.register(r"shiny-locks", ShinyLockViewSet, basename="shiny-lock")
 router.register(r"versions", VersionViewSet, basename="version")
 
 urlpatterns = [

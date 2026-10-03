@@ -1,5 +1,15 @@
 from django.db import transaction
-from django.db.models import Count, F, Min, OuterRef, ProtectedError, Q, Subquery
+from django.db.models import (
+    Count,
+    F,
+    Min,
+    OuterRef,
+    Prefetch,
+    ProtectedError,
+    Q,
+    Subquery,
+)
+from django.db.models.functions import Lower
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 
@@ -18,7 +28,7 @@ from home.services import (
     delete_dex,
     plan_default_dex,
 )
-from pokedex.models import FORM_NATIONAL_ORDERING, PokemonForm, Version
+from pokedex.models import FORM_NATIONAL_ORDERING, PokemonForm, ShinyLock, Version
 
 from ..choices import specimen_options
 from ..filters import (
@@ -43,6 +53,8 @@ from ..serializers.home import (
     PersonalDexUpdateSerializer,
     SaveRefSerializer,
     SaveSerializer,
+    ShinyLockRefSerializer,
+    ShinyLockSerializer,
     SlotSerializer,
     SpecimenBulkReleaseResultSerializer,
     SpecimenBulkReleaseSerializer,
@@ -645,6 +657,38 @@ class SaveViewSet(
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+
+@extend_schema_view(
+    list=extend_schema(responses=ShinyLockRefSerializer(many=True)),
+    retrieve=extend_schema(responses=ShinyLockRefSerializer),
+    create=extend_schema(
+        request=ShinyLockSerializer, responses={201: ShinyLockRefSerializer}
+    ),
+    partial_update=extend_schema(
+        request=ShinyLockSerializer, responses=ShinyLockRefSerializer
+    ),
+)
+class ShinyLockViewSet(
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.ReadOnlyModelViewSet,
+):
+    """Shiny locks, cadastrados à mão (poucas dezenas: sem paginação), em
+    ordem alfabética. As formas vêm na ordem da dex nacional."""
+
+    queryset = ShinyLock.objects.prefetch_related(
+        Prefetch(
+            "forms",
+            queryset=PokemonForm.objects.select_related(
+                "pokemon__species"
+            ).prefetch_related(national_number_prefetch()),
+        )
+    ).order_by(Lower("caption"), "pk")
+    serializer_class = ShinyLockSerializer
+    pagination_class = None
+    http_method_names = ["get", "post", "patch", "delete", "head", "options"]
 
 
 class VersionViewSet(viewsets.ReadOnlyModelViewSet):

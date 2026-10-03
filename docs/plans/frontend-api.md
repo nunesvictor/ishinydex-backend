@@ -50,6 +50,8 @@ Schema OpenAPI: `GET /api/schema/` · Swagger UI: `GET /api/docs/` (públicos).
 | GET/PATCH/DELETE | `/api/saves/{id}/` | PATCH só `label` (trocar `trainer` → 400); DELETE 204, ou 400 `{"detail": ...}` se ainda há espécimes no save |
 | POST | `/api/specimens/transfer/` | `{"ids": [...], "save": id \| null}` → `{"transferred": n}` (quantos mudaram de lugar); `null` traz de volta ao HOME. Tudo ou nada, como o bulk |
 | POST | `/api/specimens/{id}/evolve/` | `{"form": id}` → `Specimen`: o espécime evoluiu fora do HOME (ver [Saves](#saves-e-localização)) |
+| GET/POST | `/api/shiny-locks/` | shiny locks em ordem alfabética, **sem paginação**: `ShinyLock[]`; POST `{"caption", "description"?, "lock_type"?, "active"?, "forms": [id, ...]}` → 201 `ShinyLock` (ver [Shiny locks](#shiny-locks)) |
+| GET/PATCH/DELETE | `/api/shiny-locks/{id}/` | PATCH parcial, mesmos campos (PUT não); DELETE 204 (as formas continuam, só o lock sai) |
 | GET | `/api/versions/` | versões de jogo em ordem de lançamento, **sem paginação**: `[{name, version_group, generation}]`; `name` é o valor de `version` no POST de trainers |
 | GET | `/api/pokemon/` | (já existia; agora exige autenticação) |
 
@@ -105,6 +107,11 @@ texto cru. Apelido e treinador são texto livre e não passam por isso.
 // Hunt = Slot +
 {"reasons": ["no_shiny"],   // todos os motivos em que o slot se encaixa (no_shiny, from_go, pokeball)
  "shiny_lock": null}        // null | "distro-only" | "unobtainable" (só com include_locked)
+
+// ShinyLock (forms: FormRef na ordem da dex nacional; na escrita, ids)
+{"id": 25, "caption": "Treasures of Ruin", "description": null,
+ "lock_type": "distro-only",   // "unobtainable" (padrão) | "distro-only"
+ "active": true, "forms": [FormRef, ...]}
 
 // PersonalDex
 {"id": 1, "name": "Shiny Living Dex", "is_shiny_dex": true, "force_new_box": true,
@@ -207,6 +214,18 @@ Exemplos:
   (`form_name` junto), a habilidade vai para a do mesmo slot de habilidade da
   forma nova (ou `null`), e ele sai do slot da forma antiga, que volta a
   faltar. A localização não muda: trazer de volta é outra chamada.
+
+## Shiny locks
+
+Cadastro manual (não vem da PokéAPI) das formas sem shiny (`unobtainable`) ou
+com shiny só por distribuição (`distro-only`). Só os **ativos** valem: são eles
+que dão o `is_shinylocked`/`is_distro_only` das formas e o `shiny_lock` das
+caçadas, lidos da mesma tabela, então qualquer mudança vale na hora.
+
+- `caption` é único (400 `{"caption": [...]}`); espaços nas pontas são
+  removidos. `description` em branco vira `null`.
+- `forms` precisa de pelo menos uma forma existente (400 `{"forms": [...]}`).
+- `lock_type` fora dos dois valores → 400 `{"lock_type": [...]}`.
 
 ## Regras
 
