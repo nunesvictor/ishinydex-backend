@@ -61,6 +61,31 @@ NATURE_LABELS = {
     "timid": _("Timid"),
 }
 
+# Stat que cada natureza aumenta e diminui (10%); as neutras não mexem em
+# nenhum. Os nomes são os de ``stats`` da forma (PokéAPI).
+NATURE_STATS = {
+    "lonely": ("attack", "defense"),
+    "brave": ("attack", "speed"),
+    "adamant": ("attack", "special-attack"),
+    "naughty": ("attack", "special-defense"),
+    "bold": ("defense", "attack"),
+    "relaxed": ("defense", "speed"),
+    "impish": ("defense", "special-attack"),
+    "lax": ("defense", "special-defense"),
+    "timid": ("speed", "attack"),
+    "hasty": ("speed", "defense"),
+    "jolly": ("speed", "special-attack"),
+    "naive": ("speed", "special-defense"),
+    "modest": ("special-attack", "attack"),
+    "mild": ("special-attack", "defense"),
+    "quiet": ("special-attack", "speed"),
+    "rash": ("special-attack", "special-defense"),
+    "calm": ("special-defense", "attack"),
+    "gentle": ("special-defense", "defense"),
+    "sassy": ("special-defense", "speed"),
+    "careful": ("special-defense", "special-attack"),
+}
+
 
 # Tipos que as formas podem ter (sem "stellar", "unknown" e "shadow").
 TYPE_LABELS = {
@@ -95,11 +120,25 @@ def _labeled(choices, labels) -> list[dict]:
     ]
 
 
+def nature_options() -> list[dict]:
+    """Naturezas com o stat aumentado e o diminuído (``None`` nas neutras)."""
+    return [
+        option
+        | dict(
+            zip(
+                ("increased", "decreased"),
+                NATURE_STATS.get(option["value"], (None, None)),
+            )
+        )
+        for option in _labeled(NATURE_CHOICES, NATURE_LABELS)
+    ]
+
+
 def specimen_options() -> dict[str, list[dict]]:
     return {
         "language": _labeled(LANGUAGES_CHOICES, LANGUAGE_LABELS),
         "gender": _labeled(GENDER_CHOICES, GENDER_LABELS),
-        "nature": _labeled(NATURE_CHOICES, NATURE_LABELS),
+        "nature": nature_options(),
         "pokeball": _labeled(Pokeball.choices, {}),
         "type": [
             {"value": value, "label": str(label)}

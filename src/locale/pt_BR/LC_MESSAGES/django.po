@@ -1086,6 +1086,9 @@ msgstr ""
 msgid "include forms whose shiny is unobtainable"
 msgstr "incluir formas cujo shiny é impossível de obter"
 
+msgid "true: only slots with a specimen; false: only empty slots"
+msgstr "true: só slots com espécime; false: só slots vazios"
+
 #: api/views/home.py
 msgid "Hunts are only available for shiny dexes."
 msgstr "A lista de caçadas só existe para shiny dex."

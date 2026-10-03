@@ -142,7 +142,8 @@ texto cru. Apelido e treinador são texto livre e não passam por isso.
 // /specimens/options/
 {"language": [{"value": "pt-br", "label": "Português brasileiro"}, ...],
  "gender": [{"value": "male", "label": "Macho"}, ...],
- "nature": [{"value": "adamant", "label": "Adamant"}, ...],
+ "nature": [{"value": "adamant", "label": "Adamant",
+             "increased": "attack", "decreased": "special-attack"}, ...],  // null nas neutras
  "pokeball": [{"value": "poke-ball", "label": "Poké Ball",
                "sprite_url": "http://host/media/sprites/items/poke-ball.png"}, ...],
  "type": [{"value": "water", "label": "Água",
@@ -194,6 +195,7 @@ grupos de filtros:
 | `category` | `legendary,mythical,ultra-beast` | qualquer uma de `legendary`, `mythical`, `ultra-beast`, `baby`, `regular` (nenhuma das outras). Ultra Beast = pokémon com a habilidade Beast Boost (a PokéAPI não marca UBs) |
 | `search` | `pika`, `25` | igual ao de `/slots/` |
 | `include_locked` | `true` | inclui formas com shiny lock `unobtainable` (fora por padrão); `distro-only` aparece sempre, com `shiny_lock` |
+| `registered` | `false` | situação do slot: `false` só os vazios ("faltando"), `true` só os que têm espécime (entram por outro motivo); sem ele ou inválido, não filtra |
 
 Exemplos:
 

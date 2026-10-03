@@ -319,6 +319,13 @@ class PersonalDexViewSet(
                 OpenApiTypes.BOOL,
                 description=_("include forms whose shiny is unobtainable"),
             ),
+            OpenApiParameter(
+                "registered",
+                OpenApiTypes.BOOL,
+                description=_(
+                    "true: only slots with a specimen; false: only empty slots"
+                ),
+            ),
         ],
         responses=HuntSerializer(many=True),
     )

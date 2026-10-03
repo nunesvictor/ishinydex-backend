@@ -731,6 +731,11 @@ class PokeballChoiceSerializer(ChoiceSerializer):
     sprite_url = serializers.CharField()
 
 
+class NatureChoiceSerializer(ChoiceSerializer):
+    increased = serializers.CharField(allow_null=True)
+    decreased = serializers.CharField(allow_null=True)
+
+
 class TypeChoiceSerializer(ChoiceSerializer):
     sprite_url = serializers.CharField(allow_null=True)
 
@@ -738,7 +743,7 @@ class TypeChoiceSerializer(ChoiceSerializer):
 class SpecimenOptionsSerializer(serializers.Serializer):
     language = ChoiceSerializer(many=True)
     gender = ChoiceSerializer(many=True)
-    nature = ChoiceSerializer(many=True)
+    nature = NatureChoiceSerializer(many=True)
     pokeball = PokeballChoiceSerializer(many=True)
     type = TypeChoiceSerializer(many=True)
     generation = ChoiceSerializer(many=True)
