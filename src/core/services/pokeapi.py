@@ -5,6 +5,11 @@ aninhadas já trazem ``name``), reaproveita conexões por thread, tem timeout e
 novas tentativas automáticas, e guarda cada resposta como um arquivo JSON em
 ``settings.POKEAPI_CACHE_DIR`` (JSON comprimido com gzip) — depois do primeiro
 download tudo roda offline.
+
+Com ``POKEAPI_URL=file:///caminho/api-data/data``, lê direto de um clone do
+repositório PokeAPI/api-data (o JSON estático de todos os endpoints, em
+``api/v2/<endpoint>/<id>/index.json``), sem rede nem cache: é assim que o CI
+gera o catálogo.
 """
 
 import gzip
@@ -56,6 +61,12 @@ class PokeAPIClient:
         retries: int = 5,
     ):
         self.base_url = (base_url or settings.POKEAPI_URL).rstrip("/")
+        # Clone do api-data: lido direto, sem rede nem cache.
+        self.local_root = (
+            Path(urlparse(self.base_url).path)
+            if self.base_url.startswith("file://")
+            else None
+        )
         self.cache_dir = Path(cache_dir or settings.POKEAPI_CACHE_DIR)
         self.refresh = refresh
         self.timeout = timeout
@@ -134,8 +145,20 @@ class PokeAPIClient:
             )
             return self._fetch(f"{OFFICIAL_URL}{API_PREFIX}{path}/", params)
 
+    def _read_file(self, path: str) -> dict:
+        """Recurso de um clone do api-data (as listas já vêm completas)."""
+        assert self.local_root is not None
+        file = self.local_root / API_PREFIX.strip("/") / path / "index.json"
+        try:
+            return json.loads(file.read_text())
+        except FileNotFoundError:
+            raise FileNotFoundError(f"PokéAPI: {path} não existe em {file}") from None
+
     def get(self, url_or_path: str) -> dict:
         path = resource_path(url_or_path)
+        if self.local_root:
+            return self._read_file(path)
+
         data = self._read_cache(path)
 
         if data is None:
@@ -148,6 +171,9 @@ class PokeAPIClient:
     def list(self, endpoint: str) -> list[dict]:
         """Todos os itens (``name``/``url``) de um endpoint, numa só requisição."""
         endpoint = resource_path(endpoint)
+        if self.local_root:
+            return self._read_file(endpoint)["results"]
+
         cache_key = f"{endpoint}/_list"
         data = self._read_cache(cache_key)
 

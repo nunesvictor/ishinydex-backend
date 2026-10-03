@@ -45,9 +45,11 @@ app instalado.
 | Testes | `docker compose run --rm web python manage.py test` |
 | Lint/format | `pre-commit run --all-files` |
 | Backup / restauração | `python manage.py backupdb` / `restoredb` (em `backups/`) |
-| Dados da PokeAPI | `python manage.py sync_pokeapi` |
+| Dados da PokeAPI | `python manage.py sync_pokeapi` (com `POKEAPI_URL=file:///…/api-data/data`, lê um clone do [api-data](https://github.com/PokeAPI/api-data), offline) |
+| Pacote do catálogo (app local-first) | `python manage.py exportcatalog` → `catalog/catalog.json`; no GitHub, o workflow **Catálogo** gera e publica a release `catalog-AAAA.MM.DD` |
 | Boxes do HOME e dex padrão | `python manage.py create_home_boxes` / `create_personal_dex -i` |
 
 - **Contrato da API usada pelo app:** [`docs/plans/frontend-api.md`](docs/plans/frontend-api.md).
   Com o servidor rodando, o Swagger fica em `/api/docs/`.
 - **Fluxo de trabalho** (issues, PRs e CI): [CONTRIBUTING.md](CONTRIBUTING.md).
+- **Shiny locks padrão** do catálogo: [`src/pokedex/data/shiny_locks.json`](src/pokedex/data/shiny_locks.json) (formas pelo nome).

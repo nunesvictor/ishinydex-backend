@@ -33,6 +33,44 @@ def fake_response(data):
     return response
 
 
+class LocalApiDataTests(SimpleTestCase):
+    """``file://``: lê um clone do PokeAPI/api-data, sem rede nem cache."""
+
+    def setUp(self):
+        self.root = Path(tempfile.mkdtemp())
+        self.cache_dir = Path(tempfile.mkdtemp())
+        for path in (self.root, self.cache_dir):
+            self.addCleanup(shutil.rmtree, path, ignore_errors=True)
+        self.write("pokemon/25", {"id": 25, "name": "pikachu"})
+        self.write("pokemon/26", {"id": 26, "name": "raichu"})
+        self.write(
+            "pokemon",
+            {"count": 2, "next": None, "results": [{"name": "pikachu"}]},
+        )
+        self.api = PokeAPIClient(
+            base_url=f"file://{self.root}/", cache_dir=self.cache_dir
+        )
+
+    def write(self, path, data):
+        file = self.root / "api" / "v2" / path / "index.json"
+        file.parent.mkdir(parents=True, exist_ok=True)
+        file.write_text(json.dumps(data))
+
+    def test_get_list_and_get_many_read_files(self):
+        with mock.patch.object(PokeAPIClient, "_fetch") as fetch:
+            self.assertEqual(self.api.get("/api/v2/pokemon/25/")["name"], "pikachu")
+            self.assertEqual(self.api.list("pokemon"), [{"name": "pikachu"}])
+            many = self.api.get_many(["pokemon/25", "/api/v2/pokemon/26/"])
+
+        fetch.assert_not_called()
+        self.assertEqual(many["pokemon/26"]["name"], "raichu")
+        self.assertEqual(list(self.cache_dir.iterdir()), [])  # sem cache
+
+    def test_missing_resource_names_the_file(self):
+        with self.assertRaisesRegex(FileNotFoundError, "pokemon/1 não existe"):
+            self.api.get("pokemon/1")
+
+
 class PokeAPIClientTests(SimpleTestCase):
     def setUp(self):
         self.cache_dir = Path(tempfile.mkdtemp())

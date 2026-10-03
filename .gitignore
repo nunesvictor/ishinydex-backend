@@ -193,3 +193,7 @@ docker-compose.override.yml
 
 
 # End of https://www.toptal.com/developers/gitignore/api/django
+
+# Catálogo (exportcatalog) e clone do PokeAPI/api-data usado para gerá-lo
+/api-data/
+/catalog/
