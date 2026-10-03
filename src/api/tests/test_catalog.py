@@ -122,16 +122,24 @@ class CatalogTests(TestCase):
 
         choices = data["choices"]
         self.assertIn(
-            {"value": "poke-ball", "label": "Poké Ball", "sprite": "items/poke-ball.png"},
+            {
+                "value": "poke-ball",
+                "label": "Poké Ball",
+                "sprite": "items/poke-ball.png",
+            },
             choices["pokeball"],
         )
         water = next(t for t in choices["type"] if t["value"] == "water")
         self.assertEqual(
             water, {"value": "water", "label": "Água", "sprite": water["sprite"]}
         )
-        self.assertTrue(water["sprite"].startswith("types/") and "/small/11.png" in water["sprite"])
+        self.assertTrue(
+            water["sprite"].startswith("types/") and "/small/11.png" in water["sprite"]
+        )
         modest = next(n for n in choices["nature"] if n["value"] == "modest")
-        self.assertEqual((modest["increased"], modest["decreased"]), ("special-attack", "attack"))
+        self.assertEqual(
+            (modest["increased"], modest["decreased"]), ("special-attack", "attack")
+        )
 
         self.assertEqual(
             data["shinyLocks"],

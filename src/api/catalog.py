@@ -39,7 +39,9 @@ SCHEMA_VERSION = 1
 
 # Shiny locks padrão, versionados no repositório (formas pelo nome): o banco
 # de um CI não tem os locks cadastrados pelo app.
-SHINY_LOCKS_FILE = Path(__file__).resolve().parent.parent / "pokedex/data/shiny_locks.json"
+SHINY_LOCKS_FILE = (
+    Path(__file__).resolve().parent.parent / "pokedex/data/shiny_locks.json"
+)
 
 
 class CatalogError(Exception):
@@ -210,8 +212,7 @@ def _shiny_locks() -> list[dict]:
     if unknown := sorted(names - ids.keys()):
         raise CatalogError(f"shiny locks com formas desconhecidas: {unknown}")
     return [
-        lock | {"forms": sorted(ids[name] for name in lock["forms"])}
-        for lock in locks
+        lock | {"forms": sorted(ids[name] for name in lock["forms"])} for lock in locks
     ]
 
 
