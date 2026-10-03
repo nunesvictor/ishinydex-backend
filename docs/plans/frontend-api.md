@@ -34,7 +34,7 @@ Schema OpenAPI: `GET /api/schema/` · Swagger UI: `GET /api/docs/` (públicos).
 | GET | `/api/personal-dexes/{id}/hunts/` | lista de caçadas de um **shiny dex** (paginada, na ordem das boxes): `Hunt[]`; dex que não é shiny dex → 400 `{"detail": ...}`. Filtros em [Caçadas](#caçadas-de-apipersonal-dexesidhunts) |
 | GET | `/api/personal-dexes/preview/?force_new_box=` | simula um dex padrão sem criar: `{forms, boxes_needed, largest_free_run, enough_space, boxes_to_create, first_box: BoxRef \| null}`; sem sequência livre que caiba, completa a sequência livre do fim com `boxes_to_create` boxes novas (até 200, o limite do HOME); `first_box` é `null` sem espaço ou quando o dex fica todo em boxes novas |
 | POST | `/api/personal-dexes/` | `{name, is_shiny_dex?, force_new_box?}` → 201 com o dex (e contagens); cria com o conjunto padrão de formas, na [ordem canônica](#ordem-canônica-das-formas) (com `force_new_box`, cada geração da espécie começa no 1º slot de uma box), e instala o esquema na 1ª sequência de boxes livres (ou cria no fim as boxes que faltam, como no preview). Nome repetido → `{"name": [...]}`; sem espaço → `{"non_field_errors": [...]}` |
-| GET | `/api/slots/?personal_dex=&box=&registered=true\|false&search=` | slots; com `box`, retorna os 30 slots **sem paginação**; `search` = nome da forma (`icontains`, [como slug](#busca-por-nome)) ou número (Pokédex nacional da espécie ou `pokeapi_id` da forma), na ordem das boxes |
+| GET | `/api/slots/?personal_dex=&box=&registered=true\|false&search=&form=` | slots (`form`: ids de formas por vírgula, ex.: onde cada forma da linha evolutiva está no dex); com `box`, retorna os 30 slots **sem paginação**; `search` = nome da forma (`icontains`, [como slug](#busca-por-nome)) ou número (Pokédex nacional da espécie ou `pokeapi_id` da forma), na ordem das boxes |
 | GET | `/api/slots/{id}/` | um slot |
 | POST | `/api/slots/{id}/deposit/` | `{specimen_id}` → 200 com o slot, ou 400 |
 | POST | `/api/slots/{id}/withdraw/` | 200 com o slot (`specimen: null`); o app não usa mais (libertar = DELETE do specimen) |
@@ -81,6 +81,14 @@ texto cru. Apelido e treinador são texto livre e não passam por isso.
  "abilities": [{"slot": 1, "ability": "overgrow", "is_hidden": false}],
  "stats": [{"stat": "hp", "base_stat": 45, "effort": 0}, ...],  // ordem dos jogos: hp,
                      // attack, defense, special-attack, special-defense, speed; [] sem pokémon
+ // Dados da espécie (null/[] se a forma não tem pokémon):
+ "gender_rate": 1,           // chance de fêmea em oitavos (0 só macho, 8 só fêmea); -1 sem gênero
+ "capture_rate": 45, "hatch_counter": 20,   // taxa de captura e ciclos de ovo
+ "height": 17, "weight": 905,               // decímetros e hectogramas (PokéAPI)
+ "debut_versions": ["red-japan", "green-japan"],  // versões do grupo de estreia da forma
+ "evolution_chain": [[FormRef], [FormRef], [FormRef, ...]],  // estágios (ramificações no
+                     // mesmo estágio), com a forma padrão de cada espécie; [] se não evolui
+ "other_forms": [FormRef, ...],   // demais formas da espécie (Mega, Gigantamax, regionais)
  "is_shinylocked": false, "is_distro_only": false}
 
 // SpecimenSummary

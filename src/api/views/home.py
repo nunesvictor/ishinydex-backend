@@ -357,6 +357,9 @@ class PersonalDexViewSet(
             ),
             OpenApiParameter("registered", OpenApiTypes.BOOL),
             OpenApiParameter(
+                "form", OpenApiTypes.STR, description=_("comma-separated form ids")
+            ),
+            OpenApiParameter(
                 "search",
                 OpenApiTypes.STR,
                 description=_(

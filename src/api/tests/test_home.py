@@ -2320,3 +2320,98 @@ class FormStatsTests(HomeAPITestCase):
 
         PokemonForm.objects.filter(pk=self.squirtle.pk).update(pokemon=None)
         self.assertEqual(self.detail(self.squirtle).data["stats"], [])
+
+
+class FormSpeciesTests(HomeAPITestCase):
+    """Dados da espécie no detalhe da forma: linha evolutiva, outras formas e
+    a grade (gênero, captura, ovos, altura, peso, estreia)."""
+
+    def setUp(self):
+        super().setUp()
+        self.charmander_species = self.charmander.pokemon.species
+        self.charmeleon_species, _, self.charmeleon = f.make_full_pokemon(
+            "charmeleon", 5
+        )
+        self.charizard_species, charizard, self.charizard = f.make_full_pokemon(
+            "charizard", 6
+        )
+        self.charmeleon_species.evolves_from_species = self.charmander_species
+        self.charmeleon_species.save()
+        self.charizard_species.evolves_from_species = self.charmeleon_species
+        self.charizard_species.gender_rate = 1
+        self.charizard_species.capture_rate = 45
+        self.charizard_species.hatch_counter = 20
+        self.charizard_species.save()
+        charizard.height, charizard.weight = 17, 905
+        charizard.save()
+        # Mega: outro Pokémon da mesma espécie, com a sua forma.
+        mega = f.make_pokemon(self.charizard_species, name="charizard-mega-x")
+        self.mega = f.make_form(mega, name="charizard-mega-x", form_name="mega-x")
+
+    def detail(self, form):
+        return self.client.get(reverse("api:form-detail", args=[form.pk])).data
+
+    def test_evolution_chain_other_forms_and_facts(self):
+        data = self.detail(self.charizard)
+
+        self.assertEqual(
+            [[form["name"] for form in stage] for stage in data["evolution_chain"]],
+            [["charmander"], ["charmeleon"], ["charizard"]],
+        )
+        self.assertEqual(
+            [form["name"] for form in data["other_forms"]], ["charizard-mega-x"]
+        )
+        self.assertEqual(
+            (
+                data["gender_rate"],
+                data["capture_rate"],
+                data["hatch_counter"],
+                data["height"],
+                data["weight"],
+            ),
+            (1, 45, 20, 17, 905),
+        )
+        self.assertEqual(data["debut_versions"], self.charizard.version_group.versions)
+        # A mesma linha, vista do meio dela e da mega (que não é padrão).
+        self.assertEqual(len(self.detail(self.charmeleon)["evolution_chain"]), 3)
+        self.assertEqual(
+            [form["name"] for form in self.detail(self.mega)["other_forms"]],
+            ["charizard"],
+        )
+
+    def test_branches_in_the_same_stage(self):
+        flareon_species, _, _ = f.make_full_pokemon("flareon", 136)
+        flareon_species.evolves_from_species = self.charmander_species
+        flareon_species.save()
+
+        chain = self.detail(self.charizard)["evolution_chain"]
+
+        self.assertEqual(
+            sorted(form["name"] for form in chain[1]), ["charmeleon", "flareon"]
+        )
+
+    def test_without_evolution_or_pokemon(self):
+        data = self.detail(self.squirtle)
+        self.assertEqual(data["evolution_chain"], [])
+        self.assertEqual(data["other_forms"], [])
+
+        PokemonForm.objects.filter(pk=self.squirtle.pk).update(pokemon=None)
+        data = self.detail(self.squirtle)
+        self.assertEqual(data["evolution_chain"], [])
+        self.assertEqual(data["other_forms"], [])
+        self.assertIsNone(data["gender_rate"])
+        self.assertIsNone(data["height"])
+
+    def test_slots_filtered_by_form(self):
+        response = self.client.get(
+            reverse("api:slot-list"),
+            {
+                "personal_dex": self.dex.pk,
+                "form": f"{self.charmander.pk},{self.squirtle.pk},x",
+            },
+        )
+
+        self.assertEqual(
+            {slot["form"]["name"] for slot in response.data["results"]},
+            {"charmander", "squirtle"},
+        )

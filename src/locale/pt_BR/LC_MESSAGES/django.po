@@ -1127,6 +1127,9 @@ msgstr "Sem marca de origem"
 msgid "comma-separated specimen ids"
 msgstr "ids de espécimes separados por vírgula"
 
+msgid "comma-separated form ids"
+msgstr "ids de formas separados por vírgula"
+
 msgid "label"
 msgstr "apelido"
 

@@ -22,7 +22,14 @@ from home.models import (
 )
 from home.origin_marks import ORIGIN_MARK_LABELS
 from home.services import allowed_genders, with_origin_version
-from pokedex.models import PokemonForm, PokemonSpeciesDexEntry, ShinyLock, Version
+from pokedex.models import (
+    FORM_NATIONAL_ORDERING,
+    PokemonForm,
+    PokemonSpecies,
+    PokemonSpeciesDexEntry,
+    ShinyLock,
+    Version,
+)
 from pokedex.renderers import HomeSpriteRenderer
 
 from ..filters import HUNT_REASONS
@@ -143,10 +150,62 @@ class FormStatSerializer(serializers.Serializer):
 STAT_ORDER = ("hp", "attack", "defense", "special-attack", "special-defense", "speed")
 
 
+def species_default_form(species: PokemonSpecies) -> PokemonForm | None:
+    """A forma que representa a espécie: a padrão do Pokémon padrão."""
+    return PokemonForm.objects.filter(
+        pokemon__species=species,
+        pokemon__pokemon_species_varieties__is_default=True,
+        is_default=True,
+    ).first()
+
+
+def evolution_stages(species: PokemonSpecies) -> list[list[PokemonSpecies]]:
+    """Linha evolutiva da espécie em estágios: a espécie base, as que evoluem
+    dela, e assim por diante (ramificações, como Eevee, no mesmo estágio)."""
+    root, seen = species, {species.pk}
+    while root.evolves_from_species and root.evolves_from_species.pk not in seen:
+        root = root.evolves_from_species
+        seen.add(root.pk)
+
+    stages = [[root]]
+    while next_stage := list(
+        PokemonSpecies.objects.filter(evolves_from_species__in=stages[-1]).order_by(
+            "order", "pk"
+        )
+    ):
+        stages.append(next_stage)
+    return stages
+
+
+def form_refs(forms: list[PokemonForm], context):
+    """``FormRef`` das formas, com o prefetch do nº nacional."""
+    by_pk = (
+        PokemonForm.objects.select_related("pokemon__species")
+        .prefetch_related(national_number_prefetch())
+        .in_bulk([form.pk for form in forms])
+    )
+    return FormRefSerializer(
+        [by_pk[form.pk] for form in forms], many=True, context=context
+    ).data
+
+
 class FormDetailSerializer(FormRefSerializer):
+    """Detalhe da forma: tipos, habilidades, status base e dados da espécie
+    (linha evolutiva, outras formas, gênero, captura...). Para uma forma só
+    (o painel do slot): as consultas da espécie não são otimizadas para
+    listas."""
+
     types = serializers.SerializerMethodField()
     abilities = serializers.SerializerMethodField()
     stats = serializers.SerializerMethodField()
+    gender_rate = serializers.SerializerMethodField()
+    capture_rate = serializers.SerializerMethodField()
+    hatch_counter = serializers.SerializerMethodField()
+    height = serializers.SerializerMethodField()
+    weight = serializers.SerializerMethodField()
+    debut_versions = serializers.SerializerMethodField()
+    evolution_chain = serializers.SerializerMethodField()
+    other_forms = serializers.SerializerMethodField()
     is_shinylocked = serializers.BooleanField(read_only=True)
     is_distro_only = serializers.BooleanField(read_only=True)
 
@@ -155,9 +214,84 @@ class FormDetailSerializer(FormRefSerializer):
             "types",
             "abilities",
             "stats",
+            "gender_rate",
+            "capture_rate",
+            "hatch_counter",
+            "height",
+            "weight",
+            "debut_versions",
+            "evolution_chain",
+            "other_forms",
             "is_shinylocked",
             "is_distro_only",
         )
+
+    def _species(self, obj: PokemonForm) -> PokemonSpecies | None:
+        return obj.pokemon.species if obj.pokemon else None
+
+    def get_gender_rate(self, obj: PokemonForm) -> int | None:
+        """Chance de fêmea em oitavos (0 = só macho, 8 = só fêmea); -1 = sem
+        gênero."""
+        species = self._species(obj)
+        return species.gender_rate if species else None
+
+    def get_capture_rate(self, obj: PokemonForm) -> int | None:
+        species = self._species(obj)
+        return species.capture_rate if species else None
+
+    def get_hatch_counter(self, obj: PokemonForm) -> int | None:
+        """Ciclos de ovo."""
+        species = self._species(obj)
+        return species.hatch_counter if species else None
+
+    def get_height(self, obj: PokemonForm) -> int | None:
+        """Em decímetros, como na PokéAPI."""
+        return obj.pokemon.height if obj.pokemon else None
+
+    def get_weight(self, obj: PokemonForm) -> int | None:
+        """Em hectogramas, como na PokéAPI."""
+        return obj.pokemon.weight if obj.pokemon else None
+
+    def get_debut_versions(self, obj: PokemonForm) -> list[str]:
+        """Versões do grupo em que a forma estreou."""
+        return list(obj.version_group.versions) if obj.version_group else []
+
+    @extend_schema_field(
+        serializers.ListField(child=serializers.ListField(child=FormRefSerializer()))
+    )
+    def get_evolution_chain(self, obj: PokemonForm):
+        """Estágios da linha evolutiva, cada um com a forma padrão das
+        espécies; ``[]`` se a espécie não evolui nem vem de outra."""
+        species = self._species(obj)
+        if species is None:
+            return []
+
+        stages = evolution_stages(species)
+        if len(stages) == 1:
+            return []
+
+        return [
+            form_refs(
+                [form for s in stage if (form := species_default_form(s))],
+                self.context,
+            )
+            for stage in stages
+        ]
+
+    @extend_schema_field(FormRefSerializer(many=True))
+    def get_other_forms(self, obj: PokemonForm):
+        """As demais formas da espécie (Mega, Gigantamax, regionais...), na
+        ordem da dex nacional."""
+        species = self._species(obj)
+        if species is None:
+            return []
+
+        forms = (
+            PokemonForm.objects.filter(pokemon__species=species)
+            .exclude(pk=obj.pk)
+            .order_by(*FORM_NATIONAL_ORDERING)
+        )
+        return form_refs(list(forms), self.context)
 
     @extend_schema_field(FormTypeSerializer(many=True))
     def get_types(self, obj: PokemonForm):
