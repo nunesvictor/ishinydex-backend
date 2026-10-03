@@ -1,0 +1,359 @@
+[
+  {
+    "caption": "Calyrex",
+    "description": "",
+    "lockType": "unobtainable",
+    "active": true,
+    "forms": [
+      "calyrex",
+      "calyrex-ice",
+      "calyrex-shadow"
+    ]
+  },
+  {
+    "caption": "Cosmog-Cosmoem",
+    "description": "",
+    "lockType": "unobtainable",
+    "active": true,
+    "forms": [
+      "cosmoem",
+      "cosmog"
+    ]
+  },
+  {
+    "caption": "Enamorus",
+    "description": "",
+    "lockType": "distro-only",
+    "active": true,
+    "forms": [
+      "enamorus-incarnate",
+      "enamorus-therian"
+    ]
+  },
+  {
+    "caption": "Eternatus",
+    "description": "",
+    "lockType": "distro-only",
+    "active": true,
+    "forms": [
+      "eternatus"
+    ]
+  },
+  {
+    "caption": "Eternatus Eternamax",
+    "description": "",
+    "lockType": "unobtainable",
+    "active": true,
+    "forms": [
+      "eternatus-eternamax"
+    ]
+  },
+  {
+    "caption": "Floette Eternal Flower",
+    "description": "",
+    "lockType": "unobtainable",
+    "active": true,
+    "forms": [
+      "floette-eternal"
+    ]
+  },
+  {
+    "caption": "Glastrier",
+    "description": "",
+    "lockType": "unobtainable",
+    "active": true,
+    "forms": [
+      "glastrier"
+    ]
+  },
+  {
+    "caption": "Gouging Fire",
+    "description": "",
+    "lockType": "unobtainable",
+    "active": true,
+    "forms": [
+      "gouging-fire"
+    ]
+  },
+  {
+    "caption": "Greninja Battle Bond",
+    "description": "",
+    "lockType": "unobtainable",
+    "active": true,
+    "forms": [
+      "greninja-battle-bond"
+    ]
+  },
+  {
+    "caption": "Hoopa",
+    "description": "",
+    "lockType": "unobtainable",
+    "active": true,
+    "forms": [
+      "hoopa",
+      "hoopa-unbound"
+    ]
+  },
+  {
+    "caption": "Iron Boulder",
+    "description": "",
+    "lockType": "unobtainable",
+    "active": true,
+    "forms": [
+      "iron-boulder"
+    ]
+  },
+  {
+    "caption": "Iron Crown",
+    "description": "",
+    "lockType": "unobtainable",
+    "active": true,
+    "forms": [
+      "iron-crown"
+    ]
+  },
+  {
+    "caption": "Keldeo",
+    "description": "",
+    "lockType": "distro-only",
+    "active": true,
+    "forms": [
+      "keldeo-ordinary",
+      "keldeo-resolute"
+    ]
+  },
+  {
+    "caption": "Koraidon-Miraidon",
+    "description": "",
+    "lockType": "distro-only",
+    "active": true,
+    "forms": [
+      "koraidon-apex-build",
+      "koraidon-gliding-build",
+      "koraidon-limited-build",
+      "koraidon-sprinting-build",
+      "koraidon-swimming-build",
+      "miraidon-aquatic-mode",
+      "miraidon-drive-mode",
+      "miraidon-glide-mode",
+      "miraidon-low-power-mode",
+      "miraidon-ultimate-mode"
+    ]
+  },
+  {
+    "caption": "Kubfu",
+    "description": "",
+    "lockType": "unobtainable",
+    "active": true,
+    "forms": [
+      "kubfu"
+    ]
+  },
+  {
+    "caption": "Magearna",
+    "description": "",
+    "lockType": "unobtainable",
+    "active": true,
+    "forms": [
+      "magearna",
+      "magearna-mega",
+      "magearna-original",
+      "magearna-original-mega"
+    ]
+  },
+  {
+    "caption": "Marshadow",
+    "description": "",
+    "lockType": "unobtainable",
+    "active": true,
+    "forms": [
+      "marshadow"
+    ]
+  },
+  {
+    "caption": "Meloetta",
+    "description": "",
+    "lockType": "distro-only",
+    "active": true,
+    "forms": [
+      "meloetta-aria",
+      "meloetta-pirouette"
+    ]
+  },
+  {
+    "caption": "Ogerpon",
+    "description": "",
+    "lockType": "distro-only",
+    "active": true,
+    "forms": [
+      "ogerpon",
+      "ogerpon-cornerstone-mask",
+      "ogerpon-hearthflame-mask",
+      "ogerpon-wellspring-mask"
+    ]
+  },
+  {
+    "caption": "Pecharunt",
+    "description": "",
+    "lockType": "unobtainable",
+    "active": true,
+    "forms": [
+      "pecharunt"
+    ]
+  },
+  {
+    "caption": "Pecharunt's Loyal Three",
+    "description": "",
+    "lockType": "unobtainable",
+    "active": true,
+    "forms": [
+      "fezandipiti",
+      "munkidori",
+      "okidogi"
+    ]
+  },
+  {
+    "caption": "Pikachu in a Cap",
+    "description": "",
+    "lockType": "unobtainable",
+    "active": true,
+    "forms": [
+      "pikachu-alola-cap",
+      "pikachu-hoenn-cap",
+      "pikachu-kalos-cap",
+      "pikachu-original-cap",
+      "pikachu-partner-cap",
+      "pikachu-sinnoh-cap",
+      "pikachu-unova-cap",
+      "pikachu-world-cap"
+    ]
+  },
+  {
+    "caption": "Raging Bolt",
+    "description": "",
+    "lockType": "unobtainable",
+    "active": true,
+    "forms": [
+      "raging-bolt"
+    ]
+  },
+  {
+    "caption": "Spectrier",
+    "description": "",
+    "lockType": "unobtainable",
+    "active": true,
+    "forms": [
+      "spectrier"
+    ]
+  },
+  {
+    "caption": "Spiky-eared Pichu",
+    "description": "",
+    "lockType": "unobtainable",
+    "active": true,
+    "forms": [
+      "pichu-spiky-eared"
+    ]
+  },
+  {
+    "caption": "Terapagos",
+    "description": "",
+    "lockType": "unobtainable",
+    "active": true,
+    "forms": [
+      "terapagos",
+      "terapagos-stellar",
+      "terapagos-terastal"
+    ]
+  },
+  {
+    "caption": "Treasures of Ruin",
+    "description": "",
+    "lockType": "distro-only",
+    "active": true,
+    "forms": [
+      "chi-yu",
+      "chien-pao",
+      "ting-lu",
+      "wo-chien"
+    ]
+  },
+  {
+    "caption": "Ursaluna Bloodmoon",
+    "description": "",
+    "lockType": "unobtainable",
+    "active": true,
+    "forms": [
+      "ursaluna-bloodmoon"
+    ]
+  },
+  {
+    "caption": "Urshifu",
+    "description": "",
+    "lockType": "unobtainable",
+    "active": true,
+    "forms": [
+      "urshifu-rapid-strike",
+      "urshifu-rapid-strike-gmax",
+      "urshifu-single-strike",
+      "urshifu-single-strike-gmax"
+    ]
+  },
+  {
+    "caption": "Victini",
+    "description": "",
+    "lockType": "unobtainable",
+    "active": true,
+    "forms": [
+      "victini"
+    ]
+  },
+  {
+    "caption": "Vivillon Poké Ball Pattern",
+    "description": "",
+    "lockType": "unobtainable",
+    "active": true,
+    "forms": [
+      "vivillon-poke-ball"
+    ]
+  },
+  {
+    "caption": "Volcanion",
+    "description": "",
+    "lockType": "distro-only",
+    "active": true,
+    "forms": [
+      "volcanion"
+    ]
+  },
+  {
+    "caption": "Walking Wake-Iron Leaves",
+    "description": "",
+    "lockType": "unobtainable",
+    "active": true,
+    "forms": [
+      "iron-leaves",
+      "walking-wake"
+    ]
+  },
+  {
+    "caption": "Zarude",
+    "description": "",
+    "lockType": "unobtainable",
+    "active": true,
+    "forms": [
+      "zarude",
+      "zarude-dada"
+    ]
+  },
+  {
+    "caption": "Zeraora",
+    "description": "",
+    "lockType": "distro-only",
+    "active": true,
+    "forms": [
+      "zeraora",
+      "zeraora-mega"
+    ]
+  }
+]

@@ -1,0 +1,101 @@
+# Gera o pacote do catálogo (ishinydex#48, etapa 1) e o publica como release
+# `catalog-AAAA.MM.DD`, com o catalog.json anexado.
+#
+# Os dados vêm do PokeAPI/api-data (o JSON estático da PokéAPI), lido do disco
+# pelo sync_pokeapi: sem instância local da PokéAPI e sem a API pública.
+# Rodar quando sair jogo novo ou mudar o importador, o exportcatalog ou os
+# shiny locks padrão (src/pokedex/data/shiny_locks.json).
+name: Catálogo
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Versão (vazio = catalog-AAAA.MM.DD de hoje)"
+        required: false
+
+permissions:
+  contents: write
+
+env:
+  PYTHON_VERSION: "3.14"
+  POETRY_VERSION: 2.4.1
+
+jobs:
+  catalog:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      POSTGRES_HOST: localhost
+      POETRY_VIRTUALENVS_CREATE: "true"
+      POETRY_VIRTUALENVS_IN_PROJECT: "true"
+      POKEAPI_URL: file://${{ github.workspace }}/api-data/data
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Versão
+        run: |
+          version="${{ inputs.version }}"
+          echo "CATALOG_VERSION=${version:-catalog-$(date -u +%Y.%m.%d)}" >> "$GITHUB_ENV"
+
+      # Como no CI de testes: credenciais aleatórias, nada versionado.
+      - name: Gerar credenciais
+        run: |
+          echo "SECRET_KEY=$(openssl rand -hex 32)" >> "$GITHUB_ENV"
+          echo "POSTGRES_PASSWORD=$(openssl rand -hex 16)" >> "$GITHUB_ENV"
+
+      # Só os endpoints que o importador lê (o repositório inteiro tem ~300 MB).
+      - name: Baixar o api-data
+        run: |
+          git clone --depth 1 --filter=blob:none --sparse \
+            https://github.com/PokeAPI/api-data.git api-data
+          git -C api-data sparse-checkout set \
+            data/api/v2/pokemon-species data/api/v2/pokemon \
+            data/api/v2/pokemon-form data/api/v2/version data/api/v2/version-group
+          echo "API_DATA_COMMIT=$(git -C api-data rev-parse --short HEAD)" >> "$GITHUB_ENV"
+
+      - run: pipx install "poetry==${POETRY_VERSION}"
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: poetry
+
+      # Os rótulos das escolhas saem em pt-BR.
+      - run: sudo apt-get update -q && sudo apt-get install -y -q gettext
+
+      - run: poetry install --no-root --only main
+
+      - name: Gerar o catálogo
+        working-directory: src
+        run: |
+          poetry run python manage.py compilemessages -l pt_BR
+          poetry run python manage.py migrate --noinput
+          poetry run python manage.py sync_pokeapi
+          poetry run python manage.py exportcatalog \
+            --output ../catalog --catalog-version "$CATALOG_VERSION"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.CATALOG_VERSION }}
+          path: catalog/catalog.json
+
+      - name: Publicar a release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$CATALOG_VERSION" catalog/catalog.json \
+            --target "$GITHUB_SHA" \
+            --title "$CATALOG_VERSION" \
+            --notes "Pacote do catálogo gerado do PokeAPI/api-data@${API_DATA_COMMIT} pelo commit ${GITHUB_SHA::7}. Formato em src/api/catalog.py."
