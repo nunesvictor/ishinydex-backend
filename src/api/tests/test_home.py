@@ -13,7 +13,7 @@ from rest_framework.test import APITestCase
 from api.serializers.home import type_sprite_url
 from core.tests import factories as f
 from home.models import Box, PersonalDex, Save, Slot, Specimen
-from pokedex.models import PokemonForm, PokemonSpeciesDexEntry
+from pokedex.models import PokemonForm, PokemonSpeciesDexEntry, ShinyLock
 
 
 class HomeAPITestCase(APITestCase):
@@ -2069,3 +2069,140 @@ class EvolveTests(HomeAPITestCase):
                 self.assertIn("form", response.data)
         self.bulbasaur_slot.refresh_from_db()
         self.assertEqual(self.bulbasaur_slot.specimen, self.bulbasaur_specimen)
+
+
+class ShinyLockTests(HomeAPITestCase):
+    """CRUD de /shiny-locks/. Formas do setUp do pai: bulbasaur, charmander e
+    squirtle."""
+
+    def setUp(self):
+        super().setUp()
+        self.keldeo = f.make_shinylock(
+            self.squirtle,
+            self.bulbasaur,
+            caption="Keldeo",
+            lock_type=ShinyLock.LockTypeChoices.DISTRO_ONLY,
+        )
+        self.arceus = f.make_shinylock(self.charmander, caption="arceus")
+
+    def detail(self, lock):
+        return reverse("api:shiny-lock-detail", args=[lock.pk])
+
+    def test_list_in_alphabetical_order_with_forms(self):
+        response = self.client.get(reverse("api:shiny-lock-list"))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Sem diferenciar maiúsculas; sem paginação.
+        self.assertEqual(
+            [lock["caption"] for lock in response.data], ["arceus", "Keldeo"]
+        )
+        keldeo = response.data[1]
+        self.assertEqual(keldeo["lock_type"], "distro-only")
+        self.assertTrue(keldeo["active"])
+        self.assertIsNone(keldeo["description"])
+        # Formas na ordem da dex nacional, como FormRef.
+        self.assertEqual(
+            [form["name"] for form in keldeo["forms"]], ["bulbasaur", "squirtle"]
+        )
+        self.assertIn("national_number", keldeo["forms"][0])
+        self.assertIn("sprite_url", keldeo["forms"][0])
+
+    def test_create(self):
+        response = self.client.post(
+            reverse("api:shiny-lock-list"),
+            {
+                "caption": " Meloetta ",
+                "description": "  ",
+                "lock_type": "unobtainable",
+                "forms": [self.squirtle.pk],
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["caption"], "Meloetta")
+        self.assertIsNone(response.data["description"])
+        self.assertEqual(
+            [form["name"] for form in response.data["forms"]], ["squirtle"]
+        )
+        lock = ShinyLock.objects.get(pk=response.data["id"])
+        self.assertTrue(lock.active)
+        # Vale na hora para a forma (as caçadas leem a mesma tabela).
+        self.assertTrue(self.squirtle.is_shinylocked)
+
+    def test_create_validation(self):
+        cases = {
+            "caption": {"caption": "Keldeo", "forms": [self.bulbasaur.pk]},
+            "forms": {"caption": "Sem formas", "forms": []},
+            "lock_type": {
+                "caption": "Tipo",
+                "lock_type": "foo",
+                "forms": [self.bulbasaur.pk],
+            },
+        }
+        for field, payload in cases.items():
+            with self.subTest(field=field):
+                response = self.client.post(
+                    reverse("api:shiny-lock-list"), payload, format="json"
+                )
+                self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+                self.assertIn(field, response.data)
+
+        response = self.client.post(
+            reverse("api:shiny-lock-list"),
+            {"caption": "Forma que não existe", "forms": [999999]},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("forms", response.data)
+
+    def test_retrieve_and_partial_update(self):
+        retrieved = self.client.get(self.detail(self.keldeo))
+        self.assertEqual(retrieved.data["caption"], "Keldeo")
+
+        response = self.client.patch(
+            self.detail(self.keldeo),
+            {
+                "description": "Só por evento.",
+                "active": False,
+                "lock_type": "unobtainable",
+                "forms": [self.charmander.pk],
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["description"], "Só por evento.")
+        self.assertFalse(response.data["active"])
+        self.assertEqual(
+            [form["name"] for form in response.data["forms"]], ["charmander"]
+        )
+        self.keldeo.refresh_from_db()
+        self.assertEqual(list(self.keldeo.forms.all()), [self.charmander])
+        # A forma que saiu fica sem lock.
+        self.assertFalse(self.squirtle.is_distro_only)
+        self.assertFalse(self.squirtle.is_shinylocked)
+
+        # Renomear para um nome que já existe falha; PUT não é aceito.
+        duplicate = self.client.patch(
+            self.detail(self.keldeo), {"caption": "arceus"}, format="json"
+        )
+        self.assertEqual(duplicate.status_code, status.HTTP_400_BAD_REQUEST)
+        put = self.client.put(self.detail(self.keldeo), {"caption": "x"}, format="json")
+        self.assertEqual(put.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_delete(self):
+        response = self.client.delete(self.detail(self.keldeo))
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(ShinyLock.objects.filter(pk=self.keldeo.pk).exists())
+        # As formas continuam; só o lock sai.
+        self.assertTrue(PokemonForm.objects.filter(pk=self.squirtle.pk).exists())
+        self.assertFalse(self.squirtle.is_distro_only)
+
+    def test_requires_authentication(self):
+        self.client.force_authenticate(None)
+
+        response = self.client.get(reverse("api:shiny-lock-list"))
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
