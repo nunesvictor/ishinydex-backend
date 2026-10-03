@@ -87,6 +87,11 @@ class SlotFilterBackend(filters.BaseFilterBackend):
         if box := params.get("box"):
             queryset = queryset.filter(box_id=box)
 
+        # Formas (ids por vírgula): onde cada uma está no dex (o painel do
+        # slot leva até a forma da linha evolutiva).
+        if forms := parse_list(params.get("form")):
+            queryset = queryset.filter(form_id__in=[f for f in forms if f.isdigit()])
+
         if search := params.get("search", "").strip():
             queryset = queryset.filter(form__in=search_forms(search))
 
