@@ -9,7 +9,7 @@ from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.test import TestCase
 
-from api import catalog
+from catalog import build as catalog
 from core.tests import factories as f
 from pokedex.models import PokemonAbility
 

@@ -1,4 +1,5 @@
-"""Labels traduzíveis dos choices de Specimen, expostos em /specimens/options/.
+"""Labels traduzíveis dos choices de Specimen, que vão para o catálogo do app
+(``options``).
 
 Os choices em core.consts usam o próprio valor como label (e alterá-los
 geraria migrações); aqui ficam os labels para o frontend.

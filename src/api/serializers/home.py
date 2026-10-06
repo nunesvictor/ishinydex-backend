@@ -10,6 +10,7 @@ from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
+from catalog.build import STAT_ORDER
 from core.consts import TYPES_DICT
 from home.models import (
     HOME_TRANSFER_VERSIONS,
@@ -144,10 +145,6 @@ class FormStatSerializer(serializers.Serializer):
     stat = serializers.CharField()
     base_stat = serializers.IntegerField()
     effort = serializers.IntegerField()
-
-
-# Ordem dos jogos (e do hexágono do app).
-STAT_ORDER = ("hp", "attack", "defense", "special-attack", "special-defense", "speed")
 
 
 def species_default_form(species: PokemonSpecies) -> PokemonForm | None:
