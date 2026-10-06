@@ -1,29 +1,22 @@
 # iShinyDex — Backend
 
-API REST e admin do **iShinyDex**, gerenciador pessoal de PersonalDex no estilo
-das boxes do Pokémon HOME: formas (dados da PokeAPI), boxes espelhadas do HOME,
-PersonalDexes, espécimes (shiny, alfa, pokébola, OT…) e o depósito nos slots.
+O **gerador do catálogo** do [iShinyDex](https://github.com/nunesvictor/ishinydex):
+importa os dados da [PokéAPI](https://pokeapi.co/) (espécies, formas, versões,
+habilidades) e os exporta como o pacote `catalog.json`, que o app usa como
+dados de referência. No GitHub, o workflow **Catálogo** gera o pacote e o
+publica como release `catalog-AAAA.MM.DD`.
 
-Django + Django REST Framework, PostgreSQL 17, uWSGI em produção.
+Django + PostgreSQL 17.
 
-O app (Flutter) é a interface do dia a dia. O admin do Django é o padrão, só
-para acesso emergencial e debug: sem telas próprias, sprites ou fluxos de
-lote (estes ficam na API).
-
-> **Este repositório não é para deploy.** Para instalar e rodar o iShinyDex
-> (backend + frontend), clone o repositório principal
-> [**ishinydex**](https://github.com/nunesvictor/ishinydex), que traz este
-> código como submodule e sobe tudo com um comando:
+> **Quer usar o app?** Ele roda no navegador, sem servidor: veja o
+> repositório principal, [**ishinydex**](https://github.com/nunesvictor/ishinydex).
 >
-> ```sh
-> git clone --recurse-submodules https://github.com/nunesvictor/ishinydex.git
-> cd ishinydex && cp .env.example .env   # troque os change-me
-> docker compose up -d --build           # app em http://<host>:8090
-> ```
->
-> O `Dockerfile` daqui é usado por esse compose. Já o `docker-compose.yml`
-> e o `.env.example` deste repositório são só para **desenvolvimento e
-> testes**.
+> Até a `v1.0.0`, este repositório era também a API REST e o admin do app.
+> Desde a `v2.0.0`, os dados do usuário ficam nos aparelhos, e a API não é
+> mais usada; a limpeza desse código está em
+> [#88](https://github.com/nunesvictor/ishinydex-backend/issues/88). O comando
+> `exportuserdata` leva os dados de um servidor antigo para o formato do app
+> (Ajustes → Importar dados).
 
 ## Desenvolvimento e testes
 
