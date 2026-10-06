@@ -43,7 +43,7 @@ RUN git clone --depth 1 --filter=blob:none --no-checkout \
 # ==========================================
 # TARGET: sprites-data
 # Imagem one-shot que popula o volume de sprites (ver serviço `sprites` no
-# docker-compose.yml). Os sprites NÃO fazem parte das imagens dev/prod: ficam
+# docker-compose.yml). Os sprites NÃO fazem parte das imagens: ficam
 # num volume Docker local, baixado uma única vez e disponível offline.
 # O volume só é reescrito quando a versão (commit da PokeAPI + otimização) muda.
 # ==========================================
@@ -102,26 +102,26 @@ WORKDIR /build
 COPY pyproject.toml poetry.lock ./
 
 # ------------------------------------------
-# Dependências de produção
+# Dependências principais
 # ------------------------------------------
-FROM builder AS deps-prod
+FROM builder AS deps-main
 RUN --mount=type=cache,target=/root/.cache/pypoetry \
-    /opt/poetry/bin/poetry install --no-root --only main,prod && \
+    /opt/poetry/bin/poetry install --no-root --only main && \
     find /opt/venv -name '__pycache__' -prune -exec rm -rf {} +
 
 # ------------------------------------------
-# Dependências de desenvolvimento (main + prod + dev)
+# Dependências de desenvolvimento (main + dev)
 # ------------------------------------------
 FROM builder AS deps-dev
 RUN --mount=type=cache,target=/root/.cache/pypoetry \
-    /opt/poetry/bin/poetry install --no-root --with dev,prod && \
+    /opt/poetry/bin/poetry install --no-root --with dev && \
     find /opt/venv -name '__pycache__' -prune -exec rm -rf {} +
 
 # ------------------------------------------
-# Compila traduções e coleta estáticos (usa apenas as deps de produção).
+# Compila traduções e coleta estáticos (usa apenas as deps principais).
 # Valores fictícios satisfazem o settings.py sem expor segredos reais.
 # ------------------------------------------
-FROM deps-prod AS app
+FROM deps-main AS app
 
 WORKDIR /build/src
 COPY src/ ./
@@ -132,7 +132,7 @@ RUN export SECRET_KEY=build-only POSTGRES_PASSWORD=build-only && \
 
 # ==========================================
 # STAGE: base
-# Runtime mínimo compartilhado por dev e prod.
+# Runtime mínimo.
 # ==========================================
 FROM python:${PYTHON_VERSION}-slim AS base
 
@@ -175,7 +175,7 @@ WORKDIR ${APP_HOME}/src
 ENTRYPOINT ["bash", "../docker-entrypoint.sh"]
 
 # ==========================================
-# TARGET: dev  (docker compose build → target: dev)
+# TARGET: dev  (o único: desenvolvimento, testes e o catálogo)
 # ==========================================
 FROM base AS dev
 
@@ -197,15 +197,3 @@ RUN printf '\n[ -f "${HOME}/.django_bash_completion" ] && source "${HOME}/.djang
     >> ${HOME}/.bashrc
 
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
-
-# ==========================================
-# TARGET: prod  (padrão — último estágio)
-# ==========================================
-FROM base AS prod
-
-COPY --from=deps-prod /opt/venv /opt/venv
-COPY --from=app --chown=1000:1000 /build/src/ ${APP_HOME}/src/
-
-USER guest
-
-CMD ["uwsgi", "--ini", "uwsgi/ishinydex.ini"]

@@ -100,4 +100,4 @@ jobs:
           gh release create "$CATALOG_VERSION" catalog/catalog.json \
             --target "$GITHUB_SHA" \
             --title "$CATALOG_VERSION" \
-            --notes "Pacote do catálogo gerado do PokeAPI/api-data@${API_DATA_COMMIT} pelo commit ${GITHUB_SHA::7}. Formato em src/api/catalog.py."
+            --notes "Pacote do catálogo gerado do PokeAPI/api-data@${API_DATA_COMMIT} pelo commit ${GITHUB_SHA::7}. Formato em src/catalog/build.py."

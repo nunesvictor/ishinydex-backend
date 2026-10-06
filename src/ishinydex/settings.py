@@ -44,11 +44,6 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    # 3rd party apps
-    "rest_framework",
-    "rest_framework.authtoken",
-    "corsheaders",
-    "drf_spectacular",
     # local apps
     "catalog",
     "core",
@@ -59,7 +54,6 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -175,43 +169,6 @@ BACKUPS_DIR = BASE_DIR.parent / "backups"
 # inacessível (e DEBUG=False), o cliente recorre à API oficial.
 POKEAPI_URL = config("POKEAPI_URL", default="https://pokeapi.co")
 POKEAPI_CACHE_DIR = BASE_DIR.parent / ".cache" / "pokeapi"
-
-# Django REST Framework
-REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": [
-        # Token primeiro: requisições sem credenciais recebem 401 (com
-        # WWW-Authenticate) em vez de 403.
-        "rest_framework.authentication.TokenAuthentication",
-        "rest_framework.authentication.SessionAuthentication",
-    ],
-    "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.IsAuthenticated",
-    ],
-    "DEFAULT_PAGINATION_CLASS": "api.pagination.PageNumberPagination",
-    "PAGE_SIZE": 10,
-    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
-}
-
-SPECTACULAR_SETTINGS = {
-    "TITLE": "iShinyDex API",
-    "DESCRIPTION": "API do iShinyDex (PersonalDex, HOME e Pokédex).",
-    "VERSION": "1.0.0",
-    "SERVE_INCLUDE_SCHEMA": False,
-    "COMPONENT_SPLIT_REQUEST": True,
-}
-
-# CORS (frontend Flutter)
-# FRONTEND_ORIGINS: origens separadas por vírgula (ex.: https://app.exemplo.com).
-# Em DEBUG, qualquer http://localhost:<porta> também é aceito (o `flutter run`
-# usa portas variáveis).
-CORS_ALLOWED_ORIGINS = config(
-    "FRONTEND_ORIGINS",
-    cast=lambda v: [s.strip() for s in v.split(",") if s.strip()],
-    default="",
-)
-CORS_ALLOWED_ORIGIN_REGEXES = (
-    [r"^http://localhost:\d+$", r"^http://127\.0\.0\.1:\d+$"] if DEBUG else []
-)
 
 # DATA_UPLOAD_MAX_NUMBER_FIELDS
 # https://docs.djangoproject.com/en/6.0/ref/settings/#data-upload-max-number-fields
