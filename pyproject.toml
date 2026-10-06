@@ -8,12 +8,9 @@ authors = [
 requires-python = ">=3.14,<3.15"
 dependencies = [
     "django (>=6.0.3,<7.0.0)",
-    "djangorestframework (>=3.17.1,<4.0.0)",
     "psycopg2-binary (>=2.9.12,<3.0.0)",
     "python-decouple (>=3.8,<4.0)",
     "requests (>=2.32,<3)",
-    "django-cors-headers (>=4.9.0,<5.0.0)",
-    "drf-spectacular (>=0.30.0,<0.31.0)",
 ]
 
 
@@ -29,15 +26,11 @@ dev = [
     "black (>=26.5.1,<27.0.0)",
     "django-debug-toolbar (>=7.0.0,<8.0.0)",
     "django-stubs (>=6.0.7,<7.0.0)",
-    "djangorestframework-stubs (>=3.17,<4.0)",
     "djlint (>=1.40.4,<2.0.0)",
     "flake8 (>=7.3.0,<8.0.0)",
     "isort (>=8.0.1,<9.0.0)",
     "mypy (>=2.3.0,<3.0.0)",
     "pre-commit (>=4.6.2,<5.0.0)",
-]
-prod = [
-    "uwsgi (>=2.0.31,<3.0.0)"
 ]
 
 [tool.black]
@@ -77,7 +70,7 @@ django_settings_module = "ishinydex.settings"
 profile = "black"
 default_section = "THIRDPARTY"
 known_django = ["django"]
-known_third_party = ["corsheaders", "decouple", "drf_spectacular", "requests", "rest_framework", "urllib3"]
+known_third_party = ["decouple", "requests", "urllib3"]
 sections = ["FUTURE", "STDLIB", "DJANGO", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
 multi_line_output = 3
 skip = [".gitignore", ".dockerignore", ".venv", "migrations"]
