@@ -19,8 +19,7 @@ from django.conf import settings
 from django.db.models import Prefetch
 from django.utils import translation
 
-from api.choices import specimen_options
-from api.serializers.home import STAT_ORDER
+from catalog.choices import specimen_options
 from core.consts import TYPES_DICT
 from home.models import HOME_TRANSFER_VERSIONS
 from home.origin_marks import ORIGIN_MARK_VERSION_GROUPS
@@ -34,6 +33,10 @@ from pokedex.models import (
     VersionGroup,
 )
 from pokedex.renderers import HomeSpriteRenderer
+
+# Os status base na ordem dos jogos (e do hexágono do app).
+STAT_ORDER = ("hp", "attack", "defense", "special-attack", "special-defense", "speed")
+
 
 SCHEMA_VERSION = 1
 

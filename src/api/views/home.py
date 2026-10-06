@@ -21,6 +21,7 @@ from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from catalog.choices import specimen_options
 from home.models import Box, OriginalTrainer, PersonalDex, Save, Slot, Specimen
 from home.services import (
     HOME_MAX_BOXES,
@@ -32,7 +33,6 @@ from home.services import (
 )
 from pokedex.models import FORM_NATIONAL_ORDERING, PokemonForm, ShinyLock, Version
 
-from ..choices import specimen_options
 from ..filters import (
     SPECIMEN_ORDERINGS,
     FormSearchFilterBackend,
