@@ -176,7 +176,10 @@ class Slot(OrderedModel, TimestampedModel):
     specimen = models.ForeignKey(
         "Specimen", on_delete=models.SET_NULL, blank=True, null=True
     )
+    box_id: int
+    personal_dex_id: int | None
     form_id: int | None
+    specimen_id: int | None
 
     class Meta(OrderedModel.Meta, TimestampedModel.Meta):
         verbose_name = _("slot")
@@ -265,6 +268,7 @@ class Specimen(TimestampedModel):
     location_since = models.DateField(_("location since"), blank=True, null=True)
     form_id: int
     ot_id: int | None
+    location_id: int | None
 
     class Meta(TimestampedModel.Meta):
         verbose_name = _("specimen")
