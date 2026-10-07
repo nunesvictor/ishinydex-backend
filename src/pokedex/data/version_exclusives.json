@@ -1,0 +1,120 @@
+{
+  "sources": [
+    "https://bulbapedia.bulbagarden.net/wiki/Version-exclusive_Pok%C3%A9mon",
+    "https://www.serebii.net/swordshield/exclusives.shtml",
+    "https://www.serebii.net/brilliantdiamondshiningpearl/exclusives.shtml",
+    "https://www.serebii.net/scarletviolet/exclusives.shtml",
+    "https://pokemondb.net/sword-shield/exclusive",
+    "https://pokemondb.net/brilliant-diamond-shining-pearl/exclusive",
+    "https://pokemondb.net/scarlet-violet/exclusive"
+  ],
+  "notes": [
+    "Exclusivo = só aparece na natureza (ou em raids/encontros fixos) nessa versão; pode chegar à outra por troca, criação ou evento.",
+    "Base: as tabelas da Bulbapedia (consultadas em 2026-10-07), conferidas com a Serebii e a Pokémon DB.",
+    "Entram também os da Bulbapedia só em notas: Indeedee macho/fêmea, Sawk/Throh (Espada/Escudo) e Gulpin/Swalot (Violeta).",
+    "Entram as evoluções de exclusivos que a Serebii lista: Slurpuff, Aromatisse, Scizor, Electivire, Slowking e Magmortar.",
+    "Ficam de fora: Passimian/Oranguru em Espada/Escudo (a DLC libera os dois; o app considera sempre a DLC), os exclusivos de raids Gigantamax e Aron, Poochyena, Houndour e Spheal no BDSP (só a Pokémon DB lista).",
+    "Os lendários da Indigo Disk aparecem na outra versão via Blueberry Quests com outros jogadores, mas continuam exclusivos para quem joga sozinho.",
+    "Dialga e Palkia na base de Escarlate/Violeta ficam de fora: a Bulbapedia os lista, mas não são encontros regulares (nem pokédex, nem Snacksworth)."
+  ],
+  "exclusives": [
+    {
+      "version": "sword",
+      "dlc": null,
+      "forms": [
+        "farfetchd-galar", "seedot", "nuzleaf", "shiftry", "mawile", "solrock", "sawk", "basculin-red-striped", "darumaka-galar", "darmanitan-galar-standard", "scraggy", "scrafty", "gothita", "gothorita", "gothitelle", "rufflet", "braviary", "deino", "zweilous", "hydreigon", "swirlix", "slurpuff", "turtonator", "jangmo-o", "hakamo-o", "kommo-o", "flapple", "sirfetchd", "stonjourner", "indeedee-male", "zacian"
+      ]
+    },
+    {
+      "version": "sword",
+      "dlc": "the-isle-of-armor",
+      "forms": [
+        "pinsir", "clauncher", "clawitzer"
+      ]
+    },
+    {
+      "version": "sword",
+      "dlc": "the-crown-tundra",
+      "forms": [
+        "omanyte", "omastar", "ho-oh", "bagon", "shelgon", "salamence", "latios", "groudon", "dialga", "tornadus-incarnate", "tornadus-therian", "reshiram", "xerneas-neutral", "solgaleo"
+      ]
+    },
+    {
+      "version": "shield",
+      "dlc": null,
+      "forms": [
+        "ponyta-galar", "rapidash-galar", "corsola-galar", "larvitar", "pupitar", "tyranitar", "lotad", "lombre", "ludicolo", "sableye", "lunatone", "croagunk", "toxicroak", "throh", "basculin-blue-striped", "solosis", "duosion", "reuniclus", "vullaby", "mandibuzz", "spritzee", "aromatisse", "goomy", "sliggoo", "goodra", "drampa", "appletun", "cursola", "eiscue-ice", "indeedee-female", "zamazenta"
+      ]
+    },
+    {
+      "version": "shield",
+      "dlc": "the-isle-of-armor",
+      "forms": [
+        "heracross", "skrelp", "dragalge"
+      ]
+    },
+    {
+      "version": "shield",
+      "dlc": "the-crown-tundra",
+      "forms": [
+        "kabuto", "kabutops", "lugia", "latias", "kyogre", "gible", "gabite", "garchomp", "palkia", "thundurus-incarnate", "thundurus-therian", "zekrom", "yveltal", "lunala"
+      ]
+    },
+    {
+      "version": "brilliant-diamond",
+      "dlc": null,
+      "forms": [
+        "caterpie", "metapod", "butterfree", "ekans", "arbok", "growlithe", "arcanine", "seel", "dewgong", "scyther", "electabuzz", "murkrow", "gligar", "scizor", "elekid", "raikou", "entei", "suicune", "larvitar", "pupitar", "tyranitar", "ho-oh", "seedot", "nuzleaf", "shiftry", "mawile", "zangoose", "solrock", "kecleon", "cranidos", "rampardos", "honchkrow", "stunky", "skuntank", "electivire", "gliscor", "dialga"
+      ]
+    },
+    {
+      "version": "shining-pearl",
+      "dlc": null,
+      "forms": [
+        "weedle", "kakuna", "beedrill", "sandshrew", "sandslash", "vulpix", "ninetales", "slowpoke", "slowbro", "magmar", "pinsir", "articuno", "zapdos", "moltres", "slowking", "misdreavus", "teddiursa", "ursaring", "stantler", "magby", "lugia", "lotad", "lombre", "ludicolo", "sableye", "seviper", "lunatone", "bagon", "shelgon", "salamence", "shieldon", "bastiodon", "mismagius", "glameow", "purugly", "magmortar", "palkia"
+      ]
+    },
+    {
+      "version": "scarlet",
+      "dlc": null,
+      "forms": [
+        "tauros-paldea-blaze-breed", "larvitar", "pupitar", "tyranitar", "drifloon", "drifblim", "stunky", "skuntank", "deino", "zweilous", "hydreigon", "skrelp", "dragalge", "oranguru", "stonjourner", "armarouge", "great-tusk", "scream-tail", "brute-bonnet", "flutter-mane", "slither-wing", "sandy-shocks", "roaring-moon", "koraidon-apex-build", "walking-wake"
+      ]
+    },
+    {
+      "version": "scarlet",
+      "dlc": "the-teal-mask",
+      "forms": [
+        "gligar", "gliscor", "cramorant"
+      ]
+    },
+    {
+      "version": "scarlet",
+      "dlc": "the-indigo-disk",
+      "forms": [
+        "vulpix-alola", "ninetales-alola", "raikou", "entei", "suicune", "ho-oh", "latios", "groudon", "cranidos", "rampardos", "reshiram", "kyurem-white", "solgaleo", "necrozma-dusk", "glastrier", "gouging-fire", "raging-bolt"
+      ]
+    },
+    {
+      "version": "violet",
+      "dlc": null,
+      "forms": [
+        "tauros-paldea-aqua-breed", "misdreavus", "gulpin", "swalot", "bagon", "shelgon", "salamence", "mismagius", "clauncher", "clawitzer", "passimian", "eiscue-ice", "dreepy", "drakloak", "dragapult", "ceruledge", "iron-treads", "iron-bundle", "iron-hands", "iron-jugulis", "iron-moth", "iron-thorns", "iron-valiant", "miraidon-ultimate-mode", "iron-leaves"
+      ]
+    },
+    {
+      "version": "violet",
+      "dlc": "the-teal-mask",
+      "forms": [
+        "aipom", "ambipom", "morpeko-full-belly"
+      ]
+    },
+    {
+      "version": "violet",
+      "dlc": "the-indigo-disk",
+      "forms": [
+        "sandshrew-alola", "sandslash-alola", "lugia", "latias", "kyogre", "shieldon", "bastiodon", "cobalion", "terrakion", "virizion", "zekrom", "kyurem-black", "lunala", "necrozma-dawn", "spectrier", "iron-boulder", "iron-crown"
+      ]
+    }
+  ]
+}

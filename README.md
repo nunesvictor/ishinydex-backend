@@ -44,4 +44,7 @@ app instalado.
 
 - **Gerador e formato do catálogo:** [`src/catalog/build.py`](src/catalog/build.py).
 - **Fluxo de trabalho** (issues, PRs e CI): [CONTRIBUTING.md](CONTRIBUTING.md).
-- **Shiny locks padrão** do catálogo: [`src/pokedex/data/shiny_locks.json`](src/pokedex/data/shiny_locks.json) (formas pelo nome).
+- **Dados versionados** do catálogo, que a PokéAPI não tem (formas e espécies pelo nome, com as fontes no próprio arquivo):
+  - shiny locks padrão: [`src/pokedex/data/shiny_locks.json`](src/pokedex/data/shiny_locks.json);
+  - exclusivos de versão: [`src/pokedex/data/version_exclusives.json`](src/pokedex/data/version_exclusives.json);
+  - lendários fora das pokédex (Aventura Dinamax, Snacksworth): [`src/pokedex/data/special_encounters.json`](src/pokedex/data/special_encounters.json).

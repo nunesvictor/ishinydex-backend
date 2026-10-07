@@ -46,6 +46,49 @@ SHINY_LOCKS_FILE = (
     Path(__file__).resolve().parent.parent / "pokedex/data/shiny_locks.json"
 )
 
+# Exclusivos de versão (formas pelo nome), versionados no repositório: a
+# PokéAPI não tem esse dado. Fontes e critérios no próprio arquivo.
+VERSION_EXCLUSIVES_FILE = (
+    Path(__file__).resolve().parent.parent / "pokedex/data/version_exclusives.json"
+)
+
+# Lendários capturáveis fora das pokédex do jogo (Aventura Dinamax,
+# Snacksworth): entram como pokédex especiais, sem número.
+SPECIAL_ENCOUNTERS_FILE = (
+    Path(__file__).resolve().parent.parent / "pokedex/data/special_encounters.json"
+)
+
+# Nomes em pt-BR das pokédex dos jogos que recebem do HOME. Uma pokédex nova
+# da PokéAPI sem nome aqui sai com o nome dela.
+POKEDEX_LABELS = {
+    "galar": "Galar",
+    "isle-of-armor": "Ilha da Armadura",
+    "crown-tundra": "Tundra Coroada",
+    "original-sinnoh": "Sinnoh",
+    "hisui": "Hisui",
+    "paldea": "Paldea",
+    "kitakami": "Kitakami",
+    "blueberry": "Blueberry",
+    "lumiose-city": "Lumiose",
+    "hyperspace": "Hiperespaço",
+}
+
+# Grupos de versões das DLCs: a PokéAPI repete as pokédex deles no grupo do
+# jogo, e é por eles que se sabe quais pokédex são de DLC.
+DLC_VERSION_GROUPS = (
+    "the-isle-of-armor",
+    "the-crown-tundra",
+    "the-teal-mask",
+    "the-indigo-disk",
+    "mega-dimension",
+)
+
+# A pokédex nacional do BDSP (liberada no pós-jogo): as espécies das gerações
+# 1 a 4. A PokéAPI só lista a regional (``original-sinnoh``).
+BDSP_GROUP = "brilliant-diamond-shining-pearl"
+BDSP_NATIONAL = "bdsp-national"
+BDSP_NATIONAL_LAST = 493
+
 
 class CatalogError(Exception):
     pass
@@ -219,8 +262,135 @@ def _shiny_locks() -> list[dict]:
     ]
 
 
+def _pokedexes() -> tuple[list[dict], dict[str, set[str]]]:
+    """As pokédex dos jogos que recebem do HOME, com as espécies (pelo nome)
+    e o número em cada uma; e as espécies de cada grupo de versões."""
+    home_groups = [
+        g
+        for g in VersionGroup.objects.order_by("order", "name")
+        if any(v in HOME_TRANSFER_VERSIONS for v in g.versions)
+    ]
+    dlc_of = {
+        dex: g.name
+        for g in VersionGroup.objects.filter(name__in=DLC_VERSION_GROUPS)
+        for dex in g.pokedexes
+    }
+    groups_of: dict[str, list[str]] = {}
+    for g in home_groups:
+        for dex in g.pokedexes:
+            groups_of.setdefault(dex, []).append(g.name)
+        if g.name == BDSP_GROUP:
+            groups_of[BDSP_NATIONAL] = [g.name]
+
+    entries: dict[str, list[list]] = {dex: [] for dex in groups_of}
+    labels: dict[str, str] = {BDSP_NATIONAL: "Nacional"}
+    for dex, number, species in (
+        PokemonSpeciesDexEntry.objects.filter(pokedex__in=groups_of)
+        .order_by("pokedex", "entry_number")
+        .values_list("pokedex", "entry_number", "pokemon_species__name")
+    ):
+        entries[dex].append([species, number])
+    if BDSP_NATIONAL in entries:
+        entries[BDSP_NATIONAL] = [
+            [species, number]
+            for number, species in PokemonSpeciesDexEntry.objects.filter(
+                pokedex="national", entry_number__lte=BDSP_NATIONAL_LAST
+            )
+            .order_by("entry_number")
+            .values_list("entry_number", "pokemon_species__name")
+        ]
+
+    home = {g.name for g in home_groups}
+    dlc_of = dlc_of | _special_encounters(home, groups_of, entries, labels)
+
+    species_of_group: dict[str, set[str]] = {g.name: set() for g in home_groups}
+    for dex, groups in groups_of.items():
+        for group in groups:
+            species_of_group[group].update(name for name, _ in entries[dex])
+    pokedexes = [
+        {
+            "name": dex,
+            "label": labels.get(dex)
+            or POKEDEX_LABELS.get(dex, dex.replace("-", " ").title()),
+            "versionGroups": groups,
+            "dlc": dlc_of.get(dex),
+            "entries": entries[dex],
+        }
+        for dex, groups in groups_of.items()
+    ]
+    return pokedexes, species_of_group
+
+
+def _special_encounters(
+    home: set[str],
+    groups_of: dict[str, list[str]],
+    entries: dict[str, list[list]],
+    labels: dict[str, str],
+) -> dict[str, str | None]:
+    """Acrescenta as pokédex especiais de ``SPECIAL_ENCOUNTERS_FILE`` dos jogos
+    que recebem do HOME (entradas sem número) e devolve a DLC de cada uma."""
+    encounters = json.loads(SPECIAL_ENCOUNTERS_FILE.read_text(encoding="utf-8"))[
+        "encounters"
+    ]
+    known = set(PokemonSpecies.objects.values_list("name", flat=True))
+    dlc_of = {}
+    for encounter in encounters:
+        name, dlc = encounter["name"], encounter["dlc"]
+        if unknown := sorted(set(encounter["species"]) - known):
+            raise CatalogError(f"{name} com espécies desconhecidas: {unknown}")
+        if dlc is not None and dlc not in DLC_VERSION_GROUPS:
+            raise CatalogError(f"{name} com DLC desconhecida: {dlc}")
+        if encounter["versionGroup"] not in home:
+            continue
+        groups_of[name] = [encounter["versionGroup"]]
+        entries[name] = [[species, None] for species in encounter["species"]]
+        labels[name] = encounter["label"]
+        dlc_of[name] = dlc
+    return dlc_of
+
+
+def _version_exclusives(species_of_group: dict[str, set[str]]) -> list[dict]:
+    """Os exclusivos de ``VERSION_EXCLUSIVES_FILE``, com as formas trocadas
+    pelos ids. Falha com forma, versão ou DLC desconhecida, ou com forma cuja
+    espécie não está em nenhuma pokédex do jogo (pega erro de digitação)."""
+    groups = json.loads(VERSION_EXCLUSIVES_FILE.read_text(encoding="utf-8"))[
+        "exclusives"
+    ]
+    names = {name for group in groups for name in group["forms"]}
+    forms = {
+        name: (pokeapi_id, species)
+        for name, pokeapi_id, species in PokemonForm.objects.filter(
+            name__in=names
+        ).values_list("name", "pokeapi_id", "pokemon__species__name")
+    }
+    if unknown := sorted(names - forms.keys()):
+        raise CatalogError(f"exclusivos com formas desconhecidas: {unknown}")
+    group_of = dict(Version.objects.values_list("name", "version_group__name"))
+    result = []
+    for group in groups:
+        version, dlc = group["version"], group["dlc"]
+        species = species_of_group.get(group_of.get(version, ""))
+        if species is None:
+            raise CatalogError(f"exclusivos de versão sem pokédex: {version}")
+        if dlc is not None and dlc not in DLC_VERSION_GROUPS:
+            raise CatalogError(f"exclusivos com DLC desconhecida: {dlc}")
+        if outside := [n for n in group["forms"] if forms[n][1] not in species]:
+            raise CatalogError(
+                f"exclusivos de {version} fora das pokédex do jogo: {outside}"
+            )
+        result.append(
+            {
+                "version": version,
+                "dlc": dlc,
+                "forms": [forms[name][0] for name in group["forms"]],
+            }
+        )
+    return result
+
+
 def build_catalog(version: str) -> dict:
     groups, versions = _versions()
+    pokedexes, species_of_group = _pokedexes()
     return {
         "schemaVersion": SCHEMA_VERSION,
         "version": version,
@@ -235,4 +405,8 @@ def build_catalog(version: str) -> dict:
         "defaultDex": [f.pokeapi_id for f in default_forms()],
         "choices": _choices(),
         "shinyLocks": _shiny_locks(),
+        # Em que pokédex de cada jogo do HOME cada espécie está, e as formas
+        # exclusivas de uma versão (saves compatíveis, nas caçadas).
+        "pokedexes": pokedexes,
+        "versionExclusives": _version_exclusives(species_of_group),
     }
