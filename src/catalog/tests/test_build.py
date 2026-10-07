@@ -340,6 +340,8 @@ class ShippedVersionExclusivesTests(TestCase):
         self.assertEqual(set(data), {"sources", "notes", "exclusives"})
         self.assertTrue(data["sources"])
         game = {
+            "lets-go-pikachu": "lgpe",
+            "lets-go-eevee": "lgpe",
             "sword": "swsh",
             "shield": "swsh",
             "brilliant-diamond": "bdsp",

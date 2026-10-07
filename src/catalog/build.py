@@ -61,6 +61,7 @@ SPECIAL_ENCOUNTERS_FILE = (
 # Nomes em pt-BR das pokédex dos jogos que recebem do HOME. Uma pokédex nova
 # da PokéAPI sem nome aqui sai com o nome dela.
 POKEDEX_LABELS = {
+    "letsgo-kanto": "Kanto",
     "galar": "Galar",
     "isle-of-armor": "Ilha da Armadura",
     "crown-tundra": "Tundra Coroada",
