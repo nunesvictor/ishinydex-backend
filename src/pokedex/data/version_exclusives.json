@@ -1,6 +1,7 @@
 {
   "sources": [
     "https://bulbapedia.bulbagarden.net/wiki/Version-exclusive_Pok%C3%A9mon",
+    "https://bulbapedia.bulbagarden.net/wiki/Pok%C3%A9mon:_Let%27s_Go,_Pikachu!_and_Let%27s_Go,_Eevee!",
     "https://www.serebii.net/swordshield/exclusives.shtml",
     "https://www.serebii.net/brilliantdiamondshiningpearl/exclusives.shtml",
     "https://www.serebii.net/scarletviolet/exclusives.shtml",
@@ -15,9 +16,24 @@
     "Entram as evoluções de exclusivos que a Serebii lista: Slurpuff, Aromatisse, Scizor, Electivire, Slowking e Magmortar.",
     "Ficam de fora: Passimian/Oranguru em Espada/Escudo (a DLC libera os dois; o app considera sempre a DLC), os exclusivos de raids Gigantamax e Aron, Poochyena, Houndour e Spheal no BDSP (só a Pokémon DB lista).",
     "Os lendários da Indigo Disk aparecem na outra versão via Blueberry Quests com outros jogadores, mas continuam exclusivos para quem joga sozinho.",
-    "Dialga e Palkia na base de Escarlate/Violeta ficam de fora: a Bulbapedia os lista, mas não são encontros regulares (nem pokédex, nem Snacksworth)."
+    "Dialga e Palkia na base de Escarlate/Violeta ficam de fora: a Bulbapedia os lista, mas não são encontros regulares (nem pokédex, nem Snacksworth).",
+    "Let's Go: as formas parceiras de Pikachu e Eevee ficam de fora; as formas de Alola vêm de trocas no jogo, nas duas versões."
   ],
   "exclusives": [
+    {
+      "version": "lets-go-pikachu",
+      "dlc": null,
+      "forms": [
+        "oddish", "gloom", "vileplume", "sandshrew", "sandslash", "mankey", "primeape", "growlithe", "arcanine", "grimer", "muk", "scyther"
+      ]
+    },
+    {
+      "version": "lets-go-eevee",
+      "dlc": null,
+      "forms": [
+        "bellsprout", "weepinbell", "victreebel", "ekans", "arbok", "meowth", "persian", "vulpix", "ninetales", "koffing", "weezing", "pinsir"
+      ]
+    },
     {
       "version": "sword",
       "dlc": null,

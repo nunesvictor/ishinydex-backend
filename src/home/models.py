@@ -94,7 +94,11 @@ class OriginalTrainer(TimestampedModel):
 
 # Jogos que recebem Pokémon do HOME (e os devolvem). Let's Go, GO e Bank só
 # enviam: não podem ser destino.
+# O Let's Go recebe de volta só quem veio dele (marca de origem ``lets-go``);
+# essa regra fica no app, na hora de mover para o save.
 HOME_TRANSFER_VERSIONS = (
+    "lets-go-pikachu",
+    "lets-go-eevee",
     "sword",
     "shield",
     "brilliant-diamond",
