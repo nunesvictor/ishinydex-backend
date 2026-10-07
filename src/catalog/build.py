@@ -52,6 +52,18 @@ VERSION_EXCLUSIVES_FILE = (
     Path(__file__).resolve().parent.parent / "pokedex/data/version_exclusives.json"
 )
 
+# Formas presentes em cada jogo, para as espécies com forma regional (a
+# pokédex da PokéAPI é por espécie: sem isso, a Ponyta de Galar estaria em
+# Legends: Arceus).
+REGIONAL_FORMS_FILE = (
+    Path(__file__).resolve().parent.parent / "pokedex/data/regional_forms.json"
+)
+
+# Formas que não podem ser obtidas shiny em cada jogo (Solgaleo em Scarlet).
+GAME_SHINY_LOCKS_FILE = (
+    Path(__file__).resolve().parent.parent / "pokedex/data/game_shiny_locks.json"
+)
+
 # Lendários capturáveis fora das pokédex do jogo (Aventura Dinamax,
 # Snacksworth): entram como pokédex especiais, sem número.
 SPECIAL_ENCOUNTERS_FILE = (
@@ -389,6 +401,63 @@ def _version_exclusives(species_of_group: dict[str, set[str]]) -> list[dict]:
     return result
 
 
+def _form_ids(names: set[str], what: str) -> dict[str, tuple[int, str]]:
+    """Nome da forma → (id, espécie); falha com forma desconhecida."""
+    forms = {
+        name: (pokeapi_id, species)
+        for name, pokeapi_id, species in PokemonForm.objects.filter(
+            name__in=names
+        ).values_list("name", "pokeapi_id", "pokemon__species__name")
+    }
+    if unknown := sorted(names - forms.keys()):
+        raise CatalogError(f"{what} com formas desconhecidas: {unknown}")
+    return forms
+
+
+def _game_forms(species_of_group: dict[str, set[str]]) -> list[dict]:
+    """As formas de ``REGIONAL_FORMS_FILE``, trocadas pelos ids. Falha com
+    forma ou grupo desconhecido, ou com espécie fora das pokédex do jogo."""
+    games = json.loads(REGIONAL_FORMS_FILE.read_text(encoding="utf-8"))["games"]
+    forms = _form_ids({n for game in games for n in game["forms"]}, "formas por jogo")
+    result = []
+    for game in games:
+        group = game["versionGroup"]
+        species = species_of_group.get(group)
+        if species is None:
+            raise CatalogError(f"formas por jogo sem pokédex: {group}")
+        if outside := [n for n in game["forms"] if forms[n][1] not in species]:
+            raise CatalogError(f"formas de {group} fora das pokédex do jogo: {outside}")
+        result.append(
+            {
+                "versionGroup": group,
+                "forms": sorted(forms[name][0] for name in game["forms"]),
+            }
+        )
+    return result
+
+
+def _game_shiny_locks(species_of_group: dict[str, set[str]]) -> list[dict]:
+    """Os locks de ``GAME_SHINY_LOCKS_FILE``, com os ids das formas. Falha
+    com forma ou versão desconhecida, ou com espécie fora das pokédex."""
+    locks = json.loads(GAME_SHINY_LOCKS_FILE.read_text(encoding="utf-8"))["locks"]
+    forms = _form_ids({n for lock in locks for n in lock["forms"]}, "locks por jogo")
+    group_of = dict(Version.objects.values_list("name", "version_group__name"))
+    result = []
+    for lock in locks:
+        version = lock["version"]
+        species = species_of_group.get(group_of.get(version, ""))
+        if species is None:
+            raise CatalogError(f"locks por jogo sem pokédex: {version}")
+        if outside := [n for n in lock["forms"] if forms[n][1] not in species]:
+            raise CatalogError(
+                f"locks de {version} fora das pokédex do jogo: {outside}"
+            )
+        result.append(
+            {"version": version, "forms": sorted(forms[n][0] for n in lock["forms"])}
+        )
+    return result
+
+
 def build_catalog(version: str) -> dict:
     groups, versions = _versions()
     pokedexes, species_of_group = _pokedexes()
@@ -410,4 +479,8 @@ def build_catalog(version: str) -> dict:
         # exclusivas de uma versão (saves compatíveis, nas caçadas).
         "pokedexes": pokedexes,
         "versionExclusives": _version_exclusives(species_of_group),
+        # Para as espécies com forma regional, as formas presentes em cada
+        # jogo; e as formas que não podem ser shiny em cada versão.
+        "gameForms": _game_forms(species_of_group),
+        "gameShinyLocks": _game_shiny_locks(species_of_group),
     }
