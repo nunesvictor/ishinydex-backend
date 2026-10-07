@@ -4,7 +4,8 @@
 # Os dados vêm do PokeAPI/api-data (o JSON estático da PokéAPI), lido do disco
 # pelo sync_pokeapi: sem instância local da PokéAPI e sem a API pública.
 # Rodar quando sair jogo novo ou mudar o importador, o exportcatalog ou os
-# shiny locks padrão (src/pokedex/data/shiny_locks.json).
+# dados versionados em src/pokedex/data/ (shiny locks, exclusivos de versão,
+# encontros especiais).
 name: Catálogo
 
 on:

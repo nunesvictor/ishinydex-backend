@@ -1,0 +1,30 @@
+{
+  "sources": [
+    "https://bulbapedia.bulbagarden.net/wiki/Dynamax_Adventure",
+    "https://bulbapedia.bulbagarden.net/wiki/Snacksworth"
+  ],
+  "notes": [
+    "Lendários capturáveis fora das pokédex do jogo: entram como pokédex especiais (sem número) para os saves desses jogos.",
+    "Consultadas em 2026-10-07: Aventura Dinamax (seção Special Pokémon) e os Treats do Snacksworth."
+  ],
+  "encounters": [
+    {
+      "name": "dynamax-adventure",
+      "label": "Aventura Dinamax",
+      "versionGroup": "sword-shield",
+      "dlc": "the-crown-tundra",
+      "species": [
+        "articuno", "zapdos", "moltres", "mewtwo", "raikou", "entei", "suicune", "lugia", "ho-oh", "latias", "latios", "kyogre", "groudon", "rayquaza", "uxie", "mesprit", "azelf", "dialga", "palkia", "heatran", "giratina", "cresselia", "tornadus", "thundurus", "reshiram", "zekrom", "landorus", "kyurem", "xerneas", "yveltal", "zygarde", "tapu-koko", "tapu-lele", "tapu-bulu", "tapu-fini", "solgaleo", "lunala", "nihilego", "buzzwole", "pheromosa", "xurkitree", "celesteela", "kartana", "guzzlord", "necrozma", "stakataka", "blacephalon"
+      ]
+    },
+    {
+      "name": "snacksworth",
+      "label": "Lendários do Snacksworth",
+      "versionGroup": "scarlet-violet",
+      "dlc": "the-indigo-disk",
+      "species": [
+        "articuno", "zapdos", "moltres", "raikou", "entei", "suicune", "lugia", "ho-oh", "latias", "latios", "kyogre", "groudon", "rayquaza", "cobalion", "terrakion", "virizion", "reshiram", "zekrom", "kyurem", "solgaleo", "lunala", "necrozma", "kubfu", "glastrier", "spectrier"
+      ]
+    }
+  ]
+}
