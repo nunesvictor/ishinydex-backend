@@ -90,6 +90,29 @@ class CatalogTests(TestCase):
         patcher = mock.patch.object(catalog, "SPECIAL_ENCOUNTERS_FILE", self.encounters)
         patcher.start()
         self.addCleanup(patcher.stop)
+        self.game_forms = self.tmp / "regional.json"
+        self.write_game_data(self.game_forms, "games", "versionGroup", "scarlet-violet")
+        patcher = mock.patch.object(catalog, "REGIONAL_FORMS_FILE", self.game_forms)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        self.game_locks = self.tmp / "game_locks.json"
+        self.write_game_data(self.game_locks, "locks", "version", "scarlet")
+        patcher = mock.patch.object(catalog, "GAME_SHINY_LOCKS_FILE", self.game_locks)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    @staticmethod
+    def write_game_data(file, key, field, value, forms=("ivysaur",)):
+        """Arquivo de formas por jogo ou de locks por jogo."""
+        file.write_text(
+            json.dumps(
+                {
+                    "sources": [],
+                    "notes": [],
+                    key: [{field: value, "forms": list(forms)}],
+                }
+            )
+        )
 
     def write_encounters(self, species, dlc: str | None = "the-teal-mask"):
         encounter = {"label": "Especial", "dlc": dlc, "species": species}
@@ -274,6 +297,10 @@ class CatalogTests(TestCase):
             data["versionExclusives"],
             [{"version": "scarlet", "dlc": "the-teal-mask", "forms": [2]}],
         )
+        self.assertEqual(
+            data["gameForms"], [{"versionGroup": "scarlet-violet", "forms": [2]}]
+        )
+        self.assertEqual(data["gameShinyLocks"], [{"version": "scarlet", "forms": [2]}])
 
     def test_pokedex_without_label_uses_its_name(self):
         f.make_version_group(
@@ -306,6 +333,25 @@ class CatalogTests(TestCase):
                 self.write_exclusives(*args)
                 with self.assertRaisesRegex(catalog.CatalogError, message):
                     catalog.build_catalog("v")
+
+    def test_bad_game_data_fails(self):
+        self.make_victini()
+        for file, key, field in (
+            (self.game_forms, "games", "versionGroup"),
+            (self.game_locks, "locks", "version"),
+        ):
+            good = "scarlet-violet" if field == "versionGroup" else "scarlet"
+            cases = [
+                ((good, ["missingno"]), "formas desconhecidas"),
+                (("yellow", ["ivysaur"]), "sem pokédex: yellow"),
+                ((good, ["victini"]), "fora das pokédex"),
+            ]
+            for (value, forms), message in cases:
+                with self.subTest(file=file.name, message=message):
+                    self.write_game_data(file, key, field, value, forms)
+                    with self.assertRaisesRegex(catalog.CatalogError, message):
+                        catalog.build_catalog("v")
+            self.write_game_data(file, key, field, good)
 
     def test_unknown_lock_form_fails(self):
         self.write_locks(["bulbasaur", "missingno"])
@@ -360,6 +406,23 @@ class ShippedVersionExclusivesTests(TestCase):
                     key = (game[group["version"]], form)
                     self.assertNotIn(key, seen)
                     seen.add(key)
+
+
+class ShippedGameDataTests(TestCase):
+    def test_files_are_well_formed(self):
+        for file, key, field in (
+            (catalog.REGIONAL_FORMS_FILE, "games", "versionGroup"),
+            (catalog.GAME_SHINY_LOCKS_FILE, "locks", "version"),
+        ):
+            data = json.loads(file.read_text(encoding="utf-8"))
+            with self.subTest(file=file.name):
+                self.assertEqual(set(data), {"sources", "notes", key})
+                self.assertTrue(data["sources"])
+                values = [entry[field] for entry in data[key]]
+                self.assertEqual(len(values), len(set(values)))
+                for entry in data[key]:
+                    self.assertEqual(set(entry), {field, "forms"})
+                    self.assertEqual(entry["forms"], sorted(set(entry["forms"])))
 
 
 class ShippedSpecialEncountersTests(TestCase):

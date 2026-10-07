@@ -1,0 +1,73 @@
+{
+  "sources": [
+    "https://bulbapedia.bulbagarden.net/wiki/List_of_unobtainable_Shiny_Pok%C3%A9mon"
+  ],
+  "notes": [
+    "Formas que não podem ser obtidas shiny no jogo (consultado em 2026-10-07). Da tabela por geração da Bulbapedia: \"✘\" ou \"~\" trava em todos os jogos da geração; \"✔\" com siglas trava nos jogos da geração que não estão nas siglas.",
+    "Geração VII = Let's Go; VIII = Sword/Shield (com IoA e CT), BDSP e Legends: Arceus; IX = Scarlet/Violet (com TM e ID) e Legends: Z-A (com MD).",
+    "Legends: Z-A: as linhas com \"✔\" sem ZA/MD são de antes do jogo e não o travam.",
+    "Só entram as formas cuja espécie está numa pokédex do jogo, e só as formas regionais presentes nele (regional_forms.json)."
+  ],
+  "locks": [
+    {
+      "version": "lets-go-pikachu",
+      "forms": [
+        "eevee-starter", "melmetal", "melmetal-gmax", "meltan", "mew", "pikachu-alola-cap", "pikachu-hoenn-cap", "pikachu-kalos-cap", "pikachu-original-cap", "pikachu-partner-cap", "pikachu-sinnoh-cap", "pikachu-starter", "pikachu-unova-cap", "pikachu-world-cap"
+      ]
+    },
+    {
+      "version": "lets-go-eevee",
+      "forms": [
+        "eevee-starter", "melmetal", "melmetal-gmax", "meltan", "mew", "pikachu-alola-cap", "pikachu-hoenn-cap", "pikachu-kalos-cap", "pikachu-original-cap", "pikachu-partner-cap", "pikachu-sinnoh-cap", "pikachu-starter", "pikachu-unova-cap", "pikachu-world-cap"
+      ]
+    },
+    {
+      "version": "sword",
+      "forms": [
+        "articuno-galar", "calyrex", "calyrex-ice", "calyrex-shadow", "eternatus", "eternatus-eternamax", "glastrier", "kubfu", "moltres-galar", "pikachu-hoenn-cap", "pikachu-kalos-cap", "pikachu-original-cap", "pikachu-partner-cap", "pikachu-sinnoh-cap", "pikachu-unova-cap", "pikachu-world-cap", "silvally-bug", "silvally-dark", "silvally-dragon", "silvally-electric", "silvally-fairy", "silvally-fighting", "silvally-fire", "silvally-flying", "silvally-ghost", "silvally-grass", "silvally-ground", "silvally-ice", "silvally-normal", "silvally-poison", "silvally-psychic", "silvally-rock", "silvally-steel", "silvally-water", "spectrier", "type-null", "urshifu-rapid-strike", "urshifu-rapid-strike-gmax", "urshifu-single-strike", "urshifu-single-strike-gmax", "zacian", "zacian-crowned", "zamazenta", "zamazenta-crowned", "zapdos-galar", "zarude", "zarude-dada"
+      ]
+    },
+    {
+      "version": "shield",
+      "forms": [
+        "articuno-galar", "calyrex", "calyrex-ice", "calyrex-shadow", "eternatus", "eternatus-eternamax", "glastrier", "kubfu", "moltres-galar", "pikachu-hoenn-cap", "pikachu-kalos-cap", "pikachu-original-cap", "pikachu-partner-cap", "pikachu-sinnoh-cap", "pikachu-unova-cap", "pikachu-world-cap", "silvally-bug", "silvally-dark", "silvally-dragon", "silvally-electric", "silvally-fairy", "silvally-fighting", "silvally-fire", "silvally-flying", "silvally-ghost", "silvally-grass", "silvally-ground", "silvally-ice", "silvally-normal", "silvally-poison", "silvally-psychic", "silvally-rock", "silvally-steel", "silvally-water", "spectrier", "type-null", "urshifu-rapid-strike", "urshifu-rapid-strike-gmax", "urshifu-single-strike", "urshifu-single-strike-gmax", "zacian", "zacian-crowned", "zamazenta", "zamazenta-crowned", "zapdos-galar", "zarude", "zarude-dada"
+      ]
+    },
+    {
+      "version": "brilliant-diamond",
+      "forms": [
+        "articuno", "celebi", "darkrai", "darkrai-mega", "deoxys-attack", "deoxys-defense", "deoxys-normal", "deoxys-speed", "jirachi", "lugia", "manaphy", "mew", "moltres", "palkia", "palkia-origin", "pikachu-hoenn-cap", "pikachu-kalos-cap", "pikachu-original-cap", "pikachu-partner-cap", "pikachu-sinnoh-cap", "pikachu-unova-cap", "pikachu-world-cap", "shaymin-land", "shaymin-sky", "zapdos"
+      ]
+    },
+    {
+      "version": "shining-pearl",
+      "forms": [
+        "celebi", "darkrai", "darkrai-mega", "deoxys-attack", "deoxys-defense", "deoxys-normal", "deoxys-speed", "dialga", "dialga-origin", "entei", "ho-oh", "jirachi", "manaphy", "mew", "pikachu-hoenn-cap", "pikachu-kalos-cap", "pikachu-original-cap", "pikachu-partner-cap", "pikachu-sinnoh-cap", "pikachu-unova-cap", "pikachu-world-cap", "raikou", "shaymin-land", "shaymin-sky", "suicune"
+      ]
+    },
+    {
+      "version": "legends-arceus",
+      "forms": [
+        "arceus-bug", "arceus-dark", "arceus-dragon", "arceus-electric", "arceus-fairy", "arceus-fighting", "arceus-fire", "arceus-flying", "arceus-ghost", "arceus-grass", "arceus-ground", "arceus-ice", "arceus-normal", "arceus-poison", "arceus-psychic", "arceus-rock", "arceus-steel", "arceus-unknown", "arceus-water", "azelf", "cresselia", "darkrai", "darkrai-mega", "dialga", "dialga-origin", "enamorus-incarnate", "enamorus-therian", "giratina-altered", "giratina-origin", "heatran", "heatran-mega", "landorus-incarnate", "landorus-therian", "manaphy", "mesprit", "palkia", "palkia-origin", "pikachu-hoenn-cap", "pikachu-kalos-cap", "pikachu-original-cap", "pikachu-partner-cap", "pikachu-sinnoh-cap", "pikachu-unova-cap", "pikachu-world-cap", "regigigas", "shaymin-land", "shaymin-sky", "thundurus-incarnate", "thundurus-therian", "tornadus-incarnate", "tornadus-therian", "uxie"
+      ]
+    },
+    {
+      "version": "scarlet",
+      "forms": [
+        "articuno", "chi-yu", "chien-pao", "cobalion", "entei", "fezandipiti", "floette-eternal", "gholdengo", "gimmighoul-chest", "gimmighoul-roaming", "glastrier", "gouging-fire", "greninja-ash", "greninja-battle-bond", "groudon", "groudon-primal", "ho-oh", "iron-boulder", "iron-crown", "iron-leaves", "koraidon-apex-build", "koraidon-gliding-build", "koraidon-limited-build", "koraidon-sprinting-build", "koraidon-swimming-build", "kubfu", "kyogre", "kyogre-primal", "kyurem", "kyurem-black", "kyurem-white", "latias", "latias-mega", "latios", "latios-mega", "lugia", "lunala", "miraidon-aquatic-mode", "miraidon-drive-mode", "miraidon-glide-mode", "miraidon-low-power-mode", "miraidon-ultimate-mode", "moltres", "munkidori", "necrozma", "necrozma-dawn", "necrozma-dusk", "necrozma-ultra", "ogerpon", "ogerpon-cornerstone-mask", "ogerpon-hearthflame-mask", "ogerpon-wellspring-mask", "okidogi", "pecharunt", "pikachu-hoenn-cap", "pikachu-kalos-cap", "pikachu-original-cap", "pikachu-partner-cap", "pikachu-sinnoh-cap", "pikachu-unova-cap", "pikachu-world-cap", "raging-bolt", "raikou", "reshiram", "solgaleo", "spectrier", "suicune", "terapagos", "terapagos-stellar", "terapagos-terastal", "terrakion", "ting-lu", "ursaluna-bloodmoon", "virizion", "vivillon-poke-ball", "walking-wake", "wo-chien", "zapdos", "zekrom"
+      ]
+    },
+    {
+      "version": "violet",
+      "forms": [
+        "articuno", "chi-yu", "chien-pao", "cobalion", "entei", "fezandipiti", "floette-eternal", "gholdengo", "gimmighoul-chest", "gimmighoul-roaming", "glastrier", "gouging-fire", "greninja-ash", "greninja-battle-bond", "groudon", "groudon-primal", "ho-oh", "iron-boulder", "iron-crown", "iron-leaves", "koraidon-apex-build", "koraidon-gliding-build", "koraidon-limited-build", "koraidon-sprinting-build", "koraidon-swimming-build", "kubfu", "kyogre", "kyogre-primal", "kyurem", "kyurem-black", "kyurem-white", "latias", "latias-mega", "latios", "latios-mega", "lugia", "lunala", "miraidon-aquatic-mode", "miraidon-drive-mode", "miraidon-glide-mode", "miraidon-low-power-mode", "miraidon-ultimate-mode", "moltres", "munkidori", "necrozma", "necrozma-dawn", "necrozma-dusk", "necrozma-ultra", "ogerpon", "ogerpon-cornerstone-mask", "ogerpon-hearthflame-mask", "ogerpon-wellspring-mask", "okidogi", "pecharunt", "pikachu-hoenn-cap", "pikachu-kalos-cap", "pikachu-original-cap", "pikachu-partner-cap", "pikachu-sinnoh-cap", "pikachu-unova-cap", "pikachu-world-cap", "raging-bolt", "raikou", "reshiram", "solgaleo", "spectrier", "suicune", "terapagos", "terapagos-stellar", "terapagos-terastal", "terrakion", "ting-lu", "ursaluna-bloodmoon", "virizion", "vivillon-poke-ball", "walking-wake", "wo-chien", "zapdos", "zekrom"
+      ]
+    },
+    {
+      "version": "legends-za",
+      "forms": [
+        "darkrai", "darkrai-mega", "diancie", "diancie-mega", "floette-eternal", "genesect", "genesect-burn", "genesect-chill", "genesect-douse", "genesect-shock", "gimmighoul-roaming", "greninja-ash", "greninja-battle-bond", "groudon", "groudon-primal", "heatran", "heatran-mega", "hoopa", "hoopa-unbound", "keldeo-ordinary", "keldeo-resolute", "kyogre", "kyogre-primal", "magearna", "magearna-mega", "magearna-original", "magearna-original-mega", "marshadow", "melmetal", "melmetal-gmax", "meloetta-aria", "meloetta-pirouette", "meltan", "mewtwo", "mewtwo-mega-x", "mewtwo-mega-y", "pikachu-hoenn-cap", "pikachu-kalos-cap", "pikachu-original-cap", "pikachu-partner-cap", "pikachu-sinnoh-cap", "pikachu-unova-cap", "pikachu-world-cap", "vivillon-poke-ball", "volcanion", "xerneas-active", "xerneas-neutral", "yveltal", "zeraora", "zeraora-mega", "zygarde-10", "zygarde-10-power-construct", "zygarde-50", "zygarde-50-power-construct", "zygarde-complete", "zygarde-mega"
+      ]
+    }
+  ]
+}

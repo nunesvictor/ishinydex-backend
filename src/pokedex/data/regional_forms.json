@@ -1,0 +1,56 @@
+{
+  "sources": [
+    "https://bulbapedia.bulbagarden.net/wiki/List_of_Pok%C3%A9mon_by_Galar_Pok%C3%A9dex_number",
+    "https://bulbapedia.bulbagarden.net/wiki/List_of_Pok%C3%A9mon_by_Isle_of_Armor_Pok%C3%A9dex_number",
+    "https://bulbapedia.bulbagarden.net/wiki/List_of_Pok%C3%A9mon_by_Crown_Tundra_Pok%C3%A9dex_number",
+    "https://bulbapedia.bulbagarden.net/wiki/List_of_Pok%C3%A9mon_by_Hisui_Pok%C3%A9dex_number",
+    "https://bulbapedia.bulbagarden.net/wiki/List_of_Pok%C3%A9mon_by_Paldea_Pok%C3%A9dex_number",
+    "https://bulbapedia.bulbagarden.net/wiki/List_of_Pok%C3%A9mon_by_Kitakami_Pok%C3%A9dex_number",
+    "https://bulbapedia.bulbagarden.net/wiki/List_of_Pok%C3%A9mon_by_Blueberry_Pok%C3%A9dex_number",
+    "https://bulbapedia.bulbagarden.net/wiki/List_of_Pok%C3%A9mon_by_Lumiose_Pok%C3%A9dex_number",
+    "https://bulbapedia.bulbagarden.net/wiki/List_of_Pok%C3%A9mon_by_Hyperspace_Pok%C3%A9dex_number"
+  ],
+  "notes": [
+    "Para as espécies com forma regional que estão nas pokédex do jogo: as formas que aparecem no jogo (as listas de pokédex da Bulbapedia mostram a forma de cada entrada; consultadas em 2026-10-07). As espécies sem forma regional não entram: valem todas as formas.",
+    "Fora das listas (encontros especiais, como os pássaros do Snacksworth): só a forma comum.",
+    "Brilliant Diamond/Shining Pearl: só as formas comuns. Let's Go: as comuns e as de Alola (trocas no jogo)."
+  ],
+  "games": [
+    {
+      "versionGroup": "lets-go-pikachu-lets-go-eevee",
+      "forms": [
+        "arcanine", "articuno", "diglett", "diglett-alola", "dugtrio", "dugtrio-alola", "electrode", "exeggutor", "exeggutor-alola", "farfetchd", "geodude", "geodude-alola", "golem", "golem-alola", "graveler", "graveler-alola", "grimer", "grimer-alola", "growlithe", "marowak", "marowak-alola", "marowak-totem", "meowth", "meowth-alola", "meowth-gmax", "moltres", "mr-mime", "muk", "muk-alola", "ninetales", "ninetales-alola", "persian", "persian-alola", "pikachu", "pikachu-alola-cap", "pikachu-belle", "pikachu-cosplay", "pikachu-gmax", "pikachu-hoenn-cap", "pikachu-kalos-cap", "pikachu-libre", "pikachu-original-cap", "pikachu-partner-cap", "pikachu-phd", "pikachu-pop-star", "pikachu-rock-star", "pikachu-sinnoh-cap", "pikachu-starter", "pikachu-unova-cap", "pikachu-world-cap", "ponyta", "raichu", "raichu-alola", "raichu-mega-x", "raichu-mega-y", "rapidash", "raticate", "raticate-alola", "raticate-totem-alola", "rattata", "rattata-alola", "sandshrew", "sandshrew-alola", "sandslash", "sandslash-alola", "slowbro", "slowbro-mega", "slowpoke", "tauros", "voltorb", "vulpix", "vulpix-alola", "weezing", "zapdos"
+      ]
+    },
+    {
+      "versionGroup": "sword-shield",
+      "forms": [
+        "arcanine", "articuno", "articuno-galar", "avalugg", "braviary", "corsola", "corsola-galar", "darmanitan-galar-standard", "darmanitan-galar-zen", "darmanitan-standard", "darmanitan-zen", "darumaka", "darumaka-galar", "diglett", "diglett-alola", "dugtrio", "dugtrio-alola", "exeggutor", "exeggutor-alola", "farfetchd", "farfetchd-galar", "goodra", "growlithe", "lilligant", "linoone", "linoone-galar", "marowak", "marowak-alola", "marowak-totem", "meowth", "meowth-alola", "meowth-galar", "meowth-gmax", "moltres", "moltres-galar", "mr-mime", "mr-mime-galar", "ninetales", "ninetales-alola", "persian", "persian-alola", "pikachu", "pikachu-belle", "pikachu-cosplay", "pikachu-gmax", "pikachu-hoenn-cap", "pikachu-kalos-cap", "pikachu-libre", "pikachu-original-cap", "pikachu-partner-cap", "pikachu-phd", "pikachu-pop-star", "pikachu-rock-star", "pikachu-sinnoh-cap", "pikachu-starter", "pikachu-unova-cap", "pikachu-world-cap", "ponyta", "ponyta-galar", "qwilfish", "raichu", "raichu-alola", "raichu-mega-x", "raichu-mega-y", "rapidash", "rapidash-galar", "sandshrew", "sandshrew-alola", "sandslash", "sandslash-alola", "sliggoo", "slowbro", "slowbro-galar", "slowbro-mega", "slowking", "slowking-galar", "slowpoke", "slowpoke-galar", "sneasel", "stunfisk", "stunfisk-galar", "tauros", "vulpix", "vulpix-alola", "weezing", "weezing-galar", "wooper", "yamask", "yamask-galar", "zapdos", "zapdos-galar", "zigzagoon", "zigzagoon-galar", "zoroark", "zorua"
+      ]
+    },
+    {
+      "versionGroup": "brilliant-diamond-shining-pearl",
+      "forms": [
+        "arcanine", "articuno", "corsola", "diglett", "dugtrio", "electrode", "exeggutor", "farfetchd", "geodude", "golem", "graveler", "grimer", "growlithe", "linoone", "marowak", "marowak-totem", "meowth", "meowth-gmax", "moltres", "mr-mime", "muk", "ninetales", "persian", "pikachu", "pikachu-belle", "pikachu-cosplay", "pikachu-gmax", "pikachu-hoenn-cap", "pikachu-kalos-cap", "pikachu-libre", "pikachu-original-cap", "pikachu-partner-cap", "pikachu-phd", "pikachu-pop-star", "pikachu-rock-star", "pikachu-sinnoh-cap", "pikachu-starter", "pikachu-unova-cap", "pikachu-world-cap", "ponyta", "qwilfish", "raichu", "raichu-mega-x", "raichu-mega-y", "rapidash", "raticate", "rattata", "sandshrew", "sandslash", "slowbro", "slowbro-mega", "slowking", "slowpoke", "sneasel", "tauros", "typhlosion", "voltorb", "vulpix", "weezing", "wooper", "zapdos", "zigzagoon"
+      ]
+    },
+    {
+      "versionGroup": "legends-arceus",
+      "forms": [
+        "arcanine-hisui", "avalugg-hisui", "braviary-hisui", "decidueye-hisui", "electrode-hisui", "geodude", "golem", "goodra-hisui", "graveler", "growlithe-hisui", "lilligant-hisui", "mr-mime", "ninetales", "ninetales-alola", "pikachu", "pikachu-belle", "pikachu-cosplay", "pikachu-gmax", "pikachu-hoenn-cap", "pikachu-kalos-cap", "pikachu-libre", "pikachu-original-cap", "pikachu-partner-cap", "pikachu-phd", "pikachu-pop-star", "pikachu-rock-star", "pikachu-sinnoh-cap", "pikachu-starter", "pikachu-unova-cap", "pikachu-world-cap", "ponyta", "qwilfish-hisui", "raichu", "raichu-mega-x", "raichu-mega-y", "rapidash", "samurott-hisui", "sliggoo-hisui", "sneasel", "sneasel-hisui", "typhlosion-hisui", "voltorb-hisui", "vulpix", "vulpix-alola", "zoroark-hisui", "zorua-hisui"
+      ]
+    },
+    {
+      "versionGroup": "scarlet-violet",
+      "forms": [
+        "arcanine", "articuno", "avalugg", "braviary", "decidueye", "diglett", "diglett-alola", "dugtrio", "dugtrio-alola", "electrode", "exeggutor", "exeggutor-alola", "geodude", "geodude-alola", "golem", "golem-alola", "goodra", "graveler", "graveler-alola", "grimer", "grimer-alola", "growlithe", "lilligant", "meowth", "meowth-gmax", "moltres", "muk", "muk-alola", "ninetales", "ninetales-alola", "persian", "pikachu", "pikachu-belle", "pikachu-cosplay", "pikachu-gmax", "pikachu-hoenn-cap", "pikachu-kalos-cap", "pikachu-libre", "pikachu-original-cap", "pikachu-partner-cap", "pikachu-phd", "pikachu-pop-star", "pikachu-rock-star", "pikachu-sinnoh-cap", "pikachu-starter", "pikachu-unova-cap", "pikachu-world-cap", "qwilfish", "qwilfish-hisui", "raichu", "raichu-mega-x", "raichu-mega-y", "samurott", "sandshrew", "sandshrew-alola", "sandslash", "sandslash-alola", "sliggoo", "slowbro", "slowbro-galar", "slowbro-mega", "slowking", "slowking-galar", "slowpoke", "slowpoke-galar", "sneasel", "tauros", "tauros-paldea-aqua-breed", "tauros-paldea-blaze-breed", "tauros-paldea-combat-breed", "typhlosion", "voltorb", "vulpix", "vulpix-alola", "weezing", "wooper", "wooper-paldea", "zapdos", "zoroark", "zorua"
+      ]
+    },
+    {
+      "versionGroup": "legends-za",
+      "forms": [
+        "avalugg", "avalugg-hisui", "farfetchd", "farfetchd-galar", "goodra", "goodra-hisui", "marowak", "marowak-alola", "marowak-totem", "meowth", "meowth-alola", "meowth-galar", "meowth-gmax", "mr-mime", "mr-mime-galar", "persian", "persian-alola", "pikachu", "pikachu-belle", "pikachu-cosplay", "pikachu-gmax", "pikachu-hoenn-cap", "pikachu-kalos-cap", "pikachu-libre", "pikachu-original-cap", "pikachu-partner-cap", "pikachu-phd", "pikachu-pop-star", "pikachu-rock-star", "pikachu-sinnoh-cap", "pikachu-starter", "pikachu-unova-cap", "pikachu-world-cap", "qwilfish", "qwilfish-hisui", "raichu", "raichu-alola", "raichu-mega-x", "raichu-mega-y", "sliggoo", "sliggoo-hisui", "slowbro", "slowbro-galar", "slowbro-mega", "slowking", "slowking-galar", "slowpoke", "slowpoke-galar", "stunfisk", "stunfisk-galar", "yamask", "yamask-galar"
+      ]
+    }
+  ]
+}
