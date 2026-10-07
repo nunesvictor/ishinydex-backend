@@ -18,6 +18,14 @@ jobs:
     name: Lint (pre-commit)
     runs-on: ubuntu-latest
     steps:
+      # GitGuardian suspenso como check obrigatório (tool/gitguardian.py do
+      # repositório principal): um aviso em cada execução, até o `resume`.
+      - name: Aviso do GitGuardian
+        if: vars.GITGUARDIAN != '' && vars.GITGUARDIAN != 'ativo'
+        env:
+          STATE: ${{ vars.GITGUARDIAN }}
+        run: echo "::warning title=GitGuardian suspenso::$STATE. Para reativar, tool/gitguardian.py resume (repositório ishinydex)."
+
       - uses: actions/checkout@v5
 
       - uses: actions/setup-python@v6
