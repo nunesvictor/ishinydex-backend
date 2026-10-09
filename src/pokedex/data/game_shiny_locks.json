@@ -4,11 +4,24 @@
   ],
   "notes": [
     "Formas que não podem ser obtidas shiny no jogo (consultado em 2026-10-07). Da tabela por geração da Bulbapedia: \"✘\" ou \"~\" trava em todos os jogos da geração; \"✔\" com siglas trava nos jogos da geração que não estão nas siglas.",
+    "Geração III = FireRed/LeafGreen (Switch, HOME 4.1.0; consultado em 2026-10-09): entre as espécies do jogo, só Mew trava.",
     "Geração VII = Let's Go; VIII = Sword/Shield (com IoA e CT), BDSP e Legends: Arceus; IX = Scarlet/Violet (com TM e ID) e Legends: Z-A (com MD).",
     "Legends: Z-A: as linhas com \"✔\" sem ZA/MD são de antes do jogo e não o travam.",
     "Só entram as formas cuja espécie está numa pokédex do jogo, e só as formas regionais presentes nele (regional_forms.json)."
   ],
   "locks": [
+    {
+      "version": "firered",
+      "forms": [
+        "mew"
+      ]
+    },
+    {
+      "version": "leafgreen",
+      "forms": [
+        "mew"
+      ]
+    },
     {
       "version": "lets-go-pikachu",
       "forms": [

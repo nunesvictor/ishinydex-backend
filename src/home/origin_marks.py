@@ -2,8 +2,11 @@
 
 A marca identifica o jogo em que o Pokémon foi obtido pela primeira vez. Jogos
 que interagem entre si compartilham a marca, e as DLCs usam a do jogo base.
-Gen 3–5, Colosseum/XD e Champions não têm marca. Pokémon GO não é uma versão
-da PokéAPI: a marca vem de ``Specimen.is_from_go`` e tem prioridade.
+Gen 3–5, Colosseum/XD e Champions não têm marca, com uma exceção: FireRed e
+LeafGreen do Switch (HOME 4.1.0) levam a marca do Game Boy Advance. O
+catálogo não separa as duas edições, então todo OT de FRLG fica com ela.
+Pokémon GO não é uma versão da PokéAPI: a marca vem de ``Specimen.is_from_go``
+e tem prioridade.
 
 Referência: https://bulbapedia.bulbagarden.net/wiki/Origin_mark
 """
@@ -24,6 +27,7 @@ ORIGIN_MARK_VERSION_GROUPS: dict[str, tuple[str, ...]] = {
         "gold-silver",
         "crystal",
     ),
+    "gba": ("firered-leafgreen",),
     "kalos": ("x-y", "omega-ruby-alpha-sapphire"),
     "alola": ("sun-moon", "ultra-sun-ultra-moon"),
     "lets-go": ("lets-go-pikachu-lets-go-eevee",),
@@ -38,6 +42,7 @@ ORIGIN_MARK_VERSION_GROUPS: dict[str, tuple[str, ...]] = {
 # Só "sem marca" é texto e passa pelo gettext.
 ORIGIN_MARK_LABELS = {
     "game-boy": "GB",
+    "gba": "GBA",
     "kalos": "XY/ORAS",
     "alola": "SM/USUM",
     "lets-go": "LGPE",

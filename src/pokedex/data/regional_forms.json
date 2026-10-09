@@ -13,9 +13,16 @@
   "notes": [
     "Para as espécies com forma regional que estão nas pokédex do jogo: as formas que aparecem no jogo (as listas de pokédex da Bulbapedia mostram a forma de cada entrada; consultadas em 2026-10-07). As espécies sem forma regional não entram: valem todas as formas.",
     "Fora das listas (encontros especiais, como os pássaros do Snacksworth): só a forma comum.",
+    "FireRed/LeafGreen: só as formas comuns (as do BDSP, menos o Marowak Totem, que é de Alola). Raichu, Exeggutor e Marowak de Alola não podem ter a marca GBA (Bulbapedia, Origin mark).",
     "Brilliant Diamond/Shining Pearl: só as formas comuns. Let's Go: as comuns e as de Alola (trocas no jogo)."
   ],
   "games": [
+    {
+      "versionGroup": "firered-leafgreen",
+      "forms": [
+        "arcanine", "articuno", "diglett", "dugtrio", "electrode", "exeggutor", "farfetchd", "geodude", "golem", "graveler", "grimer", "growlithe", "marowak", "meowth", "meowth-gmax", "moltres", "mr-mime", "muk", "ninetales", "persian", "pikachu", "pikachu-belle", "pikachu-cosplay", "pikachu-gmax", "pikachu-hoenn-cap", "pikachu-kalos-cap", "pikachu-libre", "pikachu-original-cap", "pikachu-partner-cap", "pikachu-phd", "pikachu-pop-star", "pikachu-rock-star", "pikachu-sinnoh-cap", "pikachu-starter", "pikachu-unova-cap", "pikachu-world-cap", "ponyta", "qwilfish", "raichu", "raichu-mega-x", "raichu-mega-y", "rapidash", "raticate", "rattata", "sandshrew", "sandslash", "slowbro", "slowbro-mega", "slowking", "slowpoke", "sneasel", "tauros", "voltorb", "vulpix", "weezing", "wooper", "zapdos"
+      ]
+    },
     {
       "versionGroup": "lets-go-pikachu-lets-go-eevee",
       "forms": [

@@ -242,6 +242,38 @@ class CatalogTests(TestCase):
             ],
         )
 
+    def test_frlg_is_an_origin_but_not_a_save(self):
+        # FRLG do Switch (HOME 4.1.0): só ida, como o Bank. Entra nas pokédex
+        # (caçadas, exclusivos, locks) e na marca GBA, mas não recebe do HOME.
+        frlg = f.make_version_group(
+            name="firered-leafgreen",
+            generation="generation-iii",
+            versions=["firered"],
+            pokedexes=["kanto"],
+            order=10,
+        )
+        f.make_version(name="firered", version_group=frlg)
+        self.bulba_species.pokedex_numbers.add(
+            PokemonSpeciesDexEntry.objects.create(entry_number=1, pokedex="kanto")
+        )
+        data = catalog.build_catalog("v")
+
+        versions = {v["name"]: v for v in data["versions"]}
+        self.assertFalse(versions["firered"]["receivesFromHome"])
+        groups = {g["name"]: g for g in data["versionGroups"]}
+        self.assertEqual(groups["firered-leafgreen"]["originMark"], "gba")
+        dexes = {d["name"]: d for d in data["pokedexes"]}
+        self.assertEqual(
+            dexes["kanto"],
+            {
+                "name": "kanto",
+                "label": "Kanto",
+                "versionGroups": ["firered-leafgreen"],
+                "dlc": None,
+                "entries": [["bulbasaur", 1]],
+            },
+        )
+
     @staticmethod
     def make_victini():
         """Geração 5: fora da nacional do BDSP e de qualquer pokédex."""
@@ -394,6 +426,8 @@ class ShippedVersionExclusivesTests(TestCase):
             "shining-pearl": "bdsp",
             "scarlet": "sv",
             "violet": "sv",
+            "firered": "frlg",
+            "leafgreen": "frlg",
         }
         seen = set()
         for group in data["exclusives"]:
