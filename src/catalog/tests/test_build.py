@@ -100,6 +100,24 @@ class CatalogTests(TestCase):
         patcher = mock.patch.object(catalog, "GAME_SHINY_LOCKS_FILE", self.game_locks)
         patcher.start()
         self.addCleanup(patcher.stop)
+        self.methods = self.tmp / "methods.json"
+        self.write_methods()
+        patcher = mock.patch.object(catalog, "SHINY_METHODS_FILE", self.methods)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def write_methods(self, *methods):
+        methods = methods or (
+            {
+                "id": "sr",
+                "label": "Soft reset",
+                "units": ["resets", "hours"],
+                "versions": ["scarlet"],
+            },
+        )
+        self.methods.write_text(
+            json.dumps({"sources": [], "notes": [], "methods": list(methods)})
+        )
 
     @staticmethod
     def write_game_data(file, key, field, value, forms=("ivysaur",)):
@@ -333,6 +351,18 @@ class CatalogTests(TestCase):
             data["gameForms"], [{"versionGroup": "scarlet-violet", "forms": [2]}]
         )
         self.assertEqual(data["gameShinyLocks"], [{"version": "scarlet", "forms": [2]}])
+        self.assertEqual(
+            data["shinyMethods"],
+            [
+                {
+                    "id": "sr",
+                    "label": "Soft reset",
+                    "units": ["resets", "hours"],
+                    "versions": ["scarlet"],
+                }
+            ],
+        )
+        self.assertEqual(data["schemaVersion"], 1)
 
     def test_pokedex_without_label_uses_its_name(self):
         f.make_version_group(
@@ -384,6 +414,20 @@ class CatalogTests(TestCase):
                     with self.assertRaisesRegex(catalog.CatalogError, message):
                         catalog.build_catalog("v")
             self.write_game_data(file, key, field, good)
+
+    def test_bad_shiny_methods_fail(self):
+        good = {"id": "sr", "label": "SR", "units": ["resets"], "versions": ["scarlet"]}
+        cases = [
+            ((good, good), "repetido: sr"),
+            ((good | {"units": []},), "unidades inválidas"),
+            ((good | {"units": ["laps"]},), "unidades inválidas"),
+            ((good | {"versions": ["scarlet", "gold"]},), r"desconhecidas.*gold"),
+        ]
+        for methods, message in cases:
+            with self.subTest(message=message):
+                self.write_methods(*methods)
+                with self.assertRaisesRegex(catalog.CatalogError, message):
+                    catalog.build_catalog("v")
 
     def test_unknown_lock_form_fails(self):
         self.write_locks(["bulbasaur", "missingno"])
@@ -457,6 +501,22 @@ class ShippedGameDataTests(TestCase):
                 for entry in data[key]:
                     self.assertEqual(set(entry), {field, "forms"})
                     self.assertEqual(entry["forms"], sorted(set(entry["forms"])))
+
+
+class ShippedShinyMethodsTests(TestCase):
+    def test_file_is_well_formed(self):
+        data = json.loads(catalog.SHINY_METHODS_FILE.read_text(encoding="utf-8"))
+        self.assertEqual(set(data), {"sources", "notes", "methods"})
+        self.assertTrue(data["sources"])
+        ids = [m["id"] for m in data["methods"]]
+        self.assertEqual(len(ids), len(set(ids)))
+        for method in data["methods"]:
+            with self.subTest(id=method["id"]):
+                self.assertEqual(set(method), {"id", "label", "units", "versions"})
+                self.assertTrue(method["units"])
+                self.assertLessEqual(set(method["units"]), catalog.SHINY_METHOD_UNITS)
+                self.assertTrue(method["versions"])
+                self.assertEqual(len(method["versions"]), len(set(method["versions"])))
 
 
 class ShippedSpecialEncountersTests(TestCase):

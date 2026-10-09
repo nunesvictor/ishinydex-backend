@@ -64,6 +64,22 @@ GAME_SHINY_LOCKS_FILE = (
     Path(__file__).resolve().parent.parent / "pokedex/data/game_shiny_locks.json"
 )
 
+# Métodos de shiny hunt por jogo (registro da caçada no espécime, #103).
+SHINY_METHODS_FILE = (
+    Path(__file__).resolve().parent.parent / "pokedex/data/shiny_methods.json"
+)
+SHINY_METHOD_UNITS = {
+    "encounters",
+    "hours",
+    "resets",
+    "eggs",
+    "chains",
+    "runs",
+    "raids",
+    "hordes",
+    "combo",
+}
+
 # Lendários capturáveis fora das pokédex do jogo (Aventura Dinamax,
 # Snacksworth): entram como pokédex especiais, sem número.
 SPECIAL_ENCOUNTERS_FILE = (
@@ -460,6 +476,35 @@ def _game_shiny_locks(species_of_group: dict[str, set[str]]) -> list[dict]:
     return result
 
 
+def _shiny_methods() -> list[dict]:
+    """Os métodos de ``SHINY_METHODS_FILE``. Falha com id repetido, sem
+    unidade, com unidade fora de ``SHINY_METHOD_UNITS`` ou com versão
+    desconhecida."""
+    methods = json.loads(SHINY_METHODS_FILE.read_text(encoding="utf-8"))["methods"]
+    known = set(Version.objects.values_list("name", flat=True))
+    seen: set[str] = set()
+    result = []
+    for method in methods:
+        id_ = method["id"]
+        if id_ in seen:
+            raise CatalogError(f"método de shiny repetido: {id_}")
+        seen.add(id_)
+        units = method["units"]
+        if not units or not set(units) <= SHINY_METHOD_UNITS:
+            raise CatalogError(f"unidades inválidas em {id_}: {units}")
+        if unknown := [v for v in method["versions"] if v not in known]:
+            raise CatalogError(f"versões desconhecidas em {id_}: {unknown}")
+        result.append(
+            {
+                "id": id_,
+                "label": method["label"],
+                "units": units,
+                "versions": method["versions"],
+            }
+        )
+    return result
+
+
 def build_catalog(version: str) -> dict:
     groups, versions = _versions()
     pokedexes, species_of_group = _pokedexes()
@@ -485,4 +530,7 @@ def build_catalog(version: str) -> dict:
         # jogo; e as formas que não podem ser shiny em cada versão.
         "gameForms": _game_forms(species_of_group),
         "gameShinyLocks": _game_shiny_locks(species_of_group),
+        # Métodos de shiny hunt e os jogos onde existem (a primeira unidade
+        # é a padrão). Chave nova, aditiva: o schemaVersion continua.
+        "shinyMethods": _shiny_methods(),
     }

@@ -1,0 +1,355 @@
+{
+  "sources": [
+    "https://bulbapedia.bulbagarden.net/wiki/Shiny_Pok%C3%A9mon"
+  ],
+  "notes": [
+    "Métodos de shiny hunt por jogo (consultado em 2026-10-09), da seção de métodos por geração da Bulbapedia. units: a primeira é a padrão. Gerações I e II valem pelo Virtual Console (o shiny vem dos DVs ao passar pelo Poké Transporter). O GO não é jogo de OT aqui: sem métodos.",
+    "Unidades: encounters (encontros), hours (horas), resets, eggs (ovos), chains (cadeia), runs, raids, hordes (hordas), combo."
+  ],
+  "methods": [
+    {
+      "id": "random",
+      "label": "Encontro aleatório",
+      "units": [
+        "encounters",
+        "hours"
+      ],
+      "versions": [
+        "red",
+        "blue",
+        "yellow",
+        "gold",
+        "silver",
+        "crystal",
+        "ruby",
+        "sapphire",
+        "emerald",
+        "firered",
+        "leafgreen",
+        "diamond",
+        "pearl",
+        "platinum",
+        "heartgold",
+        "soulsilver",
+        "black",
+        "white",
+        "black-2",
+        "white-2",
+        "x",
+        "y",
+        "omega-ruby",
+        "alpha-sapphire",
+        "sun",
+        "moon",
+        "ultra-sun",
+        "ultra-moon",
+        "lets-go-pikachu",
+        "lets-go-eevee",
+        "sword",
+        "shield",
+        "brilliant-diamond",
+        "shining-pearl",
+        "legends-arceus",
+        "scarlet",
+        "violet",
+        "legends-za"
+      ]
+    },
+    {
+      "id": "soft-reset",
+      "label": "Soft reset",
+      "units": [
+        "resets",
+        "hours"
+      ],
+      "versions": [
+        "red",
+        "blue",
+        "yellow",
+        "gold",
+        "silver",
+        "crystal",
+        "ruby",
+        "sapphire",
+        "emerald",
+        "firered",
+        "leafgreen",
+        "diamond",
+        "pearl",
+        "platinum",
+        "heartgold",
+        "soulsilver",
+        "black",
+        "white",
+        "black-2",
+        "white-2",
+        "x",
+        "y",
+        "omega-ruby",
+        "alpha-sapphire",
+        "sun",
+        "moon",
+        "ultra-sun",
+        "ultra-moon",
+        "lets-go-pikachu",
+        "lets-go-eevee",
+        "sword",
+        "shield",
+        "brilliant-diamond",
+        "shining-pearl",
+        "legends-arceus",
+        "scarlet",
+        "violet",
+        "legends-za"
+      ]
+    },
+    {
+      "id": "eggs",
+      "label": "Ovos",
+      "units": [
+        "eggs",
+        "hours"
+      ],
+      "versions": [
+        "gold",
+        "silver",
+        "crystal",
+        "ruby",
+        "sapphire",
+        "emerald",
+        "firered",
+        "leafgreen",
+        "diamond",
+        "pearl",
+        "platinum",
+        "heartgold",
+        "soulsilver",
+        "black",
+        "white",
+        "black-2",
+        "white-2",
+        "x",
+        "y",
+        "omega-ruby",
+        "alpha-sapphire",
+        "sun",
+        "moon",
+        "ultra-sun",
+        "ultra-moon",
+        "sword",
+        "shield",
+        "brilliant-diamond",
+        "shining-pearl",
+        "scarlet",
+        "violet"
+      ]
+    },
+    {
+      "id": "masuda",
+      "label": "Método Masuda",
+      "units": [
+        "eggs",
+        "hours"
+      ],
+      "versions": [
+        "diamond",
+        "pearl",
+        "platinum",
+        "heartgold",
+        "soulsilver",
+        "black",
+        "white",
+        "black-2",
+        "white-2",
+        "x",
+        "y",
+        "omega-ruby",
+        "alpha-sapphire",
+        "sun",
+        "moon",
+        "ultra-sun",
+        "ultra-moon",
+        "sword",
+        "shield",
+        "brilliant-diamond",
+        "shining-pearl",
+        "scarlet",
+        "violet"
+      ]
+    },
+    {
+      "id": "poke-radar",
+      "label": "Poké Radar",
+      "units": [
+        "chains",
+        "encounters"
+      ],
+      "versions": [
+        "diamond",
+        "pearl",
+        "platinum",
+        "x",
+        "y",
+        "brilliant-diamond",
+        "shining-pearl"
+      ]
+    },
+    {
+      "id": "chain-fishing",
+      "label": "Pesca em cadeia",
+      "units": [
+        "chains",
+        "encounters"
+      ],
+      "versions": [
+        "x",
+        "y"
+      ]
+    },
+    {
+      "id": "friend-safari",
+      "label": "Safári dos Amigos",
+      "units": [
+        "encounters",
+        "hours"
+      ],
+      "versions": [
+        "x",
+        "y"
+      ]
+    },
+    {
+      "id": "hordes",
+      "label": "Encontro em horda",
+      "units": [
+        "hordes",
+        "hours"
+      ],
+      "versions": [
+        "x",
+        "y",
+        "omega-ruby",
+        "alpha-sapphire"
+      ]
+    },
+    {
+      "id": "dexnav",
+      "label": "DexNav",
+      "units": [
+        "chains",
+        "encounters"
+      ],
+      "versions": [
+        "omega-ruby",
+        "alpha-sapphire"
+      ]
+    },
+    {
+      "id": "sos",
+      "label": "Corrente SOS",
+      "units": [
+        "chains",
+        "encounters"
+      ],
+      "versions": [
+        "sun",
+        "moon",
+        "ultra-sun",
+        "ultra-moon"
+      ]
+    },
+    {
+      "id": "ultra-wormhole",
+      "label": "Ultra Wormhole",
+      "units": [
+        "runs"
+      ],
+      "versions": [
+        "ultra-sun",
+        "ultra-moon"
+      ]
+    },
+    {
+      "id": "catch-combo",
+      "label": "Combo de captura",
+      "units": [
+        "combo",
+        "encounters"
+      ],
+      "versions": [
+        "lets-go-pikachu",
+        "lets-go-eevee"
+      ]
+    },
+    {
+      "id": "max-raid",
+      "label": "Reide Dynamax",
+      "units": [
+        "raids"
+      ],
+      "versions": [
+        "sword",
+        "shield"
+      ]
+    },
+    {
+      "id": "dynamax-adventures",
+      "label": "Dynamax Adventures",
+      "units": [
+        "runs"
+      ],
+      "versions": [
+        "sword",
+        "shield"
+      ]
+    },
+    {
+      "id": "grand-underground",
+      "label": "Grande Subterrâneo",
+      "units": [
+        "encounters",
+        "hours"
+      ],
+      "versions": [
+        "brilliant-diamond",
+        "shining-pearl"
+      ]
+    },
+    {
+      "id": "outbreak",
+      "label": "Surto em massa",
+      "units": [
+        "encounters",
+        "hours"
+      ],
+      "versions": [
+        "legends-arceus",
+        "scarlet",
+        "violet"
+      ]
+    },
+    {
+      "id": "tera-raid",
+      "label": "Reide Tera",
+      "units": [
+        "raids"
+      ],
+      "versions": [
+        "scarlet",
+        "violet"
+      ]
+    },
+    {
+      "id": "sparkling-power",
+      "label": "Sparkling Power (sanduíche)",
+      "units": [
+        "encounters",
+        "hours"
+      ],
+      "versions": [
+        "scarlet",
+        "violet"
+      ]
+    }
+  ]
+}
