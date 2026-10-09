@@ -17,9 +17,24 @@
     "Ficam de fora: Passimian/Oranguru em Espada/Escudo (a DLC libera os dois; o app considera sempre a DLC), os exclusivos de raids Gigantamax e Aron, Poochyena, Houndour e Spheal no BDSP (só a Pokémon DB lista).",
     "Os lendários da Indigo Disk aparecem na outra versão via Blueberry Quests com outros jogadores, mas continuam exclusivos para quem joga sozinho.",
     "Dialga e Palkia na base de Escarlate/Violeta ficam de fora: a Bulbapedia os lista, mas não são encontros regulares (nem pokédex, nem Snacksworth).",
+    "FireRed/LeafGreen (Switch, HOME 4.1.0): a tabela de FRLG da Bulbapedia (consultada em 2026-10-09). Weezing e Seadra (FireRed) e Muk e Kingler (LeafGreen) só são exclusivos na natureza: as pré-evoluções aparecem nos dois e evoluem, então ficam de fora. Deoxys: Ataque no FireRed e Defesa no LeafGreen (no Switch, ele sai no jogo normal).",
     "Let's Go: as formas parceiras de Pikachu e Eevee ficam de fora; as formas de Alola vêm de trocas no jogo, nas duas versões."
   ],
   "exclusives": [
+    {
+      "version": "firered",
+      "dlc": null,
+      "forms": [
+        "ekans", "arbok", "oddish", "gloom", "vileplume", "psyduck", "golduck", "growlithe", "arcanine", "shellder", "cloyster", "scyther", "electabuzz", "bellossom", "wooper", "quagsire", "murkrow", "qwilfish", "delibird", "skarmory", "elekid", "deoxys-attack"
+      ]
+    },
+    {
+      "version": "leafgreen",
+      "dlc": null,
+      "forms": [
+        "sandshrew", "sandslash", "vulpix", "ninetales", "bellsprout", "weepinbell", "victreebel", "slowpoke", "slowbro", "staryu", "starmie", "magmar", "pinsir", "marill", "azumarill", "misdreavus", "sneasel", "remoraid", "octillery", "mantine", "magby", "azurill", "deoxys-defense"
+      ]
+    },
     {
       "version": "lets-go-pikachu",
       "dlc": null,

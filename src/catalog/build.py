@@ -21,7 +21,7 @@ from django.utils import translation
 
 from catalog.choices import specimen_options
 from core.consts import TYPES_DICT
-from home.models import HOME_TRANSFER_VERSIONS
+from home.models import HOME_ORIGIN_VERSIONS, HOME_TRANSFER_VERSIONS
 from home.origin_marks import ORIGIN_MARK_VERSION_GROUPS
 from home.services import default_forms
 from pokedex.models import (
@@ -70,9 +70,10 @@ SPECIAL_ENCOUNTERS_FILE = (
     Path(__file__).resolve().parent.parent / "pokedex/data/special_encounters.json"
 )
 
-# Nomes em pt-BR das pokédex dos jogos que recebem do HOME. Uma pokédex nova
-# da PokéAPI sem nome aqui sai com o nome dela.
+# Nomes em pt-BR das pokédex dos jogos ligados ao HOME. Uma pokédex nova da
+# PokéAPI sem nome aqui sai com o nome dela.
 POKEDEX_LABELS = {
+    "kanto": "Kanto",
     "letsgo-kanto": "Kanto",
     "galar": "Galar",
     "isle-of-armor": "Ilha da Armadura",
@@ -276,12 +277,13 @@ def _shiny_locks() -> list[dict]:
 
 
 def _pokedexes() -> tuple[list[dict], dict[str, set[str]]]:
-    """As pokédex dos jogos que recebem do HOME, com as espécies (pelo nome)
-    e o número em cada uma; e as espécies de cada grupo de versões."""
+    """As pokédex dos jogos ligados ao HOME (inclusive os só de ida, como o
+    FRLG), com as espécies (pelo nome) e o número em cada uma; e as espécies
+    de cada grupo de versões."""
     home_groups = [
         g
         for g in VersionGroup.objects.order_by("order", "name")
-        if any(v in HOME_TRANSFER_VERSIONS for v in g.versions)
+        if any(v in HOME_ORIGIN_VERSIONS for v in g.versions)
     ]
     dlc_of = {
         dex: g.name
@@ -341,7 +343,7 @@ def _special_encounters(
     labels: dict[str, str],
 ) -> dict[str, str | None]:
     """Acrescenta as pokédex especiais de ``SPECIAL_ENCOUNTERS_FILE`` dos jogos
-    que recebem do HOME (entradas sem número) e devolve a DLC de cada uma."""
+    ligados ao HOME (entradas sem número) e devolve a DLC de cada uma."""
     encounters = json.loads(SPECIAL_ENCOUNTERS_FILE.read_text(encoding="utf-8"))[
         "encounters"
     ]

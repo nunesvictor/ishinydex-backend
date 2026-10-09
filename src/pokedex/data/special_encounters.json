@@ -1,13 +1,24 @@
 {
   "sources": [
+    "https://github.com/PokeAPI/api-data",
     "https://bulbapedia.bulbagarden.net/wiki/Dynamax_Adventure",
     "https://bulbapedia.bulbagarden.net/wiki/Snacksworth"
   ],
   "notes": [
     "Lendários capturáveis fora das pokédex do jogo: entram como pokédex especiais (sem número) para os saves desses jogos.",
+    "FireRed/LeafGreen: a pokédex do jogo na PokéAPI é só a de Kanto (1 a 151). As outras espécies do jogo (Ilhas Sevii, os cães lendários, Deoxys no Switch) vêm dos encontros de FireRed/LeafGreen na PokéAPI (api-data, 2026-10-09), com as evoluções e os filhotes até o nº 386. Ficam de fora os só de evento: Lugia, Ho-Oh, Celebi e as espécies da Altering Cave (Mareep, Aipom, Pineco, Shuckle, Teddiursa, Houndour, Stantler e Smeargle).",
     "Consultadas em 2026-10-07: Aventura Dinamax (seção Special Pokémon) e os Treats do Snacksworth."
   ],
   "encounters": [
+    {
+      "name": "frlg-national",
+      "label": "Nacional (pós-jogo)",
+      "versionGroup": "firered-leafgreen",
+      "dlc": null,
+      "species": [
+        "sentret", "furret", "ledyba", "ledian", "spinarak", "ariados", "crobat", "pichu", "cleffa", "igglybuff", "togepi", "togetic", "natu", "xatu", "bellossom", "marill", "azumarill", "politoed", "hoppip", "skiploom", "jumpluff", "yanma", "wooper", "quagsire", "espeon", "umbreon", "murkrow", "slowking", "misdreavus", "unown", "wobbuffet", "dunsparce", "steelix", "qwilfish", "scizor", "heracross", "sneasel", "slugma", "magcargo", "swinub", "piloswine", "remoraid", "octillery", "delibird", "mantine", "skarmory", "kingdra", "phanpy", "donphan", "porygon2", "tyrogue", "hitmontop", "smoochum", "elekid", "magby", "blissey", "raikou", "entei", "suicune", "larvitar", "pupitar", "tyranitar", "azurill", "wynaut", "deoxys"
+      ]
+    },
     {
       "name": "dynamax-adventure",
       "label": "Aventura Dinamax",

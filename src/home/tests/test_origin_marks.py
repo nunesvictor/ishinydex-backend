@@ -25,6 +25,12 @@ class OriginMarkForTests(SimpleTestCase):
         self.assertEqual(origin_mark_for("the-crown-tundra", False), "galar")
         self.assertEqual(origin_mark_for("mega-dimension", False), "lumiose")
 
+    def test_frlg_has_the_game_boy_advance_mark(self):
+        # FRLG do Switch (HOME 4.1.0); os outros jogos da Gen III, não.
+        self.assertEqual(origin_mark_for("firered-leafgreen", False), "gba")
+        self.assertEqual(ORIGIN_MARK_LABELS["gba"], "GBA")
+        self.assertIsNone(origin_mark_for("ruby-sapphire", False))
+
     def test_games_without_mark(self):
         for group in ("emerald", "black-2-white-2", "xd", "champions", "", None):
             with self.subTest(group=group):
