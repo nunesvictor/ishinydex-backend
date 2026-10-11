@@ -11,8 +11,9 @@ Toda mudança entra na `main` por pull request, a partir de uma issue.
    `2-libertar-especime`), a partir da `main` atualizada.
 3. **Pull request.** Preencha o template com `Closes #<número>`, para a issue
    fechar sozinha no merge. O CI ([ci.yml](.github/workflows/ci.yml)) roda
-   o pre-commit e os testes (contra um Postgres 17) em todo PR, e precisa
-   ficar verde. Quando o frontend depende do backend, o PR do backend é
+   o pre-commit e os testes (contra um Postgres 17) em todo PR, e de novo
+   os testes pela imagem do `Dockerfile` com o `docker compose`, como no
+   teste local; tudo precisa ficar verde. Quando o frontend depende do backend, o PR do backend é
    mergeado primeiro.
 4. **Revisão e merge.** O dono do repositório revisa e faz **squash merge**,
    o único modo habilitado: vira um commit na `main` com o número do PR. A
