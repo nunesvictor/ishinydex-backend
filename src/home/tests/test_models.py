@@ -289,8 +289,14 @@ class OriginVersionTests(TestCase):
 
 class SaveTests(TestCase):
     def test_only_games_that_receive_from_home_can_be_saves(self):
-        # FRLG do Switch só envia ao HOME (só ida): o OT existe, o save não.
-        for version, valid in (("scarlet", True), ("firered", False)):
+        # FRLG do Switch e os jogos do Bank só enviam ao HOME (só ida): o OT
+        # existe, o save não.
+        for version, valid in (
+            ("scarlet", True),
+            ("firered", False),
+            ("omega-ruby", False),
+            ("ultra-sun", False),
+        ):
             with self.subTest(version=version):
                 ot = f.make_ot(version=f.make_version(name=version), trainer_id=version)
                 save = Save(trainer=ot)

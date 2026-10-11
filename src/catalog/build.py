@@ -90,6 +90,20 @@ SPECIAL_ENCOUNTERS_FILE = (
 # PokéAPI sem nome aqui sai com o nome dela.
 POKEDEX_LABELS = {
     "kanto": "Kanto",
+    "kalos-central": "Kalos Central",
+    "kalos-coastal": "Kalos Litoral",
+    "kalos-mountain": "Kalos Montanhoso",
+    "updated-hoenn": "Hoenn",
+    "original-alola": "Alola",
+    "original-melemele": "Melemele",
+    "original-akala": "Akala",
+    "original-ulaula": "Ula'ula",
+    "original-poni": "Poni",
+    "updated-alola": "Alola",
+    "updated-melemele": "Melemele",
+    "updated-akala": "Akala",
+    "updated-ulaula": "Ula'ula",
+    "updated-poni": "Poni",
     "letsgo-kanto": "Kanto",
     "galar": "Galar",
     "isle-of-armor": "Ilha da Armadura",
@@ -294,8 +308,8 @@ def _shiny_locks() -> list[dict]:
 
 def _pokedexes() -> tuple[list[dict], dict[str, set[str]]]:
     """As pokédex dos jogos ligados ao HOME (inclusive os só de ida, como o
-    FRLG), com as espécies (pelo nome) e o número em cada uma; e as espécies
-    de cada grupo de versões."""
+    FRLG e os do Bank), com as espécies (pelo nome) e o número em cada uma;
+    e as espécies de cada grupo de versões."""
     home_groups = [
         g
         for g in VersionGroup.objects.order_by("order", "name")

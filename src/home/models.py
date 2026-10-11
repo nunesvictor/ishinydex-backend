@@ -109,12 +109,24 @@ HOME_TRANSFER_VERSIONS = (
     "legends-za",
 )
 
-# Jogos ligados ao HOME como origem: os que recebem e os que só enviam pelo
-# HOME (e não pelo Bank). FireRed/LeafGreen do Switch (HOME 4.1.0) são só ida,
-# como o Bank: o Pokémon sai deles para o HOME e nunca volta, então entram
-# nas pokédex, exclusivos e locks do catálogo (caçadas, marca, OT), mas não
-# como save.
-HOME_ORIGIN_VERSIONS = (*HOME_TRANSFER_VERSIONS, "firered", "leafgreen")
+# Jogos ligados ao HOME como origem: os que recebem e os só de ida, de onde o
+# Pokémon sai para o HOME e nunca volta. FireRed/LeafGreen do Switch (HOME
+# 4.1.0) mandam direto; as Gen VI e VII (XY, ORAS, SM e USUM) passam pelo
+# Pokémon Bank. Os só de ida entram nas pokédex, exclusivos e locks do
+# catálogo (caçadas, marca, OT), mas não como save.
+HOME_ORIGIN_VERSIONS = (
+    *HOME_TRANSFER_VERSIONS,
+    "firered",
+    "leafgreen",
+    "x",
+    "y",
+    "omega-ruby",
+    "alpha-sapphire",
+    "sun",
+    "moon",
+    "ultra-sun",
+    "ultra-moon",
+)
 
 
 class Save(TimestampedModel):

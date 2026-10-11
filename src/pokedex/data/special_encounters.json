@@ -1,12 +1,14 @@
 {
   "sources": [
     "https://github.com/PokeAPI/api-data",
+    "https://bulbapedia.bulbagarden.net/wiki/List_of_Pok%C3%A9mon_by_National_Pok%C3%A9dex_number",
     "https://bulbapedia.bulbagarden.net/wiki/Dynamax_Adventure",
     "https://bulbapedia.bulbagarden.net/wiki/Snacksworth"
   ],
   "notes": [
     "Lendários capturáveis fora das pokédex do jogo: entram como pokédex especiais (sem número) para os saves desses jogos.",
     "FireRed/LeafGreen: a pokédex do jogo na PokéAPI é só a de Kanto (1 a 151). As outras espécies do jogo (Ilhas Sevii, os cães lendários, Deoxys no Switch) vêm dos encontros de FireRed/LeafGreen na PokéAPI (api-data, 2026-10-09), com as evoluções e os filhotes até o nº 386. Ficam de fora os só de evento: Lugia, Ho-Oh, Celebi e as espécies da Altering Cave (Mareep, Aipom, Pineco, Shuckle, Teddiursa, Houndour, Stantler e Smeargle).",
+    "XY, ORAS, SM e USUM (\"Outros encontros\"): as espécies que a seção Game locations da Bulbapedia (2026-10-11) dá como obtidas no jogo, mas fora das pokédex do jogo na PokéAPI: Safári Amigo e fósseis (XY); DexNav, Locais Miragem, Voar no céu e os lendários do pós-jogo (ORAS); Island Scan (SM e USUM); Ultra Wormholes / Ultra Space Wilds (USUM); presentes, trocas no jogo, evoluções e criação. Não contam Pokémon Bank, Poké Transporter, troca entre jogadores nem evento.",
     "Consultadas em 2026-10-07: Aventura Dinamax (seção Special Pokémon) e os Treats do Snacksworth."
   ],
   "encounters": [
@@ -17,6 +19,42 @@
       "dlc": null,
       "species": [
         "sentret", "furret", "ledyba", "ledian", "spinarak", "ariados", "crobat", "pichu", "cleffa", "igglybuff", "togepi", "togetic", "natu", "xatu", "bellossom", "marill", "azumarill", "politoed", "hoppip", "skiploom", "jumpluff", "yanma", "wooper", "quagsire", "espeon", "umbreon", "murkrow", "slowking", "misdreavus", "unown", "wobbuffet", "dunsparce", "steelix", "qwilfish", "scizor", "heracross", "sneasel", "slugma", "magcargo", "swinub", "piloswine", "remoraid", "octillery", "delibird", "mantine", "skarmory", "kingdra", "phanpy", "donphan", "porygon2", "tyrogue", "hitmontop", "smoochum", "elekid", "magby", "blissey", "raikou", "entei", "suicune", "larvitar", "pupitar", "tyranitar", "azurill", "wynaut", "deoxys"
+      ]
+    },
+    {
+      "name": "xy-other",
+      "label": "Outros encontros",
+      "versionGroup": "x-y",
+      "dlc": null,
+      "species": [
+        "clefairy", "clefable", "vulpix", "ninetales", "paras", "parasect", "venonat", "venomoth", "mankey", "primeape", "growlithe", "arcanine", "ponyta", "rapidash", "seel", "dewgong", "grimer", "muk", "drowzee", "hypno", "krabby", "kingler", "hitmonlee", "hitmonchan", "chansey", "tangela", "electabuzz", "magmar", "omanyte", "omastar", "kabuto", "kabutops", "cleffa", "togepi", "togetic", "natu", "xatu", "aipom", "sunkern", "sunflora", "girafarig", "pineco", "forretress", "phanpy", "donphan", "tyrogue", "hitmontop", "elekid", "magby", "blissey", "wurmple", "silcoon", "beautifly", "cascoon", "dustox", "seedot", "nuzleaf", "shiftry", "shroomish", "breloom", "numel", "camerupt", "cacnea", "cacturne", "lileep", "cradily", "anorith", "armaldo", "duskull", "dusclops", "tropius", "snorunt", "glalie", "spheal", "sealeo", "walrein", "beldum", "metang", "metagross", "shinx", "luxio", "luxray", "cranidos", "rampardos", "shieldon", "bastiodon", "shellos", "gastrodon", "ambipom", "bronzor", "bronzong", "happiny", "spiritomb", "tangrowth", "electivire", "magmortar", "togekiss", "dusknoir", "froslass", "lillipup", "herdier", "stoutland", "munna", "musharna", "pidove", "tranquill", "unfezant", "blitzle", "zebstrika", "drilbur", "excadrill", "tympole", "palpitoad", "seismitoad", "sewaddle", "swadloon", "leavanny", "petilil", "lilligant", "maractus", "tirtouga", "carracosta", "archen", "archeops", "minccino", "cinccino", "deerling", "sawsbuck", "joltik", "galvantula", "klink", "klang", "klinklang", "rufflet", "braviary", "vullaby", "mandibuzz", "larvesta", "volcarona"
+      ]
+    },
+    {
+      "name": "oras-other",
+      "label": "Outros encontros",
+      "versionGroup": "omega-ruby-alpha-sapphire",
+      "dlc": null,
+      "species": [
+        "weedle", "kakuna", "beedrill", "pidgey", "pidgeotto", "pidgeot", "rattata", "raticate", "clefairy", "clefable", "paras", "parasect", "venonat", "venomoth", "diglett", "dugtrio", "meowth", "persian", "mankey", "primeape", "growlithe", "arcanine", "ponyta", "rapidash", "slowpoke", "slowbro", "seel", "dewgong", "onix", "drowzee", "hypno", "krabby", "kingler", "hitmonlee", "hitmonchan", "chansey", "tangela", "electabuzz", "magmar", "ditto", "eevee", "vaporeon", "jolteon", "flareon", "porygon", "omanyte", "omastar", "kabuto", "kabutops", "aerodactyl", "chikorita", "bayleef", "meganium", "cyndaquil", "quilava", "typhlosion", "totodile", "croconaw", "feraligatr", "spinarak", "ariados", "cleffa", "togepi", "togetic", "aipom", "sunkern", "sunflora", "espeon", "umbreon", "murkrow", "slowking", "misdreavus", "unown", "pineco", "forretress", "steelix", "remoraid", "octillery", "delibird", "mantine", "porygon2", "stantler", "tyrogue", "hitmontop", "elekid", "magby", "blissey", "raikou", "entei", "suicune", "lugia", "ho-oh", "turtwig", "grotle", "torterra", "chimchar", "monferno", "infernape", "piplup", "prinplup", "empoleon", "kricketot", "kricketune", "shinx", "luxio", "luxray", "cranidos", "rampardos", "shieldon", "bastiodon", "cherubi", "cherrim", "shellos", "gastrodon", "ambipom", "drifloon", "drifblim", "buneary", "lopunny", "mismagius", "honchkrow", "glameow", "purugly", "bronzor", "bronzong", "happiny", "chatot", "spiritomb", "gible", "gabite", "garchomp", "skorupi", "drapion", "finneon", "lumineon", "mantyke", "tangrowth", "electivire", "magmortar", "togekiss", "leafeon", "glaceon", "porygon-z", "uxie", "mesprit", "azelf", "dialga", "palkia", "heatran", "regigigas", "giratina", "cresselia", "snivy", "servine", "serperior", "tepig", "pignite", "emboar", "oshawott", "dewott", "samurott", "lillipup", "herdier", "stoutland", "munna", "musharna", "pidove", "tranquill", "unfezant", "blitzle", "zebstrika", "roggenrola", "boldore", "gigalith", "drilbur", "excadrill", "audino", "timburr", "gurdurr", "conkeldurr", "tympole", "palpitoad", "seismitoad", "throh", "sawk", "sewaddle", "swadloon", "leavanny", "cottonee", "whimsicott", "petilil", "lilligant", "sandile", "krokorok", "krookodile", "darumaka", "darmanitan", "maractus", "dwebble", "crustle", "scraggy", "scrafty", "yamask", "cofagrigus", "tirtouga", "carracosta", "archen", "archeops", "trubbish", "garbodor", "zorua", "zoroark", "minccino", "cinccino", "gothita", "gothorita", "gothitelle", "deerling", "sawsbuck", "frillish", "jellicent", "alomomola", "joltik", "galvantula", "klink", "klang", "klinklang", "tynamo", "eelektrik", "eelektross", "elgyem", "beheeyem", "axew", "fraxure", "haxorus", "cubchoo", "beartic", "druddigon", "bouffalant", "rufflet", "braviary", "vullaby", "mandibuzz", "deino", "zweilous", "hydreigon", "larvesta", "volcarona", "cobalion", "terrakion", "virizion", "tornadus", "thundurus", "reshiram", "zekrom", "landorus", "kyurem", "binacle", "barbaracle", "skrelp", "dragalge", "clauncher", "clawitzer", "sylveon", "klefki", "phantump", "trevenant"
+      ]
+    },
+    {
+      "name": "sm-other",
+      "label": "Outros encontros",
+      "versionGroup": "sun-moon",
+      "dlc": null,
+      "species": [
+        "bellsprout", "weepinbell", "victreebel", "rhyhorn", "rhydon", "horsea", "seadra", "chikorita", "bayleef", "meganium", "cyndaquil", "quilava", "typhlosion", "totodile", "croconaw", "feraligatr", "togepi", "togetic", "marill", "azumarill", "swinub", "piloswine", "kingdra", "slakoth", "vigoroth", "slaking", "azurill", "roselia", "spheal", "sealeo", "walrein", "starly", "staravia", "staraptor", "shinx", "luxio", "luxray", "budew", "roserade", "rhyperior", "togekiss", "mamoswine", "snivy", "servine", "serperior", "tepig", "pignite", "emboar", "oshawott", "dewott", "samurott", "timburr", "gurdurr", "conkeldurr", "sewaddle", "swadloon", "leavanny", "venipede", "whirlipede", "scolipede", "gothita", "gothorita", "gothitelle", "solosis", "duosion", "reuniclus", "klink", "klang", "klinklang", "tynamo", "eelektrik", "eelektross", "litwick", "lampent", "chandelure", "axew", "fraxure", "haxorus", "deino", "zweilous", "hydreigon", "honedge", "doublade", "aegislash"
+      ]
+    },
+    {
+      "name": "usum-other",
+      "label": "Outros encontros",
+      "versionGroup": "ultra-sun-ultra-moon",
+      "dlc": null,
+      "species": [
+        "bulbasaur", "ivysaur", "venusaur", "charmander", "charmeleon", "charizard", "squirtle", "wartortle", "blastoise", "weedle", "kakuna", "beedrill", "pidgey", "pidgeotto", "pidgeot", "onix", "voltorb", "electrode", "rhyhorn", "rhydon", "horsea", "seadra", "articuno", "zapdos", "moltres", "mewtwo", "yanma", "wooper", "quagsire", "steelix", "slugma", "magcargo", "swinub", "piloswine", "kingdra", "raikou", "entei", "suicune", "lugia", "ho-oh", "treecko", "grovyle", "sceptile", "torchic", "combusken", "blaziken", "mudkip", "marshtomp", "swampert", "lotad", "lombre", "ludicolo", "seedot", "nuzleaf", "shiftry", "taillow", "swellow", "ralts", "kirlia", "gardevoir", "aron", "lairon", "aggron", "meditite", "medicham", "spoink", "grumpig", "swablu", "altaria", "spheal", "sealeo", "walrein", "regirock", "regice", "registeel", "latias", "latios", "kyogre", "groudon", "rayquaza", "turtwig", "grotle", "torterra", "chimchar", "monferno", "infernape", "piplup", "prinplup", "empoleon", "buizel", "floatzel", "hippopotas", "hippowdon", "skorupi", "drapion", "snover", "abomasnow", "rhyperior", "yanmega", "mamoswine", "gallade", "rotom", "uxie", "mesprit", "azelf", "dialga", "palkia", "heatran", "regigigas", "giratina", "cresselia", "audino", "sewaddle", "swadloon", "leavanny", "dwebble", "crustle", "sigilyph", "ducklett", "swanna", "tynamo", "eelektrik", "eelektross", "litwick", "lampent", "chandelure", "axew", "fraxure", "haxorus", "stunfisk", "cobalion", "terrakion", "virizion", "tornadus", "thundurus", "reshiram", "zekrom", "landorus", "kyurem", "chespin", "quilladin", "chesnaught", "fennekin", "braixen", "delphox", "froakie", "frogadier", "greninja", "scatterbug", "spewpa", "vivillon", "honedge", "doublade", "aegislash", "binacle", "barbaracle", "helioptile", "heliolisk", "xerneas", "yveltal"
       ]
     },
     {

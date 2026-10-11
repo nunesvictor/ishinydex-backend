@@ -292,6 +292,63 @@ class CatalogTests(TestCase):
             },
         )
 
+    def test_bank_games_are_origins_but_not_saves(self):
+        # Gen VI e VII (backend#107): só ida, pelo Pokémon Bank. Entram nas
+        # pokédex (com o nome em pt-BR), nos exclusivos e nos locks, com a
+        # marca do jogo, mas não recebem do HOME.
+        oras = f.make_version_group(
+            name="omega-ruby-alpha-sapphire",
+            generation="generation-vi",
+            versions=["omega-ruby"],
+            pokedexes=["updated-hoenn"],
+            order=18,
+        )
+        f.make_version(name="omega-ruby", version_group=oras)
+        sm = f.make_version_group(
+            name="sun-moon",
+            generation="generation-vii",
+            versions=["sun"],
+            pokedexes=["original-alola", "original-melemele"],
+            order=19,
+        )
+        f.make_version(name="sun", version_group=sm)
+        for dex in ("updated-hoenn", "original-alola", "original-melemele"):
+            self.bulba_species.pokedex_numbers.add(
+                PokemonSpeciesDexEntry.objects.create(entry_number=1, pokedex=dex)
+            )
+        self.write_exclusives("sun", None, ["bulbasaur"])
+        self.write_game_data(
+            self.game_locks, "locks", "version", "omega-ruby", ["bulbasaur"]
+        )
+        data = catalog.build_catalog("v")
+
+        versions = {v["name"]: v for v in data["versions"]}
+        self.assertFalse(versions["omega-ruby"]["receivesFromHome"])
+        self.assertFalse(versions["sun"]["receivesFromHome"])
+        groups = {g["name"]: g for g in data["versionGroups"]}
+        self.assertEqual(groups["omega-ruby-alpha-sapphire"]["originMark"], "kalos")
+        self.assertEqual(groups["sun-moon"]["originMark"], "alola")
+        dexes = {d["name"]: d for d in data["pokedexes"]}
+        self.assertEqual(
+            [
+                (dexes[name]["label"], dexes[name]["versionGroups"])
+                for name in ("updated-hoenn", "original-alola", "original-melemele")
+            ],
+            [
+                ("Hoenn", ["omega-ruby-alpha-sapphire"]),
+                ("Alola", ["sun-moon"]),
+                ("Melemele", ["sun-moon"]),
+            ],
+        )
+        self.assertEqual(
+            data["versionExclusives"],
+            [{"version": "sun", "dlc": None, "forms": [self.bulba_form.pokeapi_id]}],
+        )
+        self.assertEqual(
+            data["gameShinyLocks"],
+            [{"version": "omega-ruby", "forms": [self.bulba_form.pokeapi_id]}],
+        )
+
     @staticmethod
     def make_victini():
         """Geração 5: fora da nacional do BDSP e de qualquer pokédex."""
@@ -472,6 +529,14 @@ class ShippedVersionExclusivesTests(TestCase):
             "violet": "sv",
             "firered": "frlg",
             "leafgreen": "frlg",
+            "x": "xy",
+            "y": "xy",
+            "omega-ruby": "oras",
+            "alpha-sapphire": "oras",
+            "sun": "sm",
+            "moon": "sm",
+            "ultra-sun": "usum",
+            "ultra-moon": "usum",
         }
         seen = set()
         for group in data["exclusives"]:
