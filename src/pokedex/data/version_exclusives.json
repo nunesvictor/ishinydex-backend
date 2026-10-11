@@ -18,6 +18,7 @@
     "Os lendários da Indigo Disk aparecem na outra versão via Blueberry Quests com outros jogadores, mas continuam exclusivos para quem joga sozinho.",
     "Dialga e Palkia na base de Escarlate/Violeta ficam de fora: a Bulbapedia os lista, mas não são encontros regulares (nem pokédex, nem Snacksworth).",
     "FireRed/LeafGreen (Switch, HOME 4.1.0): a tabela de FRLG da Bulbapedia (consultada em 2026-10-09). Weezing e Seadra (FireRed) e Muk e Kingler (LeafGreen) só são exclusivos na natureza: as pré-evoluções aparecem nos dois e evoluem, então ficam de fora. Deoxys: Ataque no FireRed e Defesa no LeafGreen (no Switch, ele sai no jogo normal).",
+    "XY, ORAS, SM e USUM: as tabelas da Bulbapedia (consultadas em 2026-10-11), conferidas com a seção Game locations de cada espécie. As Megas de Charizard e Mewtwo ficam de fora (a pedra é que é exclusiva). Os exclusivos de XY que o Safári Amigo também oferece continuam exclusivos, porque o Safári depende dos códigos de amigo. Fósseis: os da tabela, porque cada versão só tem uma parte deles. Shellos e Gastrodon: Mar Oeste no Omega Ruby e Mar Leste no Alpha Sapphire. USUM: o Raticate Totem (Ultra Moon) e o Marowak Totem (Ultra Sun) do Samson Oak, também da tabela.",
     "Let's Go: as formas parceiras de Pikachu e Eevee ficam de fora; as formas de Alola vêm de trocas no jogo, nas duas versões."
   ],
   "exclusives": [
@@ -33,6 +34,62 @@
       "dlc": null,
       "forms": [
         "sandshrew", "sandslash", "vulpix", "ninetales", "bellsprout", "weepinbell", "victreebel", "slowpoke", "slowbro", "staryu", "starmie", "magmar", "pinsir", "marill", "azumarill", "misdreavus", "sneasel", "remoraid", "octillery", "mantine", "magby", "azurill", "deoxys-defense"
+      ]
+    },
+    {
+      "version": "x",
+      "dlc": null,
+      "forms": [
+        "staryu", "starmie", "pinsir", "houndour", "houndoom", "poochyena", "mightyena", "aron", "lairon", "aggron", "lileep", "cradily", "anorith", "armaldo", "sawk", "swirlix", "slurpuff", "clauncher", "clawitzer", "xerneas-neutral"
+      ]
+    },
+    {
+      "version": "y",
+      "dlc": null,
+      "forms": [
+        "shellder", "cloyster", "omanyte", "omastar", "kabuto", "kabutops", "heracross", "larvitar", "pupitar", "tyranitar", "electrike", "manectric", "purrloin", "liepard", "throh", "spritzee", "aromatisse", "skrelp", "dragalge", "yveltal"
+      ]
+    },
+    {
+      "version": "omega-ruby",
+      "dlc": null,
+      "forms": [
+        "kabuto", "kabutops", "ho-oh", "seedot", "nuzleaf", "shiftry", "mawile", "zangoose", "solrock", "latios", "groudon", "shieldon", "bastiodon", "shellos-west", "gastrodon-west", "palkia", "throh", "archen", "archeops", "tornadus-incarnate", "reshiram", "skrelp", "dragalge"
+      ]
+    },
+    {
+      "version": "alpha-sapphire",
+      "dlc": null,
+      "forms": [
+        "omanyte", "omastar", "lugia", "lotad", "lombre", "ludicolo", "sableye", "seviper", "lunatone", "latias", "kyogre", "cranidos", "rampardos", "shellos-east", "gastrodon-east", "dialga", "sawk", "tirtouga", "carracosta", "thundurus-incarnate", "zekrom", "clauncher", "clawitzer"
+      ]
+    },
+    {
+      "version": "sun",
+      "dlc": null,
+      "forms": [
+        "vulpix-alola", "ninetales-alola", "cranidos", "rampardos", "cottonee", "whimsicott", "tirtouga", "carracosta", "rufflet", "braviary", "passimian", "turtonator", "solgaleo", "buzzwole", "kartana"
+      ]
+    },
+    {
+      "version": "moon",
+      "dlc": null,
+      "forms": [
+        "sandshrew-alola", "sandslash-alola", "shieldon", "bastiodon", "petilil", "lilligant", "archen", "archeops", "vullaby", "mandibuzz", "oranguru", "drampa", "lunala", "pheromosa", "celesteela"
+      ]
+    },
+    {
+      "version": "ultra-sun",
+      "dlc": null,
+      "forms": [
+        "vulpix-alola", "ninetales-alola", "marowak-totem", "houndour", "houndoom", "raikou", "ho-oh", "latios", "groudon", "dialga", "heatran", "cottonee", "whimsicott", "basculin-red-striped", "golett", "golurk", "rufflet", "braviary", "tornadus-incarnate", "reshiram", "clauncher", "clawitzer", "xerneas-neutral", "passimian", "turtonator", "solgaleo", "buzzwole", "kartana", "blacephalon"
+      ]
+    },
+    {
+      "version": "ultra-moon",
+      "dlc": null,
+      "forms": [
+        "raticate-totem-alola", "sandshrew-alola", "sandslash-alola", "entei", "lugia", "electrike", "manectric", "baltoy", "claydol", "latias", "kyogre", "palkia", "regigigas", "petilil", "lilligant", "basculin-blue-striped", "vullaby", "mandibuzz", "thundurus-incarnate", "zekrom", "skrelp", "dragalge", "yveltal", "oranguru", "drampa", "lunala", "pheromosa", "celesteela", "stakataka"
       ]
     },
     {

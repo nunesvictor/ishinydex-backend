@@ -5,6 +5,7 @@
   "notes": [
     "Formas que não podem ser obtidas shiny no jogo (consultado em 2026-10-07). Da tabela por geração da Bulbapedia: \"✘\" ou \"~\" trava em todos os jogos da geração; \"✔\" com siglas trava nos jogos da geração que não estão nas siglas.",
     "Geração III = FireRed/LeafGreen (Switch, HOME 4.1.0; consultado em 2026-10-09): entre as espécies do jogo, só Mew trava.",
+    "Geração VI = XY e ORAS; VII = SM e USUM, além do Let's Go (consultado em 2026-10-11). \"✔ USUM\" trava no SM, \"✔ PE\" só no Let's Go. Pikachu Cosplay (ORAS) e os bonés do Pikachu (SM e USUM) travam onde a espécie aparece, como nos outros jogos.",
     "Geração VII = Let's Go; VIII = Sword/Shield (com IoA e CT), BDSP e Legends: Arceus; IX = Scarlet/Violet (com TM e ID) e Legends: Z-A (com MD).",
     "Legends: Z-A: as linhas com \"✔\" sem ZA/MD são de antes do jogo e não o travam.",
     "Só entram as formas cuja espécie está numa pokédex do jogo, e só as formas regionais presentes nele (regional_forms.json)."
@@ -20,6 +21,54 @@
       "version": "leafgreen",
       "forms": [
         "mew"
+      ]
+    },
+    {
+      "version": "x",
+      "forms": [
+        "articuno", "diancie", "diancie-mega", "hoopa", "hoopa-unbound", "mewtwo", "mewtwo-mega-x", "mewtwo-mega-y", "moltres", "pikachu-belle", "pikachu-cosplay", "pikachu-libre", "pikachu-phd", "pikachu-pop-star", "pikachu-rock-star", "vivillon-fancy", "vivillon-poke-ball", "volcanion", "xerneas-active", "xerneas-neutral", "yveltal", "zapdos", "zygarde-10", "zygarde-10-power-construct", "zygarde-50", "zygarde-50-power-construct", "zygarde-complete", "zygarde-mega"
+      ]
+    },
+    {
+      "version": "y",
+      "forms": [
+        "articuno", "diancie", "diancie-mega", "hoopa", "hoopa-unbound", "mewtwo", "mewtwo-mega-x", "mewtwo-mega-y", "moltres", "pikachu-belle", "pikachu-cosplay", "pikachu-libre", "pikachu-phd", "pikachu-pop-star", "pikachu-rock-star", "vivillon-fancy", "vivillon-poke-ball", "volcanion", "xerneas-active", "xerneas-neutral", "yveltal", "zapdos", "zygarde-10", "zygarde-10-power-construct", "zygarde-50", "zygarde-50-power-construct", "zygarde-complete", "zygarde-mega"
+      ]
+    },
+    {
+      "version": "omega-ruby",
+      "forms": [
+        "deoxys-attack", "deoxys-defense", "deoxys-normal", "deoxys-speed", "dialga", "dialga-origin", "groudon", "groudon-primal", "jirachi", "kyogre", "kyogre-primal", "lugia", "pikachu-belle", "pikachu-cosplay", "pikachu-libre", "pikachu-phd", "pikachu-pop-star", "pikachu-rock-star", "rayquaza", "rayquaza-mega", "thundurus-incarnate", "thundurus-therian", "zekrom"
+      ]
+    },
+    {
+      "version": "alpha-sapphire",
+      "forms": [
+        "deoxys-attack", "deoxys-defense", "deoxys-normal", "deoxys-speed", "groudon", "groudon-primal", "ho-oh", "jirachi", "kyogre", "kyogre-primal", "palkia", "palkia-origin", "pikachu-belle", "pikachu-cosplay", "pikachu-libre", "pikachu-phd", "pikachu-pop-star", "pikachu-rock-star", "rayquaza", "rayquaza-mega", "reshiram", "tornadus-incarnate", "tornadus-therian"
+      ]
+    },
+    {
+      "version": "sun",
+      "forms": [
+        "buzzwole", "celesteela", "cosmoem", "cosmog", "guzzlord", "kartana", "lunala", "magearna", "magearna-mega", "magearna-original", "magearna-original-mega", "marshadow", "necrozma", "necrozma-dawn", "necrozma-dusk", "necrozma-ultra", "nihilego", "pheromosa", "pikachu-alola-cap", "pikachu-hoenn-cap", "pikachu-kalos-cap", "pikachu-original-cap", "pikachu-partner-cap", "pikachu-sinnoh-cap", "pikachu-unova-cap", "pikachu-world-cap", "solgaleo", "tapu-bulu", "tapu-fini", "tapu-koko", "tapu-lele", "xurkitree", "zygarde-10", "zygarde-10-power-construct", "zygarde-50", "zygarde-50-power-construct", "zygarde-complete", "zygarde-mega"
+      ]
+    },
+    {
+      "version": "moon",
+      "forms": [
+        "buzzwole", "celesteela", "cosmoem", "cosmog", "guzzlord", "kartana", "lunala", "magearna", "magearna-mega", "magearna-original", "magearna-original-mega", "marshadow", "necrozma", "necrozma-dawn", "necrozma-dusk", "necrozma-ultra", "nihilego", "pheromosa", "pikachu-alola-cap", "pikachu-hoenn-cap", "pikachu-kalos-cap", "pikachu-original-cap", "pikachu-partner-cap", "pikachu-sinnoh-cap", "pikachu-unova-cap", "pikachu-world-cap", "solgaleo", "tapu-bulu", "tapu-fini", "tapu-koko", "tapu-lele", "xurkitree", "zygarde-10", "zygarde-10-power-construct", "zygarde-50", "zygarde-50-power-construct", "zygarde-complete", "zygarde-mega"
+      ]
+    },
+    {
+      "version": "ultra-sun",
+      "forms": [
+        "celesteela", "cosmoem", "cosmog", "entei", "greninja-ash", "greninja-battle-bond", "kyogre", "kyogre-primal", "latias", "latias-mega", "lugia", "lunala", "magearna", "magearna-mega", "magearna-original", "magearna-original-mega", "marshadow", "necrozma", "necrozma-dawn", "necrozma-dusk", "necrozma-ultra", "palkia", "palkia-origin", "pheromosa", "pikachu-alola-cap", "pikachu-hoenn-cap", "pikachu-kalos-cap", "pikachu-original-cap", "pikachu-sinnoh-cap", "pikachu-unova-cap", "pikachu-world-cap", "regigigas", "solgaleo", "tapu-bulu", "tapu-fini", "tapu-koko", "tapu-lele", "thundurus-incarnate", "thundurus-therian", "vivillon-fancy", "vivillon-poke-ball", "yveltal", "zekrom", "zeraora", "zeraora-mega", "zygarde-10", "zygarde-10-power-construct", "zygarde-50", "zygarde-50-power-construct", "zygarde-complete", "zygarde-mega"
+      ]
+    },
+    {
+      "version": "ultra-moon",
+      "forms": [
+        "buzzwole", "cosmoem", "cosmog", "dialga", "dialga-origin", "greninja-ash", "greninja-battle-bond", "groudon", "groudon-primal", "heatran", "heatran-mega", "ho-oh", "kartana", "latios", "latios-mega", "lunala", "magearna", "magearna-mega", "magearna-original", "magearna-original-mega", "marshadow", "necrozma", "necrozma-dawn", "necrozma-dusk", "necrozma-ultra", "pikachu-alola-cap", "pikachu-hoenn-cap", "pikachu-kalos-cap", "pikachu-original-cap", "pikachu-sinnoh-cap", "pikachu-unova-cap", "pikachu-world-cap", "raikou", "reshiram", "solgaleo", "tapu-bulu", "tapu-fini", "tapu-koko", "tapu-lele", "tornadus-incarnate", "tornadus-therian", "vivillon-fancy", "vivillon-poke-ball", "xerneas-active", "xerneas-neutral", "zeraora", "zeraora-mega", "zygarde-10", "zygarde-10-power-construct", "zygarde-50", "zygarde-50-power-construct", "zygarde-complete", "zygarde-mega"
       ]
     },
     {

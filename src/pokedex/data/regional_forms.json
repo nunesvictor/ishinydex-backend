@@ -8,12 +8,15 @@
     "https://bulbapedia.bulbagarden.net/wiki/List_of_Pok%C3%A9mon_by_Kitakami_Pok%C3%A9dex_number",
     "https://bulbapedia.bulbagarden.net/wiki/List_of_Pok%C3%A9mon_by_Blueberry_Pok%C3%A9dex_number",
     "https://bulbapedia.bulbagarden.net/wiki/List_of_Pok%C3%A9mon_by_Lumiose_Pok%C3%A9dex_number",
-    "https://bulbapedia.bulbagarden.net/wiki/List_of_Pok%C3%A9mon_by_Hyperspace_Pok%C3%A9dex_number"
+    "https://bulbapedia.bulbagarden.net/wiki/List_of_Pok%C3%A9mon_by_Hyperspace_Pok%C3%A9dex_number",
+    "https://bulbapedia.bulbagarden.net/wiki/List_of_Pok%C3%A9mon_by_Alola_Pok%C3%A9dex_number_in_Pok%C3%A9mon_Sun_and_Moon",
+    "https://bulbapedia.bulbagarden.net/wiki/List_of_Pok%C3%A9mon_by_Alola_Pok%C3%A9dex_number_in_Pok%C3%A9mon_Ultra_Sun_and_Ultra_Moon"
   ],
   "notes": [
     "Para as espécies com forma regional que estão nas pokédex do jogo: as formas que aparecem no jogo (as listas de pokédex da Bulbapedia mostram a forma de cada entrada; consultadas em 2026-10-07). As espécies sem forma regional não entram: valem todas as formas.",
     "Fora das listas (encontros especiais, como os pássaros do Snacksworth): só a forma comum.",
     "FireRed/LeafGreen: só as formas comuns (as do BDSP, menos o Marowak Totem, que é de Alola). Raichu, Exeggutor e Marowak de Alola não podem ter a marca GBA (Bulbapedia, Origin mark).",
+    "XY e ORAS: só as formas comuns, como no FRLG. SM e USUM: as formas de Alola das espécies que têm uma; as de Kanto só chegam pelo Bank (Game locations de cada espécie, 2026-10-11), menos Raichu, Exeggutor e Marowak no USUM, que evoluem na forma de Kanto no Ultra Space. Os Totens de Raticate e Marowak só no USUM (Samson Oak). As espécies com forma regional só de outra região (Galar, Hisui, Paldea): as formas comuns.",
     "Brilliant Diamond/Shining Pearl: só as formas comuns. Let's Go: as comuns e as de Alola (trocas no jogo)."
   ],
   "games": [
@@ -21,6 +24,30 @@
       "versionGroup": "firered-leafgreen",
       "forms": [
         "arcanine", "articuno", "diglett", "dugtrio", "electrode", "exeggutor", "farfetchd", "geodude", "golem", "graveler", "grimer", "growlithe", "marowak", "meowth", "meowth-gmax", "moltres", "mr-mime", "muk", "ninetales", "persian", "pikachu", "pikachu-belle", "pikachu-cosplay", "pikachu-gmax", "pikachu-hoenn-cap", "pikachu-kalos-cap", "pikachu-libre", "pikachu-original-cap", "pikachu-partner-cap", "pikachu-phd", "pikachu-pop-star", "pikachu-rock-star", "pikachu-sinnoh-cap", "pikachu-starter", "pikachu-unova-cap", "pikachu-world-cap", "ponyta", "qwilfish", "raichu", "raichu-mega-x", "raichu-mega-y", "rapidash", "raticate", "rattata", "sandshrew", "sandslash", "slowbro", "slowbro-mega", "slowking", "slowpoke", "sneasel", "tauros", "voltorb", "vulpix", "weezing", "wooper", "zapdos"
+      ]
+    },
+    {
+      "versionGroup": "x-y",
+      "forms": [
+        "arcanine", "articuno", "avalugg", "braviary", "corsola", "diglett", "dugtrio", "electrode", "exeggutor", "farfetchd", "geodude", "golem", "goodra", "graveler", "grimer", "growlithe", "lilligant", "linoone", "marowak", "moltres", "mr-mime", "muk", "ninetales", "pikachu", "pikachu-belle", "pikachu-cosplay", "pikachu-gmax", "pikachu-hoenn-cap", "pikachu-kalos-cap", "pikachu-libre", "pikachu-original-cap", "pikachu-partner-cap", "pikachu-phd", "pikachu-pop-star", "pikachu-rock-star", "pikachu-sinnoh-cap", "pikachu-starter", "pikachu-unova-cap", "pikachu-world-cap", "ponyta", "qwilfish", "raichu", "raichu-mega-x", "raichu-mega-y", "rapidash", "sandshrew", "sandslash", "sliggoo", "slowbro", "slowbro-mega", "slowking", "slowpoke", "sneasel", "stunfisk", "tauros", "voltorb", "vulpix", "wooper", "zapdos", "zigzagoon", "zoroark", "zorua"
+      ]
+    },
+    {
+      "versionGroup": "omega-ruby-alpha-sapphire",
+      "forms": [
+        "arcanine", "braviary", "corsola", "darmanitan-standard", "darmanitan-zen", "darumaka", "diglett", "dugtrio", "electrode", "geodude", "golem", "graveler", "grimer", "growlithe", "lilligant", "linoone", "meowth", "meowth-gmax", "muk", "ninetales", "persian", "pikachu", "pikachu-belle", "pikachu-cosplay", "pikachu-gmax", "pikachu-hoenn-cap", "pikachu-kalos-cap", "pikachu-libre", "pikachu-original-cap", "pikachu-partner-cap", "pikachu-phd", "pikachu-pop-star", "pikachu-rock-star", "pikachu-sinnoh-cap", "pikachu-starter", "pikachu-unova-cap", "pikachu-world-cap", "ponyta", "raichu", "raichu-mega-x", "raichu-mega-y", "rapidash", "raticate", "rattata", "samurott", "sandshrew", "sandslash", "slowbro", "slowbro-mega", "slowking", "slowpoke", "typhlosion", "voltorb", "vulpix", "weezing", "yamask", "zigzagoon", "zoroark", "zorua"
+      ]
+    },
+    {
+      "versionGroup": "sun-moon",
+      "forms": [
+        "arcanine", "braviary", "corsola", "decidueye", "diglett-alola", "dugtrio-alola", "exeggutor-alola", "geodude-alola", "golem-alola", "goodra", "graveler-alola", "grimer-alola", "growlithe", "lilligant", "marowak-alola", "meowth-alola", "muk-alola", "ninetales-alola", "persian-alola", "pikachu", "pikachu-alola-cap", "pikachu-belle", "pikachu-cosplay", "pikachu-gmax", "pikachu-hoenn-cap", "pikachu-kalos-cap", "pikachu-libre", "pikachu-original-cap", "pikachu-partner-cap", "pikachu-phd", "pikachu-pop-star", "pikachu-rock-star", "pikachu-sinnoh-cap", "pikachu-starter", "pikachu-unova-cap", "pikachu-world-cap", "raichu-alola", "raticate-alola", "rattata-alola", "samurott", "sandshrew-alola", "sandslash-alola", "sliggoo", "slowbro", "slowbro-mega", "slowking", "slowpoke", "sneasel", "tauros", "typhlosion", "vulpix-alola"
+      ]
+    },
+    {
+      "versionGroup": "ultra-sun-ultra-moon",
+      "forms": [
+        "arcanine", "articuno", "braviary", "corsola", "decidueye", "diglett-alola", "dugtrio-alola", "electrode", "exeggutor", "exeggutor-alola", "geodude-alola", "golem-alola", "goodra", "graveler-alola", "grimer-alola", "growlithe", "lilligant", "marowak", "marowak-alola", "marowak-totem", "meowth-alola", "moltres", "mr-mime", "muk-alola", "ninetales-alola", "persian-alola", "pikachu", "pikachu-alola-cap", "pikachu-belle", "pikachu-cosplay", "pikachu-gmax", "pikachu-hoenn-cap", "pikachu-kalos-cap", "pikachu-libre", "pikachu-original-cap", "pikachu-partner-cap", "pikachu-phd", "pikachu-pop-star", "pikachu-rock-star", "pikachu-sinnoh-cap", "pikachu-starter", "pikachu-unova-cap", "pikachu-world-cap", "raichu", "raichu-alola", "raichu-mega-x", "raichu-mega-y", "raticate-alola", "raticate-totem-alola", "rattata-alola", "sandshrew-alola", "sandslash-alola", "sliggoo", "slowbro", "slowbro-mega", "slowking", "slowpoke", "sneasel", "stunfisk", "tauros", "voltorb", "vulpix-alola", "wooper", "zapdos", "zoroark", "zorua"
       ]
     },
     {
