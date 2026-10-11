@@ -94,3 +94,46 @@ jobs:
         working-directory: src
         # Um processo por núcleo, cada um com o seu clone do banco de teste.
         run: poetry run python manage.py test --parallel auto
+
+  # Os mesmos testes pela imagem do Dockerfile e pelo docker compose, como o
+  # teste local antes do merge (CLAUDE.md do repositório principal): pega o
+  # que só quebra na imagem (dependências instaladas no sistema, locale,
+  # entrypoint). O serviço `sprites` fica de fora (--no-deps): ele baixa os
+  # sprites da PokeAPI, que os testes não usam.
+  docker:
+    name: Testes (Docker)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      # O .env do compose a partir do exemplo, com valores aleatórios no
+      # lugar dos change-me.
+      - name: Gerar o .env
+        run: |
+          sed -e "s/^POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=$(openssl rand -hex 16)/" \
+              -e "s/^SECRET_KEY=.*/SECRET_KEY=$(openssl rand -hex 32)/" \
+              -e "s/^DJANGO_SUPERUSER_PASSWORD=.*/DJANGO_SUPERUSER_PASSWORD=$(openssl rand -hex 16)/" \
+              .env.example > src/.env
+          ln -s src/.env .env
+
+      # O código entra por volume e o container roda como o usuário 1000
+      # (guest); no runner o checkout é de outro usuário, e o compilemessages
+      # precisa escrever em src/.
+      - run: chmod -R a+rwX src
+
+      - run: docker compose build web
+
+      - name: Subir o banco
+        run: |
+          docker compose up -d db
+          for _ in $(seq 30); do
+            docker compose exec -T db pg_isready -q && exit 0
+            sleep 2
+          done
+          docker compose logs db
+          exit 1
+
+      - name: Testes
+        run: >-
+          docker compose run --rm --no-deps -T web sh -c
+          "python manage.py compilemessages -l pt_BR && python manage.py test"
