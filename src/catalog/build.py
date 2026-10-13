@@ -80,6 +80,13 @@ SHINY_METHOD_UNITS = {
     "combo",
 }
 
+# Odds de shiny por método e jogo de save (odds das caçadas, #113).
+SHINY_ODDS_FILE = (
+    Path(__file__).resolve().parent.parent / "pokedex/data/shiny_odds.json"
+)
+SHINY_ODDS_KINDS = {"rolls", "chance", "dexnav"}
+SHINY_ODDS_BASES = {4096, 8192}
+
 # Lendários capturáveis fora das pokédex do jogo (Aventura Dinamax,
 # Snacksworth): entram como pokédex especiais, sem número.
 SPECIAL_ENCOUNTERS_FILE = (
@@ -519,9 +526,96 @@ def _shiny_methods() -> list[dict]:
     return result
 
 
+def _check_chain(where: str, kind: str, chain: dict) -> None:
+    steps = chain["steps"]
+    field = "odds" if kind == "chance" else "rolls"
+    starts = [step["from"] for step in steps]
+    if not steps or starts[0] != 0 or starts != sorted(set(starts)):
+        raise CatalogError(f"cadeia de {where} fora de ordem: {starts}")
+    if any(step.get(field) is None for step in steps):
+        raise CatalogError(f"cadeia de {where} sem {field}")
+
+
+def _check_modifiers(where: str, modifiers: list[dict]) -> dict[str, int]:
+    """Confere os modificadores; devolve id → quantidade de opções (0 para
+    os numéricos)."""
+    sizes: dict[str, int] = {}
+    for modifier in modifiers:
+        id_ = modifier["id"]
+        if id_ in sizes:
+            raise CatalogError(f"modificador repetido em {where}: {id_}")
+        if modifier["type"] == "choice":
+            if not modifier["options"]:
+                raise CatalogError(f"modificador sem opções em {where}: {id_}")
+            sizes[id_] = len(modifier["options"])
+        elif modifier["type"] == "number":
+            if modifier["min"] >= modifier["max"]:
+                raise CatalogError(f"faixa inválida em {where}: {id_}")
+            sizes[id_] = 0
+        else:
+            raise CatalogError(f"tipo de modificador inválido em {where}: {id_}")
+        if when := modifier.get("when"):
+            if not 0 <= when["option"] < sizes.get(when["modifier"], 0):
+                raise CatalogError(f"condição inválida em {where}: {id_}")
+    return sizes
+
+
+def _check_table(where: str, table: dict, sizes: dict[str, int]) -> None:
+    rows, columns = sizes.get(table["rows"], 0), sizes.get(table["columns"], 0)
+    odds = table["odds"]
+    if not rows or not columns or len(odds) != rows:
+        raise CatalogError(f"tabela de {where} não bate com os modificadores")
+    if any(len(row) != columns for row in odds):
+        raise CatalogError(f"tabela de {where} não bate com os modificadores")
+
+
+def _shiny_odds(methods: list[dict]) -> list[dict]:
+    """As regras de ``SHINY_ODDS_FILE``, com os ids das formas em que o
+    Charm não vale. Falha com método ou versão fora de ``SHINY_METHODS_FILE``,
+    par método × versão repetido, tipo ou base inválidos, cadeia fora de
+    ordem, modificador inválido ou tabela que não bate com os modificadores."""
+    rules = json.loads(SHINY_ODDS_FILE.read_text(encoding="utf-8"))["rules"]
+    versions_of = {m["id"]: set(m["versions"]) for m in methods}
+    forms = _form_ids(
+        {n for rule in rules for n in rule["charmExceptForms"]}, "odds de shiny"
+    )
+    seen: set[tuple[str, str]] = set()
+    result = []
+    for rule in rules:
+        method, kind = rule["method"], rule["kind"]
+        where = f"{method} ({', '.join(rule['versions'])})"
+        if method not in versions_of:
+            raise CatalogError(f"odds de método desconhecido: {method}")
+        if outside := [v for v in rule["versions"] if v not in versions_of[method]]:
+            raise CatalogError(f"odds de {method} fora dos jogos do método: {outside}")
+        for version in rule["versions"]:
+            if (method, version) in seen:
+                raise CatalogError(f"odds repetidas: {method} em {version}")
+            seen.add((method, version))
+        if kind not in SHINY_ODDS_KINDS or rule["base"] not in SHINY_ODDS_BASES:
+            raise CatalogError(f"tipo ou base inválidos em {where}")
+        if kind == "chance":
+            if not ("odds" in rule or "chain" in rule or "table" in rule):
+                raise CatalogError(f"odds sem chance em {where}")
+        elif not rule.get("rolls"):
+            raise CatalogError(f"odds sem sorteios em {where}")
+        if chain := rule.get("chain"):
+            _check_chain(where, kind, chain)
+        sizes = _check_modifiers(where, rule["modifiers"])
+        if table := rule.get("table"):
+            _check_table(where, table, sizes)
+        exported = {k: v for k, v in rule.items() if k != "sources"}
+        exported["charmExceptForms"] = sorted(
+            forms[n][0] for n in rule["charmExceptForms"]
+        )
+        result.append(exported)
+    return result
+
+
 def build_catalog(version: str) -> dict:
     groups, versions = _versions()
     pokedexes, species_of_group = _pokedexes()
+    methods = _shiny_methods()
     return {
         "schemaVersion": SCHEMA_VERSION,
         "version": version,
@@ -546,5 +640,8 @@ def build_catalog(version: str) -> dict:
         "gameShinyLocks": _game_shiny_locks(species_of_group),
         # Métodos de shiny hunt e os jogos onde existem (a primeira unidade
         # é a padrão). Chave nova, aditiva: o schemaVersion continua.
-        "shinyMethods": _shiny_methods(),
+        "shinyMethods": methods,
+        # Odds de shiny por método e jogo (sorteios, chance ou DexNav), com
+        # o Charm, as cadeias e os modificadores. Chave nova, aditiva.
+        "shinyOdds": _shiny_odds(methods),
     }

@@ -1,0 +1,1872 @@
+{
+  "sources": [
+    "https://bulbapedia.bulbagarden.net/wiki/Brilliant_Pok%C3%A9mon",
+    "https://bulbapedia.bulbagarden.net/wiki/Catch_Combo",
+    "https://bulbapedia.bulbagarden.net/wiki/DexNav",
+    "https://bulbapedia.bulbagarden.net/wiki/Donut",
+    "https://bulbapedia.bulbagarden.net/wiki/Fishing",
+    "https://bulbapedia.bulbagarden.net/wiki/Masuda_method",
+    "https://bulbapedia.bulbagarden.net/wiki/Pok%C3%A9_Radar",
+    "https://bulbapedia.bulbagarden.net/wiki/Pok%C3%A9mon_FireRed_and_LeafGreen_Versions",
+    "https://bulbapedia.bulbagarden.net/wiki/Shiny_Charm",
+    "https://bulbapedia.bulbagarden.net/wiki/Shiny_Pok%C3%A9mon",
+    "https://rotomlabs.net/brilliant-diamond-shining-pearl/shiny-rates",
+    "https://rotomlabs.net/guide/ultra-wormhole-shiny-hunting",
+    "https://rotomlabs.net/legends-z-a/shiny-rates",
+    "https://rotomlabs.net/shiny-rates",
+    "https://www.serebii.net/brilliantdiamondshiningpearl/shinypokemon.shtml",
+    "https://www.serebii.net/legendsz-a/shinypokemon.shtml",
+    "https://www.serebii.net/letsgopikachueevee/shinypokemon.shtml",
+    "https://www.serebii.net/ultrasunultramoon/ultrawormholes.shtml"
+  ],
+  "notes": [
+    "Odds de shiny por método e jogo de save (consultado em 2026-10-13). Curadoria revisada em docs/roadmap/ideias/odds-das-cacadas.md no ishinydex.",
+    "kind: rolls = sorteios de 1/base (odds = 1 − (1 − 1/base)^sorteios); chance = 1/odds direto (fixo, por cadeia ou por tabela); dexnav = fórmula do DexNav (Search Level, checagens e o sorteio normal).",
+    "charm: sorteios que o Shiny Charm soma (null: não vale). Em chance, charmOdds. charmExceptForms: formas em que o Charm não vale.",
+    "chain.steps: a partir de qual cadeia vale cada bônus (rolls somados ou odds). resetAfter: a cadeia volta a 0 depois desse valor (SOS no SM).",
+    "modifiers: choice (opções com os sorteios somados; a primeira é a padrão; when liga o modificador a uma opção de outro) ou number (followsCount: sobe com o +1 da caçada).",
+    "table: odds por opção de dois modificadores (linhas × colunas); null = combinação que não existe."
+  ],
+  "rules": [
+    {
+      "method": "random",
+      "versions": [
+        "x",
+        "y"
+      ],
+      "kind": "rolls",
+      "base": 4096,
+      "rolls": 1,
+      "charm": 2,
+      "modifiers": [],
+      "charmExceptForms": [],
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Pok%C3%A9mon",
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Charm"
+      ]
+    },
+    {
+      "method": "soft-reset",
+      "versions": [
+        "x",
+        "y"
+      ],
+      "kind": "rolls",
+      "base": 4096,
+      "rolls": 1,
+      "charm": 2,
+      "modifiers": [],
+      "charmExceptForms": [],
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Pok%C3%A9mon",
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Charm"
+      ]
+    },
+    {
+      "method": "eggs",
+      "versions": [
+        "x",
+        "y"
+      ],
+      "kind": "rolls",
+      "base": 4096,
+      "rolls": 1,
+      "charm": 2,
+      "modifiers": [],
+      "charmExceptForms": [],
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Masuda_method",
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Charm"
+      ]
+    },
+    {
+      "method": "masuda",
+      "versions": [
+        "x",
+        "y"
+      ],
+      "kind": "rolls",
+      "base": 4096,
+      "rolls": 6,
+      "charm": 2,
+      "modifiers": [],
+      "charmExceptForms": [],
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Masuda_method"
+      ]
+    },
+    {
+      "method": "random",
+      "versions": [
+        "omega-ruby",
+        "alpha-sapphire"
+      ],
+      "kind": "rolls",
+      "base": 4096,
+      "rolls": 1,
+      "charm": 2,
+      "modifiers": [],
+      "charmExceptForms": [],
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Pok%C3%A9mon",
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Charm"
+      ]
+    },
+    {
+      "method": "soft-reset",
+      "versions": [
+        "omega-ruby",
+        "alpha-sapphire"
+      ],
+      "kind": "rolls",
+      "base": 4096,
+      "rolls": 1,
+      "charm": 2,
+      "modifiers": [],
+      "charmExceptForms": [],
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Pok%C3%A9mon",
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Charm"
+      ]
+    },
+    {
+      "method": "eggs",
+      "versions": [
+        "omega-ruby",
+        "alpha-sapphire"
+      ],
+      "kind": "rolls",
+      "base": 4096,
+      "rolls": 1,
+      "charm": 2,
+      "modifiers": [],
+      "charmExceptForms": [],
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Masuda_method",
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Charm"
+      ]
+    },
+    {
+      "method": "masuda",
+      "versions": [
+        "omega-ruby",
+        "alpha-sapphire"
+      ],
+      "kind": "rolls",
+      "base": 4096,
+      "rolls": 6,
+      "charm": 2,
+      "modifiers": [],
+      "charmExceptForms": [],
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Masuda_method"
+      ]
+    },
+    {
+      "method": "random",
+      "versions": [
+        "sun",
+        "moon"
+      ],
+      "kind": "rolls",
+      "base": 4096,
+      "rolls": 1,
+      "charm": 2,
+      "modifiers": [],
+      "charmExceptForms": [],
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Pok%C3%A9mon",
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Charm"
+      ]
+    },
+    {
+      "method": "soft-reset",
+      "versions": [
+        "sun",
+        "moon"
+      ],
+      "kind": "rolls",
+      "base": 4096,
+      "rolls": 1,
+      "charm": 2,
+      "modifiers": [],
+      "charmExceptForms": [],
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Pok%C3%A9mon",
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Charm"
+      ]
+    },
+    {
+      "method": "eggs",
+      "versions": [
+        "sun",
+        "moon"
+      ],
+      "kind": "rolls",
+      "base": 4096,
+      "rolls": 1,
+      "charm": 2,
+      "modifiers": [],
+      "charmExceptForms": [],
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Masuda_method",
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Charm"
+      ]
+    },
+    {
+      "method": "masuda",
+      "versions": [
+        "sun",
+        "moon"
+      ],
+      "kind": "rolls",
+      "base": 4096,
+      "rolls": 6,
+      "charm": 2,
+      "modifiers": [],
+      "charmExceptForms": [],
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Masuda_method"
+      ]
+    },
+    {
+      "method": "random",
+      "versions": [
+        "ultra-sun",
+        "ultra-moon"
+      ],
+      "kind": "rolls",
+      "base": 4096,
+      "rolls": 1,
+      "charm": 2,
+      "modifiers": [],
+      "charmExceptForms": [],
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Pok%C3%A9mon",
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Charm"
+      ]
+    },
+    {
+      "method": "soft-reset",
+      "versions": [
+        "ultra-sun",
+        "ultra-moon"
+      ],
+      "kind": "rolls",
+      "base": 4096,
+      "rolls": 1,
+      "charm": 2,
+      "modifiers": [],
+      "charmExceptForms": [],
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Pok%C3%A9mon",
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Charm"
+      ]
+    },
+    {
+      "method": "eggs",
+      "versions": [
+        "ultra-sun",
+        "ultra-moon"
+      ],
+      "kind": "rolls",
+      "base": 4096,
+      "rolls": 1,
+      "charm": 2,
+      "modifiers": [],
+      "charmExceptForms": [],
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Masuda_method",
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Charm"
+      ]
+    },
+    {
+      "method": "masuda",
+      "versions": [
+        "ultra-sun",
+        "ultra-moon"
+      ],
+      "kind": "rolls",
+      "base": 4096,
+      "rolls": 6,
+      "charm": 2,
+      "modifiers": [],
+      "charmExceptForms": [],
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Masuda_method"
+      ]
+    },
+    {
+      "method": "hordes",
+      "versions": [
+        "x",
+        "y",
+        "omega-ruby",
+        "alpha-sapphire"
+      ],
+      "kind": "rolls",
+      "base": 4096,
+      "rolls": 5,
+      "charm": 10,
+      "modifiers": [],
+      "charmExceptForms": [],
+      "note": "Cada um dos 5 Pokémon da horda sorteia: o Charm soma 2 por Pokémon.",
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Pok%C3%A9mon",
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Charm"
+      ]
+    },
+    {
+      "method": "friend-safari",
+      "versions": [
+        "x",
+        "y"
+      ],
+      "kind": "rolls",
+      "base": 4096,
+      "rolls": 5,
+      "charm": 2,
+      "modifiers": [],
+      "charmExceptForms": [],
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Pok%C3%A9mon"
+      ]
+    },
+    {
+      "method": "chain-fishing",
+      "versions": [
+        "x",
+        "y",
+        "omega-ruby",
+        "alpha-sapphire"
+      ],
+      "kind": "rolls",
+      "base": 4096,
+      "rolls": 1,
+      "charm": 2,
+      "chain": {
+        "steps": [
+          {
+            "from": 0,
+            "rolls": 0
+          },
+          {
+            "from": 1,
+            "rolls": 2
+          },
+          {
+            "from": 2,
+            "rolls": 4
+          },
+          {
+            "from": 3,
+            "rolls": 6
+          },
+          {
+            "from": 4,
+            "rolls": 8
+          },
+          {
+            "from": 5,
+            "rolls": 10
+          },
+          {
+            "from": 6,
+            "rolls": 12
+          },
+          {
+            "from": 7,
+            "rolls": 14
+          },
+          {
+            "from": 8,
+            "rolls": 16
+          },
+          {
+            "from": 9,
+            "rolls": 18
+          },
+          {
+            "from": 10,
+            "rolls": 20
+          },
+          {
+            "from": 11,
+            "rolls": 22
+          },
+          {
+            "from": 12,
+            "rolls": 24
+          },
+          {
+            "from": 13,
+            "rolls": 26
+          },
+          {
+            "from": 14,
+            "rolls": 28
+          },
+          {
+            "from": 15,
+            "rolls": 30
+          },
+          {
+            "from": 16,
+            "rolls": 32
+          },
+          {
+            "from": 17,
+            "rolls": 34
+          },
+          {
+            "from": 18,
+            "rolls": 36
+          },
+          {
+            "from": 19,
+            "rolls": 38
+          },
+          {
+            "from": 20,
+            "rolls": 40
+          }
+        ]
+      },
+      "modifiers": [],
+      "charmExceptForms": [],
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Fishing"
+      ]
+    },
+    {
+      "method": "poke-radar",
+      "versions": [
+        "x",
+        "y"
+      ],
+      "kind": "chance",
+      "base": 4096,
+      "charm": null,
+      "chain": {
+        "steps": [
+          {
+            "from": 0,
+            "odds": 4096,
+            "charmOdds": 1365.67
+          },
+          {
+            "from": 1,
+            "odds": 7900
+          },
+          {
+            "from": 2,
+            "odds": 7700
+          },
+          {
+            "from": 3,
+            "odds": 7500
+          },
+          {
+            "from": 4,
+            "odds": 7300
+          },
+          {
+            "from": 5,
+            "odds": 7100
+          },
+          {
+            "from": 6,
+            "odds": 6900
+          },
+          {
+            "from": 7,
+            "odds": 6700
+          },
+          {
+            "from": 8,
+            "odds": 6500
+          },
+          {
+            "from": 9,
+            "odds": 6300
+          },
+          {
+            "from": 10,
+            "odds": 6100
+          },
+          {
+            "from": 11,
+            "odds": 5900
+          },
+          {
+            "from": 12,
+            "odds": 5700
+          },
+          {
+            "from": 13,
+            "odds": 5500
+          },
+          {
+            "from": 14,
+            "odds": 5300
+          },
+          {
+            "from": 15,
+            "odds": 5100
+          },
+          {
+            "from": 16,
+            "odds": 4900
+          },
+          {
+            "from": 17,
+            "odds": 4700
+          },
+          {
+            "from": 18,
+            "odds": 4500
+          },
+          {
+            "from": 19,
+            "odds": 4300
+          },
+          {
+            "from": 20,
+            "odds": 4100
+          },
+          {
+            "from": 21,
+            "odds": 3900
+          },
+          {
+            "from": 22,
+            "odds": 3700
+          },
+          {
+            "from": 23,
+            "odds": 3500
+          },
+          {
+            "from": 24,
+            "odds": 3300
+          },
+          {
+            "from": 25,
+            "odds": 3100
+          },
+          {
+            "from": 26,
+            "odds": 2900
+          },
+          {
+            "from": 27,
+            "odds": 2700
+          },
+          {
+            "from": 28,
+            "odds": 2500
+          },
+          {
+            "from": 29,
+            "odds": 2300
+          },
+          {
+            "from": 30,
+            "odds": 2100
+          },
+          {
+            "from": 31,
+            "odds": 1900
+          },
+          {
+            "from": 32,
+            "odds": 1700
+          },
+          {
+            "from": 33,
+            "odds": 1500
+          },
+          {
+            "from": 34,
+            "odds": 1300
+          },
+          {
+            "from": 35,
+            "odds": 1100
+          },
+          {
+            "from": 36,
+            "odds": 900
+          },
+          {
+            "from": 37,
+            "odds": 700
+          },
+          {
+            "from": 38,
+            "odds": 500
+          },
+          {
+            "from": 39,
+            "odds": 300
+          },
+          {
+            "from": 40,
+            "odds": 100
+          }
+        ]
+      },
+      "modifiers": [],
+      "charmExceptForms": [],
+      "note": "Chance por moita da cadeia. Na cadeia 0 vale o encontro normal, com o Charm; depois, o Charm não vale.",
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Pok%C3%A9_Radar"
+      ]
+    },
+    {
+      "method": "dexnav",
+      "versions": [
+        "omega-ruby",
+        "alpha-sapphire"
+      ],
+      "kind": "dexnav",
+      "base": 4096,
+      "rolls": 1,
+      "charm": 2,
+      "modifiers": [
+        {
+          "id": "searchLevel",
+          "label": "Search Level",
+          "type": "number",
+          "min": 0,
+          "max": 999,
+          "followsCount": true
+        }
+      ],
+      "charmExceptForms": [],
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/DexNav"
+      ]
+    },
+    {
+      "method": "sos",
+      "versions": [
+        "sun",
+        "moon"
+      ],
+      "kind": "rolls",
+      "base": 4096,
+      "rolls": 1,
+      "charm": 2,
+      "chain": {
+        "steps": [
+          {
+            "from": 0,
+            "rolls": 0
+          },
+          {
+            "from": 11,
+            "rolls": 4
+          },
+          {
+            "from": 21,
+            "rolls": 8
+          },
+          {
+            "from": 31,
+            "rolls": 12
+          }
+        ],
+        "resetAfter": 255
+      },
+      "modifiers": [],
+      "charmExceptForms": [],
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Pok%C3%A9mon"
+      ]
+    },
+    {
+      "method": "sos",
+      "versions": [
+        "ultra-sun",
+        "ultra-moon"
+      ],
+      "kind": "rolls",
+      "base": 4096,
+      "rolls": 1,
+      "charm": 2,
+      "chain": {
+        "steps": [
+          {
+            "from": 0,
+            "rolls": 0
+          },
+          {
+            "from": 11,
+            "rolls": 4
+          },
+          {
+            "from": 21,
+            "rolls": 8
+          },
+          {
+            "from": 31,
+            "rolls": 12
+          }
+        ]
+      },
+      "modifiers": [],
+      "charmExceptForms": [],
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Pok%C3%A9mon"
+      ]
+    },
+    {
+      "method": "ultra-wormhole",
+      "versions": [
+        "ultra-sun",
+        "ultra-moon"
+      ],
+      "kind": "chance",
+      "base": 4096,
+      "charm": null,
+      "modifiers": [
+        {
+          "id": "rings",
+          "label": "Anéis",
+          "type": "choice",
+          "options": [
+            {
+              "label": "Nenhum",
+              "rolls": 0
+            },
+            {
+              "label": "1 anel",
+              "rolls": 0
+            },
+            {
+              "label": "2 anéis",
+              "rolls": 0
+            }
+          ]
+        },
+        {
+          "id": "distance",
+          "label": "Distância (anos-luz)",
+          "type": "choice",
+          "options": [
+            {
+              "label": "0–999",
+              "rolls": 0
+            },
+            {
+              "label": "1000–1499",
+              "rolls": 0
+            },
+            {
+              "label": "1500–1999",
+              "rolls": 0
+            },
+            {
+              "label": "2000–2499",
+              "rolls": 0
+            },
+            {
+              "label": "2500–2999",
+              "rolls": 0
+            },
+            {
+              "label": "3000–3499",
+              "rolls": 0
+            },
+            {
+              "label": "3500–3999",
+              "rolls": 0
+            },
+            {
+              "label": "4000–4499",
+              "rolls": 0
+            },
+            {
+              "label": "4500–4999",
+              "rolls": 0
+            },
+            {
+              "label": "5000+",
+              "rolls": 0
+            }
+          ]
+        }
+      ],
+      "table": {
+        "rows": "rings",
+        "columns": "distance",
+        "odds": [
+          [
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0,
+            100.0
+          ],
+          [
+            null,
+            50.0,
+            33.3333,
+            25.0,
+            20.0,
+            16.6667,
+            14.2857,
+            12.5,
+            11.1111,
+            10.0
+          ],
+          [
+            null,
+            33.3333,
+            20.0,
+            14.2857,
+            11.1111,
+            9.0909,
+            7.6923,
+            6.6667,
+            5.8824,
+            5.2632
+          ]
+        ]
+      },
+      "charmExceptForms": [],
+      "note": "O Charm não muda a tabela. Lendários e Ultra Beasts do buraco usam a chance normal: cace-os como Soft reset.",
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Pok%C3%A9mon",
+        "https://www.serebii.net/ultrasunultramoon/ultrawormholes.shtml",
+        "https://rotomlabs.net/guide/ultra-wormhole-shiny-hunting"
+      ]
+    },
+    {
+      "method": "random",
+      "versions": [
+        "lets-go-pikachu",
+        "lets-go-eevee"
+      ],
+      "kind": "rolls",
+      "base": 4096,
+      "rolls": 1,
+      "charm": 2,
+      "modifiers": [
+        {
+          "id": "lure",
+          "label": "Lure",
+          "type": "choice",
+          "options": [
+            {
+              "label": "Sem",
+              "rolls": 0
+            },
+            {
+              "label": "Com",
+              "rolls": 1
+            }
+          ]
+        }
+      ],
+      "charmExceptForms": [],
+      "sources": [
+        "https://www.serebii.net/letsgopikachueevee/shinypokemon.shtml",
+        "https://bulbapedia.bulbagarden.net/wiki/Catch_Combo"
+      ]
+    },
+    {
+      "method": "soft-reset",
+      "versions": [
+        "lets-go-pikachu",
+        "lets-go-eevee"
+      ],
+      "kind": "rolls",
+      "base": 4096,
+      "rolls": 1,
+      "charm": 2,
+      "modifiers": [],
+      "charmExceptForms": [],
+      "note": "Estáticos: só o Charm vale. Trocas e presentes ficam em 1/4096.",
+      "sources": [
+        "https://rotomlabs.net/shiny-rates",
+        "https://www.serebii.net/letsgopikachueevee/shinypokemon.shtml"
+      ]
+    },
+    {
+      "method": "catch-combo",
+      "versions": [
+        "lets-go-pikachu",
+        "lets-go-eevee"
+      ],
+      "kind": "rolls",
+      "base": 4096,
+      "rolls": 1,
+      "charm": 2,
+      "chain": {
+        "steps": [
+          {
+            "from": 0,
+            "rolls": 0
+          },
+          {
+            "from": 11,
+            "rolls": 3
+          },
+          {
+            "from": 21,
+            "rolls": 7
+          },
+          {
+            "from": 31,
+            "rolls": 11
+          }
+        ]
+      },
+      "modifiers": [
+        {
+          "id": "lure",
+          "label": "Lure",
+          "type": "choice",
+          "options": [
+            {
+              "label": "Sem",
+              "rolls": 0
+            },
+            {
+              "label": "Com",
+              "rolls": 1
+            }
+          ]
+        }
+      ],
+      "charmExceptForms": [],
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Pok%C3%A9mon",
+        "https://bulbapedia.bulbagarden.net/wiki/Catch_Combo"
+      ]
+    },
+    {
+      "method": "random",
+      "versions": [
+        "sword",
+        "shield"
+      ],
+      "kind": "rolls",
+      "base": 4096,
+      "rolls": 1,
+      "charm": 2,
+      "modifiers": [
+        {
+          "id": "aura",
+          "label": "Encontros",
+          "type": "choice",
+          "options": [
+            {
+              "label": "Todos",
+              "rolls": 0
+            },
+            {
+              "label": "Só os com aura",
+              "rolls": 0
+            }
+          ]
+        },
+        {
+          "id": "battled",
+          "label": "Derrotados da espécie",
+          "type": "choice",
+          "options": [
+            {
+              "label": "0",
+              "rolls": 0
+            },
+            {
+              "label": "1–49",
+              "rolls": 1
+            },
+            {
+              "label": "50–99",
+              "rolls": 2
+            },
+            {
+              "label": "100–199",
+              "rolls": 3
+            },
+            {
+              "label": "200–299",
+              "rolls": 4
+            },
+            {
+              "label": "300–499",
+              "rolls": 5
+            },
+            {
+              "label": "500+",
+              "rolls": 6
+            }
+          ],
+          "when": {
+            "modifier": "aura",
+            "option": 1
+          }
+        }
+      ],
+      "charmExceptForms": [],
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Brilliant_Pok%C3%A9mon",
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Pok%C3%A9mon"
+      ]
+    },
+    {
+      "method": "soft-reset",
+      "versions": [
+        "sword",
+        "shield"
+      ],
+      "kind": "rolls",
+      "base": 4096,
+      "rolls": 1,
+      "charm": 2,
+      "modifiers": [],
+      "charmExceptForms": [
+        "arctovish",
+        "arctozolt",
+        "dracovish",
+        "dracozolt",
+        "regice",
+        "regidrago",
+        "regieleki",
+        "regigigas",
+        "regirock",
+        "registeel"
+      ],
+      "note": "O Charm também não vale no curry, no estádio de Motostoke e em encontros roteirizados.",
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Charm",
+        "https://rotomlabs.net/shiny-rates"
+      ]
+    },
+    {
+      "method": "eggs",
+      "versions": [
+        "sword",
+        "shield"
+      ],
+      "kind": "rolls",
+      "base": 4096,
+      "rolls": 1,
+      "charm": 1,
+      "modifiers": [],
+      "charmExceptForms": [],
+      "note": "Bug da Gen VIII: com o Charm e sem Masuda, o sorteio inicial é pulado (2 sorteios).",
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Masuda_method",
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Charm"
+      ]
+    },
+    {
+      "method": "masuda",
+      "versions": [
+        "sword",
+        "shield"
+      ],
+      "kind": "rolls",
+      "base": 4096,
+      "rolls": 6,
+      "charm": 2,
+      "modifiers": [],
+      "charmExceptForms": [],
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Masuda_method"
+      ]
+    },
+    {
+      "method": "max-raid",
+      "versions": [
+        "sword",
+        "shield"
+      ],
+      "kind": "rolls",
+      "base": 4096,
+      "rolls": 1,
+      "charm": null,
+      "modifiers": [],
+      "charmExceptForms": [],
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Charm",
+        "https://rotomlabs.net/shiny-rates"
+      ]
+    },
+    {
+      "method": "dynamax-adventures",
+      "versions": [
+        "sword",
+        "shield"
+      ],
+      "kind": "chance",
+      "base": 4096,
+      "charm": null,
+      "odds": 300,
+      "charmOdds": 100,
+      "modifiers": [],
+      "charmExceptForms": [],
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Charm",
+        "https://rotomlabs.net/shiny-rates"
+      ]
+    },
+    {
+      "method": "random",
+      "versions": [
+        "brilliant-diamond",
+        "shining-pearl"
+      ],
+      "kind": "rolls",
+      "base": 4096,
+      "rolls": 1,
+      "charm": null,
+      "modifiers": [],
+      "charmExceptForms": [],
+      "note": "No BDSP o Charm só vale para ovos.",
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Charm",
+        "https://www.serebii.net/brilliantdiamondshiningpearl/shinypokemon.shtml",
+        "https://rotomlabs.net/brilliant-diamond-shining-pearl/shiny-rates"
+      ]
+    },
+    {
+      "method": "soft-reset",
+      "versions": [
+        "brilliant-diamond",
+        "shining-pearl"
+      ],
+      "kind": "rolls",
+      "base": 4096,
+      "rolls": 1,
+      "charm": null,
+      "modifiers": [],
+      "charmExceptForms": [],
+      "sources": [
+        "https://rotomlabs.net/brilliant-diamond-shining-pearl/shiny-rates"
+      ]
+    },
+    {
+      "method": "eggs",
+      "versions": [
+        "brilliant-diamond",
+        "shining-pearl"
+      ],
+      "kind": "rolls",
+      "base": 4096,
+      "rolls": 1,
+      "charm": 1,
+      "modifiers": [],
+      "charmExceptForms": [],
+      "sources": [
+        "https://rotomlabs.net/brilliant-diamond-shining-pearl/shiny-rates"
+      ]
+    },
+    {
+      "method": "masuda",
+      "versions": [
+        "brilliant-diamond",
+        "shining-pearl"
+      ],
+      "kind": "rolls",
+      "base": 4096,
+      "rolls": 6,
+      "charm": 2,
+      "modifiers": [],
+      "charmExceptForms": [],
+      "sources": [
+        "https://rotomlabs.net/brilliant-diamond-shining-pearl/shiny-rates",
+        "https://www.serebii.net/brilliantdiamondshiningpearl/shinypokemon.shtml"
+      ]
+    },
+    {
+      "method": "poke-radar",
+      "versions": [
+        "brilliant-diamond",
+        "shining-pearl"
+      ],
+      "kind": "chance",
+      "base": 4096,
+      "charm": null,
+      "chain": {
+        "steps": [
+          {
+            "from": 0,
+            "odds": 4096
+          },
+          {
+            "from": 1,
+            "odds": 3855
+          },
+          {
+            "from": 2,
+            "odds": 3640
+          },
+          {
+            "from": 3,
+            "odds": 3449
+          },
+          {
+            "from": 4,
+            "odds": 3277
+          },
+          {
+            "from": 5,
+            "odds": 3121
+          },
+          {
+            "from": 6,
+            "odds": 2979
+          },
+          {
+            "from": 7,
+            "odds": 2849
+          },
+          {
+            "from": 8,
+            "odds": 2731
+          },
+          {
+            "from": 9,
+            "odds": 2621
+          },
+          {
+            "from": 10,
+            "odds": 2521
+          },
+          {
+            "from": 11,
+            "odds": 2427
+          },
+          {
+            "from": 12,
+            "odds": 2341
+          },
+          {
+            "from": 13,
+            "odds": 2259
+          },
+          {
+            "from": 14,
+            "odds": 2185
+          },
+          {
+            "from": 15,
+            "odds": 2114
+          },
+          {
+            "from": 16,
+            "odds": 2048
+          },
+          {
+            "from": 17,
+            "odds": 1986
+          },
+          {
+            "from": 18,
+            "odds": 1927
+          },
+          {
+            "from": 19,
+            "odds": 1872
+          },
+          {
+            "from": 20,
+            "odds": 1820
+          },
+          {
+            "from": 21,
+            "odds": 1771
+          },
+          {
+            "from": 22,
+            "odds": 1724
+          },
+          {
+            "from": 23,
+            "odds": 1680
+          },
+          {
+            "from": 24,
+            "odds": 1638
+          },
+          {
+            "from": 25,
+            "odds": 1598
+          },
+          {
+            "from": 26,
+            "odds": 1560
+          },
+          {
+            "from": 27,
+            "odds": 1524
+          },
+          {
+            "from": 28,
+            "odds": 1489
+          },
+          {
+            "from": 29,
+            "odds": 1456
+          },
+          {
+            "from": 30,
+            "odds": 1310
+          },
+          {
+            "from": 31,
+            "odds": 1285
+          },
+          {
+            "from": 32,
+            "odds": 1260
+          },
+          {
+            "from": 33,
+            "odds": 1236
+          },
+          {
+            "from": 34,
+            "odds": 1213
+          },
+          {
+            "from": 35,
+            "odds": 1192
+          },
+          {
+            "from": 36,
+            "odds": 993
+          },
+          {
+            "from": 37,
+            "odds": 799
+          },
+          {
+            "from": 38,
+            "odds": 400
+          },
+          {
+            "from": 39,
+            "odds": 200
+          },
+          {
+            "from": 40,
+            "odds": 99
+          }
+        ]
+      },
+      "modifiers": [],
+      "charmExceptForms": [],
+      "note": "Chance por moita da cadeia.",
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Pok%C3%A9_Radar",
+        "https://rotomlabs.net/brilliant-diamond-shining-pearl/shiny-rates"
+      ]
+    },
+    {
+      "method": "grand-underground",
+      "versions": [
+        "brilliant-diamond",
+        "shining-pearl"
+      ],
+      "kind": "rolls",
+      "base": 4096,
+      "rolls": 1,
+      "charm": null,
+      "modifiers": [
+        {
+          "id": "diglett",
+          "label": "Bônus do Diglett",
+          "type": "choice",
+          "options": [
+            {
+              "label": "Sem",
+              "rolls": 0
+            },
+            {
+              "label": "Ativo",
+              "rolls": 1
+            }
+          ]
+        }
+      ],
+      "charmExceptForms": [],
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Pok%C3%A9mon",
+        "https://rotomlabs.net/brilliant-diamond-shining-pearl/shiny-rates"
+      ]
+    },
+    {
+      "method": "random",
+      "versions": [
+        "legends-arceus"
+      ],
+      "kind": "rolls",
+      "base": 4096,
+      "rolls": 1,
+      "charm": 3,
+      "modifiers": [
+        {
+          "id": "research",
+          "label": "Pesquisa da espécie",
+          "type": "choice",
+          "options": [
+            {
+              "label": "Abaixo do nível 10",
+              "rolls": 0
+            },
+            {
+              "label": "Nível 10",
+              "rolls": 1
+            },
+            {
+              "label": "Perfeita",
+              "rolls": 3
+            }
+          ]
+        }
+      ],
+      "charmExceptForms": [],
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Pok%C3%A9mon",
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Charm"
+      ]
+    },
+    {
+      "method": "soft-reset",
+      "versions": [
+        "legends-arceus"
+      ],
+      "kind": "rolls",
+      "base": 4096,
+      "rolls": 1,
+      "charm": 3,
+      "modifiers": [
+        {
+          "id": "research",
+          "label": "Pesquisa da espécie",
+          "type": "choice",
+          "options": [
+            {
+              "label": "Abaixo do nível 10",
+              "rolls": 0
+            },
+            {
+              "label": "Nível 10",
+              "rolls": 1
+            },
+            {
+              "label": "Perfeita",
+              "rolls": 3
+            }
+          ]
+        }
+      ],
+      "charmExceptForms": [],
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Pok%C3%A9mon",
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Charm"
+      ]
+    },
+    {
+      "method": "outbreak",
+      "versions": [
+        "legends-arceus"
+      ],
+      "kind": "rolls",
+      "base": 4096,
+      "rolls": 1,
+      "charm": 3,
+      "modifiers": [
+        {
+          "id": "outbreak",
+          "label": "Tipo de surto",
+          "type": "choice",
+          "options": [
+            {
+              "label": "Surto",
+              "rolls": 25
+            },
+            {
+              "label": "Surto massivo",
+              "rolls": 12
+            }
+          ]
+        },
+        {
+          "id": "research",
+          "label": "Pesquisa da espécie",
+          "type": "choice",
+          "options": [
+            {
+              "label": "Abaixo do nível 10",
+              "rolls": 0
+            },
+            {
+              "label": "Nível 10",
+              "rolls": 1
+            },
+            {
+              "label": "Perfeita",
+              "rolls": 3
+            }
+          ]
+        }
+      ],
+      "charmExceptForms": [],
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Pok%C3%A9mon"
+      ]
+    },
+    {
+      "method": "random",
+      "versions": [
+        "scarlet",
+        "violet"
+      ],
+      "kind": "rolls",
+      "base": 4096,
+      "rolls": 1,
+      "charm": 2,
+      "modifiers": [
+        {
+          "id": "sparkling",
+          "label": "Sparkling Power",
+          "type": "choice",
+          "options": [
+            {
+              "label": "Sem",
+              "rolls": 0
+            },
+            {
+              "label": "Nível 1",
+              "rolls": 1
+            },
+            {
+              "label": "Nível 2",
+              "rolls": 2
+            },
+            {
+              "label": "Nível 3",
+              "rolls": 3
+            }
+          ]
+        }
+      ],
+      "charmExceptForms": [],
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Pok%C3%A9mon"
+      ]
+    },
+    {
+      "method": "outbreak",
+      "versions": [
+        "scarlet",
+        "violet"
+      ],
+      "kind": "rolls",
+      "base": 4096,
+      "rolls": 1,
+      "charm": 2,
+      "modifiers": [
+        {
+          "id": "cleared",
+          "label": "Derrotados no surto",
+          "type": "choice",
+          "options": [
+            {
+              "label": "0–29",
+              "rolls": 0
+            },
+            {
+              "label": "30–59",
+              "rolls": 1
+            },
+            {
+              "label": "60+",
+              "rolls": 2
+            }
+          ]
+        },
+        {
+          "id": "sparkling",
+          "label": "Sparkling Power",
+          "type": "choice",
+          "options": [
+            {
+              "label": "Sem",
+              "rolls": 0
+            },
+            {
+              "label": "Nível 1",
+              "rolls": 1
+            },
+            {
+              "label": "Nível 2",
+              "rolls": 2
+            },
+            {
+              "label": "Nível 3",
+              "rolls": 3
+            }
+          ]
+        }
+      ],
+      "charmExceptForms": [],
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Pok%C3%A9mon"
+      ]
+    },
+    {
+      "method": "sparkling-power",
+      "versions": [
+        "scarlet",
+        "violet"
+      ],
+      "kind": "rolls",
+      "base": 4096,
+      "rolls": 1,
+      "charm": 2,
+      "modifiers": [
+        {
+          "id": "sparkling",
+          "label": "Sparkling Power",
+          "type": "choice",
+          "options": [
+            {
+              "label": "Nível 1",
+              "rolls": 1
+            },
+            {
+              "label": "Nível 2",
+              "rolls": 2
+            },
+            {
+              "label": "Nível 3",
+              "rolls": 3
+            }
+          ]
+        },
+        {
+          "id": "cleared",
+          "label": "Derrotados no surto",
+          "type": "choice",
+          "options": [
+            {
+              "label": "Fora de surto",
+              "rolls": 0
+            },
+            {
+              "label": "0–29",
+              "rolls": 0
+            },
+            {
+              "label": "30–59",
+              "rolls": 1
+            },
+            {
+              "label": "60+",
+              "rolls": 2
+            }
+          ]
+        }
+      ],
+      "charmExceptForms": [],
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Pok%C3%A9mon"
+      ]
+    },
+    {
+      "method": "soft-reset",
+      "versions": [
+        "scarlet",
+        "violet"
+      ],
+      "kind": "rolls",
+      "base": 4096,
+      "rolls": 1,
+      "charm": null,
+      "modifiers": [],
+      "charmExceptForms": [],
+      "note": "Estáticos e wanderers: nem o Charm nem o Sparkling Power valem.",
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Pok%C3%A9mon",
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Charm"
+      ]
+    },
+    {
+      "method": "eggs",
+      "versions": [
+        "scarlet",
+        "violet"
+      ],
+      "kind": "rolls",
+      "base": 4096,
+      "rolls": 1,
+      "charm": 1,
+      "modifiers": [],
+      "charmExceptForms": [],
+      "note": "O mesmo bug da Gen VIII: com o Charm e sem Masuda, 2 sorteios.",
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Masuda_method"
+      ]
+    },
+    {
+      "method": "masuda",
+      "versions": [
+        "scarlet",
+        "violet"
+      ],
+      "kind": "rolls",
+      "base": 4096,
+      "rolls": 6,
+      "charm": 2,
+      "modifiers": [],
+      "charmExceptForms": [],
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Masuda_method"
+      ]
+    },
+    {
+      "method": "tera-raid",
+      "versions": [
+        "scarlet",
+        "violet"
+      ],
+      "kind": "chance",
+      "base": 4096,
+      "charm": null,
+      "odds": 4103.05,
+      "charmOdds": null,
+      "modifiers": [],
+      "charmExceptForms": [],
+      "note": "Semente de 32 bits: 1/4103,05. Nem o Charm nem o Sparkling Power valem.",
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Pok%C3%A9mon"
+      ]
+    },
+    {
+      "method": "random",
+      "versions": [
+        "legends-za"
+      ],
+      "kind": "rolls",
+      "base": 4096,
+      "rolls": 1,
+      "charm": 3,
+      "modifiers": [
+        {
+          "id": "sparkling",
+          "label": "Sparkling Power (Hiperespaço)",
+          "type": "choice",
+          "options": [
+            {
+              "label": "Sem",
+              "rolls": 0
+            },
+            {
+              "label": "Nível 1",
+              "rolls": 1
+            },
+            {
+              "label": "Nível 2",
+              "rolls": 2
+            },
+            {
+              "label": "Nível 3",
+              "rolls": 3
+            }
+          ]
+        }
+      ],
+      "charmExceptForms": [],
+      "note": "O Sparkling Power só vale no Hiperespaço, para o tipo do poder. No nível 3, o primeiro do tipo é garantido.",
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Charm",
+        "https://bulbapedia.bulbagarden.net/wiki/Donut",
+        "https://www.serebii.net/legendsz-a/shinypokemon.shtml",
+        "https://rotomlabs.net/legends-z-a/shiny-rates"
+      ]
+    },
+    {
+      "method": "soft-reset",
+      "versions": [
+        "legends-za"
+      ],
+      "kind": "rolls",
+      "base": 4096,
+      "rolls": 1,
+      "charm": null,
+      "modifiers": [],
+      "charmExceptForms": [],
+      "note": "Fósseis: o Charm não vale. Os outros estáticos são travados.",
+      "sources": [
+        "https://rotomlabs.net/legends-z-a/shiny-rates",
+        "https://www.serebii.net/legendsz-a/shinypokemon.shtml"
+      ]
+    },
+    {
+      "method": "random",
+      "versions": [
+        "firered",
+        "leafgreen"
+      ],
+      "kind": "rolls",
+      "base": 8192,
+      "rolls": 1,
+      "charm": null,
+      "modifiers": [],
+      "charmExceptForms": [],
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Pok%C3%A9mon",
+        "https://bulbapedia.bulbagarden.net/wiki/Pok%C3%A9mon_FireRed_and_LeafGreen_Versions"
+      ]
+    },
+    {
+      "method": "soft-reset",
+      "versions": [
+        "firered",
+        "leafgreen"
+      ],
+      "kind": "rolls",
+      "base": 8192,
+      "rolls": 1,
+      "charm": null,
+      "modifiers": [],
+      "charmExceptForms": [],
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Pok%C3%A9mon",
+        "https://bulbapedia.bulbagarden.net/wiki/Pok%C3%A9mon_FireRed_and_LeafGreen_Versions"
+      ]
+    },
+    {
+      "method": "eggs",
+      "versions": [
+        "firered",
+        "leafgreen"
+      ],
+      "kind": "rolls",
+      "base": 8192,
+      "rolls": 1,
+      "charm": null,
+      "modifiers": [],
+      "charmExceptForms": [],
+      "sources": [
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Pok%C3%A9mon",
+        "https://bulbapedia.bulbagarden.net/wiki/Pok%C3%A9mon_FireRed_and_LeafGreen_Versions"
+      ]
+    }
+  ]
+}
