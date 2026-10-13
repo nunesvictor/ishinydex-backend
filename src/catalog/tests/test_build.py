@@ -11,7 +11,7 @@ from django.test import TestCase
 
 from catalog import build as catalog
 from core.tests import factories as f
-from home.models import HOME_ORIGIN_VERSIONS
+from home.models import HOME_ORIGIN_VERSIONS, HOME_TRANSFER_VERSIONS
 from pokedex.models import PokemonAbility, PokemonSpeciesDexEntry
 
 
@@ -101,6 +101,11 @@ class CatalogTests(TestCase):
         patcher = mock.patch.object(catalog, "GAME_SHINY_LOCKS_FILE", self.game_locks)
         patcher.start()
         self.addCleanup(patcher.stop)
+        self.cutoffs = self.tmp / "cutoffs.json"
+        self.write_cutoffs()
+        patcher = mock.patch.object(catalog, "HOME_CUTOFFS_FILE", self.cutoffs)
+        patcher.start()
+        self.addCleanup(patcher.stop)
         self.methods = self.tmp / "methods.json"
         self.write_methods()
         patcher = mock.patch.object(catalog, "SHINY_METHODS_FILE", self.methods)
@@ -111,6 +116,11 @@ class CatalogTests(TestCase):
         patcher = mock.patch.object(catalog, "SHINY_ODDS_FILE", self.odds)
         patcher.start()
         self.addCleanup(patcher.stop)
+
+    def write_cutoffs(self, *cutoffs):
+        self.cutoffs.write_text(
+            json.dumps({"sources": [], "notes": [], "cutoffs": list(cutoffs)})
+        )
 
     def write_methods(self, *methods):
         methods = methods or (
@@ -497,6 +507,37 @@ class CatalogTests(TestCase):
                         catalog.build_catalog("v")
             self.write_game_data(file, key, field, good)
 
+    def test_home_cutoffs(self):
+        sm = f.make_version_group(
+            name="sun-moon",
+            generation="generation-vii",
+            versions=["sun"],
+            pokedexes=["original-alola"],
+            order=19,
+        )
+        f.make_version(name="sun", version_group=sm)
+        until = "2027-02-26T03:00:00Z"
+        self.write_cutoffs({"reason": "Bank", "homeUntil": until, "versions": ["sun"]})
+
+        versions = {v["name"]: v for v in catalog.build_catalog("v")["versions"]}
+        self.assertEqual(versions["sun"]["homeUntil"], until)
+        # Nos outros jogos, a chave não aparece.
+        self.assertNotIn("homeUntil", versions["scarlet"])
+
+        cases = [
+            ({"homeUntil": "amanhã", "versions": ["sun"]}, "data de corte"),
+            ({"homeUntil": "2027-02-26T03:00:00", "versions": ["sun"]}, "UTC"),
+            ({"homeUntil": "2027-02-26T03:00:00-03:00", "versions": ["sun"]}, "UTC"),
+            ({"homeUntil": until, "versions": ["scarlet"]}, "só de ida: scarlet"),
+            ({"homeUntil": until, "versions": ["moon"]}, "só de ida: moon"),
+            ({"homeUntil": until, "versions": ["sun", "sun"]}, "repetido: sun"),
+        ]
+        for cutoff, message in cases:
+            with self.subTest(message=message):
+                self.write_cutoffs(cutoff)
+                with self.assertRaisesRegex(catalog.CatalogError, message):
+                    catalog.build_catalog("v")
+
     def test_bad_shiny_methods_fail(self):
         good = {"id": "sr", "label": "SR", "units": ["resets"], "versions": ["scarlet"]}
         cases = [
@@ -763,6 +804,21 @@ class ShippedShinyOddsTests(TestCase):
         self.assertEqual(
             rules[("chain-fishing", "omega-ruby")]["chain"]["steps"][-1],
             {"from": 20, "rolls": 40},
+        )
+
+
+class ShippedHomeCutoffsTests(TestCase):
+    def test_bank_games_end_with_the_bank(self):
+        data = json.loads(catalog.HOME_CUTOFFS_FILE.read_text(encoding="utf-8"))
+        self.assertEqual(set(data), {"sources", "notes", "cutoffs"})
+        self.assertTrue(data["sources"])
+        (bank,) = data["cutoffs"]
+        self.assertEqual(bank["homeUntil"], "2027-02-26T03:00:00Z")
+        self.assertEqual(
+            set(bank["versions"]),
+            set(HOME_ORIGIN_VERSIONS)
+            - set(HOME_TRANSFER_VERSIONS)
+            - {"firered", "leafgreen"},
         )
 
 

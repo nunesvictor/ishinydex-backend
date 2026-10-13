@@ -1,0 +1,27 @@
+{
+  "sources": [
+    "https://sg.portal-pokemon.com/topics/pokemonbank/",
+    "https://billsarchive.com/articles/pokemon-bank-shutdown.html",
+    "https://www.dexerto.com/pokemon/pokemon-bank-shutdown-shiny-forms-ribbons-3398610/"
+  ],
+  "notes": [
+    "Jogos só de ida que deixam de chegar ao HOME numa data (consultado em 2026-10-13). O Pokémon Bank e a transferência Bank → HOME acabam em 26/02/2027 às 12:00 JST (03:00 UTC; 25/02 às 19:00 PST), anunciado em 13/08/2026. Plano: docs/roadmap/ideias/fechamento-do-bank.md no ishinydex.",
+    "homeUntil: o instante (ISO 8601 em UTC) a partir do qual o Pokémon do jogo não chega mais ao HOME. Um adiamento é só trocar a data e fazer uma release do catálogo."
+  ],
+  "cutoffs": [
+    {
+      "reason": "Fechamento do Pokémon Bank",
+      "homeUntil": "2027-02-26T03:00:00Z",
+      "versions": [
+        "x",
+        "y",
+        "omega-ruby",
+        "alpha-sapphire",
+        "sun",
+        "moon",
+        "ultra-sun",
+        "ultra-moon"
+      ]
+    }
+  ]
+}
