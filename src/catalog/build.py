@@ -12,7 +12,7 @@ novos não.
 """
 
 import json
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path, PurePosixPath
 
 from django.conf import settings
@@ -79,6 +79,12 @@ SHINY_METHOD_UNITS = {
     "hordes",
     "combo",
 }
+
+# Jogos só de ida que deixam de chegar ao HOME numa data (fechamento do
+# Pokémon Bank, #114).
+HOME_CUTOFFS_FILE = (
+    Path(__file__).resolve().parent.parent / "pokedex/data/home_cutoffs.json"
+)
 
 # Odds de shiny por método e jogo de save (odds das caçadas, #113).
 SHINY_ODDS_FILE = (
@@ -259,6 +265,31 @@ def _species() -> list[dict]:
     ]
 
 
+def _home_cutoffs() -> dict[str, str]:
+    """Versão → ``homeUntil`` de ``HOME_CUTOFFS_FILE``. Falha com versão
+    desconhecida, que não seja só de ida, repetida, ou com data que não seja
+    ISO 8601 em UTC."""
+    cutoffs = json.loads(HOME_CUTOFFS_FILE.read_text(encoding="utf-8"))["cutoffs"]
+    one_way = set(HOME_ORIGIN_VERSIONS) - set(HOME_TRANSFER_VERSIONS)
+    known = set(Version.objects.values_list("name", flat=True))
+    result: dict[str, str] = {}
+    for cutoff in cutoffs:
+        until = cutoff["homeUntil"]
+        try:
+            parsed = datetime.fromisoformat(until)
+        except ValueError:
+            parsed = None
+        if parsed is None or parsed.utcoffset() != timedelta(0):
+            raise CatalogError(f"data de corte inválida (use UTC): {until}")
+        for version in cutoff["versions"]:
+            if version not in one_way or version not in known:
+                raise CatalogError(f"corte em versão que não é só de ida: {version}")
+            if version in result:
+                raise CatalogError(f"corte repetido: {version}")
+            result[version] = until
+    return result
+
+
 def _versions() -> tuple[list[dict], list[dict]]:
     mark_by_group = {
         group: mark
@@ -275,11 +306,14 @@ def _versions() -> tuple[list[dict], list[dict]]:
         }
         for g in VersionGroup.objects.order_by("order", "name")
     ]
+    cutoffs = _home_cutoffs()
     versions = [
         {
             "name": v.name,
             "versionGroup": v.version_group.name,
             "receivesFromHome": v.name in HOME_TRANSFER_VERSIONS,
+            # Só nos jogos com data de corte (chave aditiva).
+            **({"homeUntil": cutoffs[v.name]} if v.name in cutoffs else {}),
         }
         for v in Version.objects.select_related("version_group").order_by(
             "version_group__order", "name"
