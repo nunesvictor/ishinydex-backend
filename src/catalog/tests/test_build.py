@@ -11,6 +11,7 @@ from django.test import TestCase
 
 from catalog import build as catalog
 from core.tests import factories as f
+from home.models import HOME_ORIGIN_VERSIONS
 from pokedex.models import PokemonAbility, PokemonSpeciesDexEntry
 
 
@@ -105,6 +106,11 @@ class CatalogTests(TestCase):
         patcher = mock.patch.object(catalog, "SHINY_METHODS_FILE", self.methods)
         patcher.start()
         self.addCleanup(patcher.stop)
+        self.odds = self.tmp / "odds.json"
+        self.write_odds()
+        patcher = mock.patch.object(catalog, "SHINY_ODDS_FILE", self.odds)
+        patcher.start()
+        self.addCleanup(patcher.stop)
 
     def write_methods(self, *methods):
         methods = methods or (
@@ -117,6 +123,25 @@ class CatalogTests(TestCase):
         )
         self.methods.write_text(
             json.dumps({"sources": [], "notes": [], "methods": list(methods)})
+        )
+
+    SR_ODDS = {
+        "method": "sr",
+        "versions": ["scarlet"],
+        "kind": "rolls",
+        "base": 4096,
+        "rolls": 1,
+        "charm": 2,
+        "modifiers": [],
+        "charmExceptForms": ["ivysaur"],
+        "note": "Nota.",
+        "sources": ["https://exemplo"],
+    }
+
+    def write_odds(self, *rules):
+        rules = rules or (self.SR_ODDS,)
+        self.odds.write_text(
+            json.dumps({"sources": [], "notes": [], "rules": list(rules)})
         )
 
     @staticmethod
@@ -486,6 +511,107 @@ class CatalogTests(TestCase):
                 with self.assertRaisesRegex(catalog.CatalogError, message):
                     catalog.build_catalog("v")
 
+    def test_shiny_odds_with_form_ids(self):
+        data = catalog.build_catalog("v")
+
+        rule = {k: v for k, v in self.SR_ODDS.items() if k != "sources"}
+        self.assertEqual(data["shinyOdds"], [rule | {"charmExceptForms": [2]}])
+
+    def test_bad_shiny_odds_fail(self):
+        good = self.SR_ODDS | {"charmExceptForms": []}
+        choice = {
+            "id": "a",
+            "label": "A",
+            "type": "choice",
+            "options": [{"label": "x", "rolls": 0}, {"label": "y", "rolls": 1}],
+        }
+        number = {"id": "n", "label": "N", "type": "number", "min": 0, "max": 9}
+        chance = good | {"kind": "chance", "rolls": None}
+        cases = [
+            ((good | {"method": "dexnav"},), "método desconhecido: dexnav"),
+            ((good | {"versions": ["yellow"]},), r"fora dos jogos.*yellow"),
+            ((good, good), "repetidas: sr em scarlet"),
+            ((good | {"kind": "magic"},), "tipo ou base inválidos"),
+            ((good | {"base": 100},), "tipo ou base inválidos"),
+            ((good | {"rolls": 0},), "sem sorteios"),
+            ((chance,), "sem chance"),
+            ((good | {"chain": {"steps": []}},), "fora de ordem"),
+            (
+                (good | {"chain": {"steps": [{"from": 1, "rolls": 0}]}},),
+                "fora de ordem",
+            ),
+            ((chance | {"chain": {"steps": [{"from": 0, "rolls": 1}]}},), "sem odds"),
+            ((good | {"modifiers": [choice, choice]},), "repetido em sr"),
+            ((good | {"modifiers": [choice | {"options": []}]},), "sem opções"),
+            ((good | {"modifiers": [number | {"min": 9}]},), "faixa inválida"),
+            ((good | {"modifiers": [choice | {"type": "slider"}]},), "tipo de mod"),
+            (
+                (
+                    good
+                    | {
+                        "modifiers": [number | {"when": {"modifier": "a", "option": 0}}]
+                    },
+                ),
+                "condição inválida",
+            ),
+            (
+                (
+                    good
+                    | {
+                        "modifiers": [
+                            choice,
+                            number | {"when": {"modifier": "a", "option": 2}},
+                        ]
+                    },
+                ),
+                "condição inválida",
+            ),
+            (
+                (
+                    chance
+                    | {
+                        "modifiers": [choice],
+                        "table": {"rows": "a", "columns": "n", "odds": [[1]]},
+                    },
+                ),
+                "tabela",
+            ),
+            (
+                (
+                    chance
+                    | {
+                        "modifiers": [choice, choice | {"id": "b"}],
+                        "table": {"rows": "a", "columns": "b", "odds": [[1, 2]]},
+                    },
+                ),
+                "tabela",
+            ),
+            (
+                (
+                    chance
+                    | {
+                        "modifiers": [choice, choice | {"id": "b"}],
+                        "table": {"rows": "a", "columns": "b", "odds": [[1, 2], [3]]},
+                    },
+                ),
+                "tabela",
+            ),
+            ((good | {"charmExceptForms": ["missingno"]},), "missingno"),
+        ]
+        for rules, message in cases:
+            with self.subTest(message=message):
+                self.write_odds(*rules)
+                with self.assertRaisesRegex(catalog.CatalogError, message):
+                    catalog.build_catalog("v")
+        valid = chance | {
+            "odds": 300,
+            "modifiers": [choice, choice | {"id": "b"}],
+            "table": {"rows": "a", "columns": "b", "odds": [[1, None], [3, 4]]},
+            "chain": {"steps": [{"from": 0, "odds": 9}]},
+        }
+        self.write_odds(valid)
+        self.assertEqual(catalog.build_catalog("v")["shinyOdds"][0]["odds"], 300)
+
     def test_unknown_lock_form_fails(self):
         self.write_locks(["bulbasaur", "missingno"])
 
@@ -582,6 +708,62 @@ class ShippedShinyMethodsTests(TestCase):
                 self.assertLessEqual(set(method["units"]), catalog.SHINY_METHOD_UNITS)
                 self.assertTrue(method["versions"])
                 self.assertEqual(len(method["versions"]), len(set(method["versions"])))
+
+
+class ShippedShinyOddsTests(TestCase):
+    def setUp(self):
+        self.data = json.loads(catalog.SHINY_ODDS_FILE.read_text(encoding="utf-8"))
+        self.methods = json.loads(
+            catalog.SHINY_METHODS_FILE.read_text(encoding="utf-8")
+        )["methods"]
+
+    def test_file_is_well_formed(self):
+        self.assertEqual(set(self.data), {"sources", "notes", "rules"})
+        self.assertTrue(self.data["sources"])
+        for rule in self.data["rules"]:
+            with self.subTest(method=rule["method"], versions=rule["versions"]):
+                self.assertIn(rule["kind"], catalog.SHINY_ODDS_KINDS)
+                self.assertIn(rule["base"], catalog.SHINY_ODDS_BASES)
+                self.assertTrue(rule["sources"])
+                self.assertEqual(
+                    rule["charmExceptForms"], sorted(set(rule["charmExceptForms"]))
+                )
+
+    def test_every_method_of_every_save_game_has_one_rule(self):
+        # Nada pela metade: todo par método × jogo ligado ao HOME tem regra,
+        # e uma só.
+        expected = sorted(
+            (m["id"], v)
+            for m in self.methods
+            for v in m["versions"]
+            if v in HOME_ORIGIN_VERSIONS
+        )
+        pairs = sorted(
+            (rule["method"], v) for rule in self.data["rules"] for v in rule["versions"]
+        )
+        self.assertEqual(pairs, expected)
+
+    def test_some_known_odds(self):
+        rules = {
+            (rule["method"], v): rule
+            for rule in self.data["rules"]
+            for v in rule["versions"]
+        }
+        # Exemplos da curadoria (docs/roadmap/ideias/odds-das-cacadas.md).
+        self.assertEqual(rules[("random", "brilliant-diamond")]["charm"], None)
+        self.assertEqual(rules[("eggs", "sword")]["charm"], 1)
+        self.assertEqual(rules[("masuda", "scarlet")]["rolls"], 6)
+        self.assertEqual(rules[("random", "legends-arceus")]["charm"], 3)
+        self.assertEqual(rules[("random", "firered")]["base"], 8192)
+        self.assertIn("regidrago", rules[("soft-reset", "sword")]["charmExceptForms"])
+        self.assertEqual(rules[("sos", "sun")]["chain"]["resetAfter"], 255)
+        self.assertNotIn("resetAfter", rules[("sos", "ultra-sun")]["chain"])
+        radar = rules[("poke-radar", "x")]["chain"]["steps"]
+        self.assertEqual([radar[1]["odds"], radar[40]["odds"]], [7900, 100])
+        self.assertEqual(
+            rules[("chain-fishing", "omega-ruby")]["chain"]["steps"][-1],
+            {"from": 20, "rolls": 40},
+        )
 
 
 class ShippedSpecialEncountersTests(TestCase):
