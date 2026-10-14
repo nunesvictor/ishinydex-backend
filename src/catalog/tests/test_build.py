@@ -849,6 +849,25 @@ class ShippedShinyOddsTests(TestCase):
                     for option in modifier.get("options", []):
                         catalog._text(modifier["id"], option["label"])
 
+    def test_gifts_never_get_the_charm(self):
+        # Bug da v2.10.1: a Type: Null (presente) com o Charm no Ultra Moon.
+        # Presentes e trocas no jogo não ganham o Charm (Bulbapedia).
+        cases = [
+            ("ultra-moon", "type-null"),
+            ("sun", "type-null"),
+            ("x", "froakie"),
+            ("omega-ruby", "beldum"),
+            ("lets-go-eevee", "lapras"),
+        ]
+        for version, form in cases:
+            with self.subTest(version=version, form=form):
+                rule = next(
+                    r
+                    for r in self.data["rules"]
+                    if r["method"] == "soft-reset" and version in r["versions"]
+                )
+                self.assertIn(form, rule["charmExceptForms"])
+
     def test_every_method_of_every_save_game_has_one_rule(self):
         # Nada pela metade: todo par método × jogo ligado ao HOME tem regra,
         # e uma só.
