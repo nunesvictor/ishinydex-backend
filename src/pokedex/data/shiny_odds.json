@@ -310,7 +310,7 @@
       "charm": 10,
       "modifiers": [],
       "charmExceptForms": [],
-      "note": "Cada um dos 5 Pokémon da horda sorteia: o Charm soma 2 por Pokémon.",
+      "note": {"en": "Each of the 5 Pokémon in the horde rolls: the Charm adds 2 per Pokémon.", "pt-BR": "Cada um dos 5 Pokémon da horda sorteia: o Charm soma 2 por Pokémon."},
       "sources": [
         "https://bulbapedia.bulbagarden.net/wiki/Shiny_Pok%C3%A9mon",
         "https://bulbapedia.bulbagarden.net/wiki/Shiny_Charm"
@@ -618,7 +618,7 @@
       },
       "modifiers": [],
       "charmExceptForms": [],
-      "note": "Chance por moita da cadeia. Na cadeia 0 vale o encontro normal, com o Charm; depois, o Charm não vale.",
+      "note": {"en": "Chance per patch in the chain. At chain 0 the normal encounter applies, with the Charm; after that, the Charm doesn't apply.", "pt-BR": "Chance por moita da cadeia. Na cadeia 0 vale o encontro normal, com o Charm; depois, o Charm não vale."},
       "sources": [
         "https://bulbapedia.bulbagarden.net/wiki/Pok%C3%A9_Radar"
       ]
@@ -636,7 +636,7 @@
       "modifiers": [
         {
           "id": "searchLevel",
-          "label": "Search Level",
+          "label": {"en": "Search Level", "pt-BR": "Search Level"},
           "type": "number",
           "min": 0,
           "max": 999,
@@ -733,66 +733,66 @@
       "modifiers": [
         {
           "id": "rings",
-          "label": "Anéis",
+          "label": {"en": "Rings", "pt-BR": "Anéis"},
           "type": "choice",
           "options": [
             {
-              "label": "Nenhum",
+              "label": {"en": "None", "pt-BR": "Nenhum"},
               "rolls": 0
             },
             {
-              "label": "1 anel",
+              "label": {"en": "1 ring", "pt-BR": "1 anel"},
               "rolls": 0
             },
             {
-              "label": "2 anéis",
+              "label": {"en": "2 rings", "pt-BR": "2 anéis"},
               "rolls": 0
             }
           ]
         },
         {
           "id": "distance",
-          "label": "Distância (anos-luz)",
+          "label": {"en": "Distance (light-years)", "pt-BR": "Distância (anos-luz)"},
           "type": "choice",
           "options": [
             {
-              "label": "0–999",
+              "label": {"en": "0–999", "pt-BR": "0–999"},
               "rolls": 0
             },
             {
-              "label": "1000–1499",
+              "label": {"en": "1000–1499", "pt-BR": "1000–1499"},
               "rolls": 0
             },
             {
-              "label": "1500–1999",
+              "label": {"en": "1500–1999", "pt-BR": "1500–1999"},
               "rolls": 0
             },
             {
-              "label": "2000–2499",
+              "label": {"en": "2000–2499", "pt-BR": "2000–2499"},
               "rolls": 0
             },
             {
-              "label": "2500–2999",
+              "label": {"en": "2500–2999", "pt-BR": "2500–2999"},
               "rolls": 0
             },
             {
-              "label": "3000–3499",
+              "label": {"en": "3000–3499", "pt-BR": "3000–3499"},
               "rolls": 0
             },
             {
-              "label": "3500–3999",
+              "label": {"en": "3500–3999", "pt-BR": "3500–3999"},
               "rolls": 0
             },
             {
-              "label": "4000–4499",
+              "label": {"en": "4000–4499", "pt-BR": "4000–4499"},
               "rolls": 0
             },
             {
-              "label": "4500–4999",
+              "label": {"en": "4500–4999", "pt-BR": "4500–4999"},
               "rolls": 0
             },
             {
-              "label": "5000+",
+              "label": {"en": "5000+", "pt-BR": "5000+"},
               "rolls": 0
             }
           ]
@@ -841,7 +841,7 @@
         ]
       },
       "charmExceptForms": [],
-      "note": "O Charm não muda a tabela. Lendários e Ultra Beasts do buraco usam a chance normal: cace-os como Soft reset.",
+      "note": {"en": "The Charm doesn't change the table. Legendaries and Ultra Beasts in the wormhole use the normal chance: hunt them as Soft reset.", "pt-BR": "O Charm não muda a tabela. Lendários e Ultra Beasts do buraco usam a chance normal: cace-os como Soft reset."},
       "sources": [
         "https://bulbapedia.bulbagarden.net/wiki/Shiny_Pok%C3%A9mon",
         "https://www.serebii.net/ultrasunultramoon/ultrawormholes.shtml",
@@ -861,15 +861,15 @@
       "modifiers": [
         {
           "id": "lure",
-          "label": "Lure",
+          "label": {"en": "Lure", "pt-BR": "Lure"},
           "type": "choice",
           "options": [
             {
-              "label": "Sem",
+              "label": {"en": "Off", "pt-BR": "Sem"},
               "rolls": 0
             },
             {
-              "label": "Com",
+              "label": {"en": "On", "pt-BR": "Com"},
               "rolls": 1
             }
           ]
@@ -893,7 +893,7 @@
       "charm": 2,
       "modifiers": [],
       "charmExceptForms": [],
-      "note": "Estáticos: só o Charm vale. Trocas e presentes ficam em 1/4096.",
+      "note": {"en": "Static encounters: only the Charm applies. Trades and gifts stay at 1/4096.", "pt-BR": "Estáticos: só o Charm vale. Trocas e presentes ficam em 1/4096."},
       "sources": [
         "https://rotomlabs.net/shiny-rates",
         "https://www.serebii.net/letsgopikachueevee/shinypokemon.shtml"
@@ -932,15 +932,15 @@
       "modifiers": [
         {
           "id": "lure",
-          "label": "Lure",
+          "label": {"en": "Lure", "pt-BR": "Lure"},
           "type": "choice",
           "options": [
             {
-              "label": "Sem",
+              "label": {"en": "Off", "pt-BR": "Sem"},
               "rolls": 0
             },
             {
-              "label": "Com",
+              "label": {"en": "On", "pt-BR": "Com"},
               "rolls": 1
             }
           ]
@@ -965,50 +965,50 @@
       "modifiers": [
         {
           "id": "aura",
-          "label": "Encontros",
+          "label": {"en": "Encounters", "pt-BR": "Encontros"},
           "type": "choice",
           "options": [
             {
-              "label": "Todos",
+              "label": {"en": "All", "pt-BR": "Todos"},
               "rolls": 0
             },
             {
-              "label": "Só os com aura",
+              "label": {"en": "Brilliant only", "pt-BR": "Só os com aura"},
               "rolls": 0
             }
           ]
         },
         {
           "id": "battled",
-          "label": "Derrotados da espécie",
+          "label": {"en": "Number battled", "pt-BR": "Derrotados da espécie"},
           "type": "choice",
           "options": [
             {
-              "label": "0",
+              "label": {"en": "0", "pt-BR": "0"},
               "rolls": 0
             },
             {
-              "label": "1–49",
+              "label": {"en": "1–49", "pt-BR": "1–49"},
               "rolls": 1
             },
             {
-              "label": "50–99",
+              "label": {"en": "50–99", "pt-BR": "50–99"},
               "rolls": 2
             },
             {
-              "label": "100–199",
+              "label": {"en": "100–199", "pt-BR": "100–199"},
               "rolls": 3
             },
             {
-              "label": "200–299",
+              "label": {"en": "200–299", "pt-BR": "200–299"},
               "rolls": 4
             },
             {
-              "label": "300–499",
+              "label": {"en": "300–499", "pt-BR": "300–499"},
               "rolls": 5
             },
             {
-              "label": "500+",
+              "label": {"en": "500+", "pt-BR": "500+"},
               "rolls": 6
             }
           ],
@@ -1047,7 +1047,7 @@
         "regirock",
         "registeel"
       ],
-      "note": "O Charm também não vale no curry, no estádio de Motostoke e em encontros roteirizados.",
+      "note": {"en": "The Charm also doesn't apply to curry, the Motostoke stadium and scripted encounters.", "pt-BR": "O Charm também não vale no curry, no estádio de Motostoke e em encontros roteirizados."},
       "sources": [
         "https://bulbapedia.bulbagarden.net/wiki/Shiny_Charm",
         "https://rotomlabs.net/shiny-rates"
@@ -1065,7 +1065,7 @@
       "charm": 1,
       "modifiers": [],
       "charmExceptForms": [],
-      "note": "Bug da Gen VIII: com o Charm e sem Masuda, o sorteio inicial é pulado (2 sorteios).",
+      "note": {"en": "Gen VIII bug: with the Charm and without Masuda, the first roll is skipped (2 rolls).", "pt-BR": "Bug da Gen VIII: com o Charm e sem Masuda, o sorteio inicial é pulado (2 sorteios)."},
       "sources": [
         "https://bulbapedia.bulbagarden.net/wiki/Masuda_method",
         "https://bulbapedia.bulbagarden.net/wiki/Shiny_Charm"
@@ -1134,7 +1134,7 @@
       "charm": null,
       "modifiers": [],
       "charmExceptForms": [],
-      "note": "No BDSP o Charm só vale para ovos.",
+      "note": {"en": "In BDSP the Charm only applies to eggs.", "pt-BR": "No BDSP o Charm só vale para ovos."},
       "sources": [
         "https://bulbapedia.bulbagarden.net/wiki/Shiny_Charm",
         "https://www.serebii.net/brilliantdiamondshiningpearl/shinypokemon.shtml",
@@ -1369,7 +1369,7 @@
       },
       "modifiers": [],
       "charmExceptForms": [],
-      "note": "Chance por moita da cadeia.",
+      "note": {"en": "Chance per patch in the chain.", "pt-BR": "Chance por moita da cadeia."},
       "sources": [
         "https://bulbapedia.bulbagarden.net/wiki/Pok%C3%A9_Radar",
         "https://rotomlabs.net/brilliant-diamond-shining-pearl/shiny-rates"
@@ -1388,15 +1388,15 @@
       "modifiers": [
         {
           "id": "diglett",
-          "label": "Bônus do Diglett",
+          "label": {"en": "Diglett bonus", "pt-BR": "Bônus do Diglett"},
           "type": "choice",
           "options": [
             {
-              "label": "Sem",
+              "label": {"en": "Off", "pt-BR": "Sem"},
               "rolls": 0
             },
             {
-              "label": "Ativo",
+              "label": {"en": "Active", "pt-BR": "Ativo"},
               "rolls": 1
             }
           ]
@@ -1420,19 +1420,19 @@
       "modifiers": [
         {
           "id": "research",
-          "label": "Pesquisa da espécie",
+          "label": {"en": "Species research", "pt-BR": "Pesquisa da espécie"},
           "type": "choice",
           "options": [
             {
-              "label": "Abaixo do nível 10",
+              "label": {"en": "Below level 10", "pt-BR": "Abaixo do nível 10"},
               "rolls": 0
             },
             {
-              "label": "Nível 10",
+              "label": {"en": "Level 10", "pt-BR": "Nível 10"},
               "rolls": 1
             },
             {
-              "label": "Perfeita",
+              "label": {"en": "Perfect", "pt-BR": "Perfeita"},
               "rolls": 3
             }
           ]
@@ -1456,19 +1456,19 @@
       "modifiers": [
         {
           "id": "research",
-          "label": "Pesquisa da espécie",
+          "label": {"en": "Species research", "pt-BR": "Pesquisa da espécie"},
           "type": "choice",
           "options": [
             {
-              "label": "Abaixo do nível 10",
+              "label": {"en": "Below level 10", "pt-BR": "Abaixo do nível 10"},
               "rolls": 0
             },
             {
-              "label": "Nível 10",
+              "label": {"en": "Level 10", "pt-BR": "Nível 10"},
               "rolls": 1
             },
             {
-              "label": "Perfeita",
+              "label": {"en": "Perfect", "pt-BR": "Perfeita"},
               "rolls": 3
             }
           ]
@@ -1492,34 +1492,34 @@
       "modifiers": [
         {
           "id": "outbreak",
-          "label": "Tipo de surto",
+          "label": {"en": "Outbreak type", "pt-BR": "Tipo de surto"},
           "type": "choice",
           "options": [
             {
-              "label": "Surto",
+              "label": {"en": "Outbreak", "pt-BR": "Surto"},
               "rolls": 25
             },
             {
-              "label": "Surto massivo",
+              "label": {"en": "Massive mass outbreak", "pt-BR": "Surto massivo"},
               "rolls": 12
             }
           ]
         },
         {
           "id": "research",
-          "label": "Pesquisa da espécie",
+          "label": {"en": "Species research", "pt-BR": "Pesquisa da espécie"},
           "type": "choice",
           "options": [
             {
-              "label": "Abaixo do nível 10",
+              "label": {"en": "Below level 10", "pt-BR": "Abaixo do nível 10"},
               "rolls": 0
             },
             {
-              "label": "Nível 10",
+              "label": {"en": "Level 10", "pt-BR": "Nível 10"},
               "rolls": 1
             },
             {
-              "label": "Perfeita",
+              "label": {"en": "Perfect", "pt-BR": "Perfeita"},
               "rolls": 3
             }
           ]
@@ -1543,23 +1543,23 @@
       "modifiers": [
         {
           "id": "sparkling",
-          "label": "Sparkling Power",
+          "label": {"en": "Sparkling Power", "pt-BR": "Sparkling Power"},
           "type": "choice",
           "options": [
             {
-              "label": "Sem",
+              "label": {"en": "None", "pt-BR": "Sem"},
               "rolls": 0
             },
             {
-              "label": "Nível 1",
+              "label": {"en": "Level 1", "pt-BR": "Nível 1"},
               "rolls": 1
             },
             {
-              "label": "Nível 2",
+              "label": {"en": "Level 2", "pt-BR": "Nível 2"},
               "rolls": 2
             },
             {
-              "label": "Nível 3",
+              "label": {"en": "Level 3", "pt-BR": "Nível 3"},
               "rolls": 3
             }
           ]
@@ -1583,42 +1583,42 @@
       "modifiers": [
         {
           "id": "cleared",
-          "label": "Derrotados no surto",
+          "label": {"en": "Defeated in the outbreak", "pt-BR": "Derrotados no surto"},
           "type": "choice",
           "options": [
             {
-              "label": "0–29",
+              "label": {"en": "0–29", "pt-BR": "0–29"},
               "rolls": 0
             },
             {
-              "label": "30–59",
+              "label": {"en": "30–59", "pt-BR": "30–59"},
               "rolls": 1
             },
             {
-              "label": "60+",
+              "label": {"en": "60+", "pt-BR": "60+"},
               "rolls": 2
             }
           ]
         },
         {
           "id": "sparkling",
-          "label": "Sparkling Power",
+          "label": {"en": "Sparkling Power", "pt-BR": "Sparkling Power"},
           "type": "choice",
           "options": [
             {
-              "label": "Sem",
+              "label": {"en": "None", "pt-BR": "Sem"},
               "rolls": 0
             },
             {
-              "label": "Nível 1",
+              "label": {"en": "Level 1", "pt-BR": "Nível 1"},
               "rolls": 1
             },
             {
-              "label": "Nível 2",
+              "label": {"en": "Level 2", "pt-BR": "Nível 2"},
               "rolls": 2
             },
             {
-              "label": "Nível 3",
+              "label": {"en": "Level 3", "pt-BR": "Nível 3"},
               "rolls": 3
             }
           ]
@@ -1642,42 +1642,42 @@
       "modifiers": [
         {
           "id": "sparkling",
-          "label": "Sparkling Power",
+          "label": {"en": "Sparkling Power", "pt-BR": "Sparkling Power"},
           "type": "choice",
           "options": [
             {
-              "label": "Nível 1",
+              "label": {"en": "Level 1", "pt-BR": "Nível 1"},
               "rolls": 1
             },
             {
-              "label": "Nível 2",
+              "label": {"en": "Level 2", "pt-BR": "Nível 2"},
               "rolls": 2
             },
             {
-              "label": "Nível 3",
+              "label": {"en": "Level 3", "pt-BR": "Nível 3"},
               "rolls": 3
             }
           ]
         },
         {
           "id": "cleared",
-          "label": "Derrotados no surto",
+          "label": {"en": "Defeated in the outbreak", "pt-BR": "Derrotados no surto"},
           "type": "choice",
           "options": [
             {
-              "label": "Fora de surto",
+              "label": {"en": "No outbreak", "pt-BR": "Fora de surto"},
               "rolls": 0
             },
             {
-              "label": "0–29",
+              "label": {"en": "0–29", "pt-BR": "0–29"},
               "rolls": 0
             },
             {
-              "label": "30–59",
+              "label": {"en": "30–59", "pt-BR": "30–59"},
               "rolls": 1
             },
             {
-              "label": "60+",
+              "label": {"en": "60+", "pt-BR": "60+"},
               "rolls": 2
             }
           ]
@@ -1700,7 +1700,7 @@
       "charm": null,
       "modifiers": [],
       "charmExceptForms": [],
-      "note": "Estáticos e wanderers: nem o Charm nem o Sparkling Power valem.",
+      "note": {"en": "Static and wandering encounters: neither the Charm nor Sparkling Power apply.", "pt-BR": "Estáticos e wanderers: nem o Charm nem o Sparkling Power valem."},
       "sources": [
         "https://bulbapedia.bulbagarden.net/wiki/Shiny_Pok%C3%A9mon",
         "https://bulbapedia.bulbagarden.net/wiki/Shiny_Charm"
@@ -1718,7 +1718,7 @@
       "charm": 1,
       "modifiers": [],
       "charmExceptForms": [],
-      "note": "O mesmo bug da Gen VIII: com o Charm e sem Masuda, 2 sorteios.",
+      "note": {"en": "The same Gen VIII bug: with the Charm and without Masuda, 2 rolls.", "pt-BR": "O mesmo bug da Gen VIII: com o Charm e sem Masuda, 2 sorteios."},
       "sources": [
         "https://bulbapedia.bulbagarden.net/wiki/Masuda_method"
       ]
@@ -1752,7 +1752,7 @@
       "charmOdds": null,
       "modifiers": [],
       "charmExceptForms": [],
-      "note": "Semente de 32 bits: 1/4103,05. Nem o Charm nem o Sparkling Power valem.",
+      "note": {"en": "32-bit seed: 1/4103.05. Neither the Charm nor Sparkling Power apply.", "pt-BR": "Semente de 32 bits: 1/4103,05. Nem o Charm nem o Sparkling Power valem."},
       "sources": [
         "https://bulbapedia.bulbagarden.net/wiki/Shiny_Pok%C3%A9mon"
       ]
@@ -1769,30 +1769,30 @@
       "modifiers": [
         {
           "id": "sparkling",
-          "label": "Sparkling Power (Hiperespaço)",
+          "label": {"en": "Sparkling Power (Hyperspace)", "pt-BR": "Sparkling Power (Hiperespaço)"},
           "type": "choice",
           "options": [
             {
-              "label": "Sem",
+              "label": {"en": "None", "pt-BR": "Sem"},
               "rolls": 0
             },
             {
-              "label": "Nível 1",
+              "label": {"en": "Level 1", "pt-BR": "Nível 1"},
               "rolls": 1
             },
             {
-              "label": "Nível 2",
+              "label": {"en": "Level 2", "pt-BR": "Nível 2"},
               "rolls": 2
             },
             {
-              "label": "Nível 3",
+              "label": {"en": "Level 3", "pt-BR": "Nível 3"},
               "rolls": 3
             }
           ]
         }
       ],
       "charmExceptForms": [],
-      "note": "O Sparkling Power só vale no Hiperespaço, para o tipo do poder. No nível 3, o primeiro do tipo é garantido.",
+      "note": {"en": "Sparkling Power only applies in Hyperspace, to the power's type. At level 3, the first one of the type is guaranteed.", "pt-BR": "O Sparkling Power só vale no Hiperespaço, para o tipo do poder. No nível 3, o primeiro do tipo é garantido."},
       "sources": [
         "https://bulbapedia.bulbagarden.net/wiki/Shiny_Charm",
         "https://bulbapedia.bulbagarden.net/wiki/Donut",
@@ -1811,7 +1811,7 @@
       "charm": null,
       "modifiers": [],
       "charmExceptForms": [],
-      "note": "Fósseis: o Charm não vale. Os outros estáticos são travados.",
+      "note": {"en": "Fossils: the Charm doesn't apply. The other static encounters are shiny locked.", "pt-BR": "Fósseis: o Charm não vale. Os outros estáticos são travados."},
       "sources": [
         "https://rotomlabs.net/legends-z-a/shiny-rates",
         "https://www.serebii.net/legendsz-a/shinypokemon.shtml"

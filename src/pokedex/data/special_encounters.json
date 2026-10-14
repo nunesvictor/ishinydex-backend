@@ -14,7 +14,7 @@
   "encounters": [
     {
       "name": "frlg-national",
-      "label": "Nacional (pós-jogo)",
+      "label": {"en": "National (post-game)", "pt-BR": "Nacional (pós-jogo)"},
       "versionGroup": "firered-leafgreen",
       "dlc": null,
       "species": [
@@ -23,7 +23,7 @@
     },
     {
       "name": "xy-other",
-      "label": "Outros encontros",
+      "label": {"en": "Other encounters", "pt-BR": "Outros encontros"},
       "versionGroup": "x-y",
       "dlc": null,
       "species": [
@@ -32,7 +32,7 @@
     },
     {
       "name": "oras-other",
-      "label": "Outros encontros",
+      "label": {"en": "Other encounters", "pt-BR": "Outros encontros"},
       "versionGroup": "omega-ruby-alpha-sapphire",
       "dlc": null,
       "species": [
@@ -41,7 +41,7 @@
     },
     {
       "name": "sm-other",
-      "label": "Outros encontros",
+      "label": {"en": "Other encounters", "pt-BR": "Outros encontros"},
       "versionGroup": "sun-moon",
       "dlc": null,
       "species": [
@@ -50,7 +50,7 @@
     },
     {
       "name": "usum-other",
-      "label": "Outros encontros",
+      "label": {"en": "Other encounters", "pt-BR": "Outros encontros"},
       "versionGroup": "ultra-sun-ultra-moon",
       "dlc": null,
       "species": [
@@ -59,7 +59,7 @@
     },
     {
       "name": "dynamax-adventure",
-      "label": "Aventura Dinamax",
+      "label": {"en": "Dynamax Adventures", "pt-BR": "Aventura Dinamax"},
       "versionGroup": "sword-shield",
       "dlc": "the-crown-tundra",
       "species": [
@@ -68,7 +68,7 @@
     },
     {
       "name": "snacksworth",
-      "label": "Lendários do Snacksworth",
+      "label": {"en": "Snacksworth legendaries", "pt-BR": "Lendários do Snacksworth"},
       "versionGroup": "scarlet-violet",
       "dlc": "the-indigo-disk",
       "species": [

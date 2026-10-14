@@ -9,6 +9,11 @@ app baixa à parte.
 
 Formato (``SCHEMA_VERSION``): mudanças incompatíveis sobem o número; campos
 novos não.
+
+Textos (backend#105): cada rótulo sai em pt-BR em ``label`` (o que o app
+antigo lê) e em todos os idiomas em ``labels`` (``{"en": …, "pt-BR": …}``);
+o ``note`` das odds, em ``note`` e ``notes``. Nos arquivos de dados, os
+textos já vêm nos dois idiomas; no código, pelo gettext.
 """
 
 import json
@@ -18,6 +23,7 @@ from pathlib import Path, PurePosixPath
 from django.conf import settings
 from django.db.models import Prefetch
 from django.utils import translation
+from django.utils.translation import gettext_lazy as _
 
 from catalog.choices import specimen_options
 from core.consts import TYPES_DICT
@@ -99,13 +105,18 @@ SPECIAL_ENCOUNTERS_FILE = (
     Path(__file__).resolve().parent.parent / "pokedex/data/special_encounters.json"
 )
 
-# Nomes em pt-BR das pokédex dos jogos ligados ao HOME. Uma pokédex nova da
-# PokéAPI sem nome aqui sai com o nome dela.
+# Idiomas dos rótulos do catálogo (``labels``), com o código do Django de
+# cada um. O ``label`` continua em pt-BR, para o app antigo.
+LANGUAGES = {"en": "en", "pt-BR": "pt-br"}
+
+# Nomes das pokédex dos jogos ligados ao HOME (traduzidos pelo gettext; os
+# nomes próprios ficam iguais). Uma pokédex nova da PokéAPI sem nome aqui
+# sai com o nome dela.
 POKEDEX_LABELS = {
     "kanto": "Kanto",
-    "kalos-central": "Kalos Central",
-    "kalos-coastal": "Kalos Litoral",
-    "kalos-mountain": "Kalos Montanhoso",
+    "kalos-central": _("Central Kalos"),
+    "kalos-coastal": _("Coastal Kalos"),
+    "kalos-mountain": _("Mountain Kalos"),
     "updated-hoenn": "Hoenn",
     "original-alola": "Alola",
     "original-melemele": "Melemele",
@@ -119,15 +130,15 @@ POKEDEX_LABELS = {
     "updated-poni": "Poni",
     "letsgo-kanto": "Kanto",
     "galar": "Galar",
-    "isle-of-armor": "Ilha da Armadura",
-    "crown-tundra": "Tundra Coroada",
+    "isle-of-armor": _("Isle of Armor"),
+    "crown-tundra": _("Crown Tundra"),
     "original-sinnoh": "Sinnoh",
     "hisui": "Hisui",
     "paldea": "Paldea",
     "kitakami": "Kitakami",
     "blueberry": "Blueberry",
     "lumiose-city": "Lumiose",
-    "hyperspace": "Hiperespaço",
+    "hyperspace": _("Hyperspace"),
 }
 
 # Grupos de versões das DLCs: a PokéAPI repete as pokédex deles no grupo do
@@ -149,6 +160,33 @@ BDSP_NATIONAL_LAST = 493
 
 class CatalogError(Exception):
     pass
+
+
+def _both(label) -> dict[str, str]:
+    """O rótulo (texto ou gettext) em cada idioma de ``LANGUAGES``."""
+    result = {}
+    for lang, code in LANGUAGES.items():
+        with translation.override(code):
+            result[lang] = str(label)
+    return result
+
+
+def _text(where: str, value) -> dict[str, str]:
+    """Um texto dos arquivos de dados: ``{"en": …, "pt-BR": …}``. Falha se
+    faltar um idioma (ou sobrar outro) ou se algum vier vazio."""
+    if (
+        not isinstance(value, dict)
+        or set(value) != set(LANGUAGES)
+        or not all(isinstance(v, str) and v for v in value.values())
+    ):
+        raise CatalogError(f"texto sem os idiomas {sorted(LANGUAGES)} em {where}")
+    return value
+
+
+def _labeled(key: str, texts: dict[str, str]) -> dict:
+    """``key`` em pt-BR (o app antigo lê esse) e ``key + "s"`` com todos os
+    idiomas: ``label`` → ``label`` e ``labels``."""
+    return {key: texts["pt-BR"], f"{key}s": texts}
 
 
 def _sprite(url: Path | str) -> str:
@@ -323,9 +361,18 @@ def _versions() -> tuple[list[dict], list[dict]]:
 
 
 def _choices() -> dict:
-    """As escolhas de ``/specimens/options/``, em pt-BR, com os sprites."""
-    with translation.override("pt-br"):
-        options = specimen_options()
+    """As escolhas de ``/specimens/options/``, com o rótulo em pt-BR, os
+    rótulos em cada idioma (``labels``) e os sprites."""
+    by_lang = {}
+    for lang, code in LANGUAGES.items():
+        with translation.override(code):
+            by_lang[lang] = specimen_options()
+    options = by_lang["pt-BR"]
+    for key, items in options.items():
+        for i, item in enumerate(items):
+            item["labels"] = {
+                lang: str(by_lang[lang][key][i]["label"]) for lang in LANGUAGES
+            }
     for ball in options["pokeball"]:
         ball["sprite"] = f"items/{ball['value']}.png"
     for type_ in options["type"]:
@@ -369,7 +416,7 @@ def _pokedexes() -> tuple[list[dict], dict[str, set[str]]]:
             groups_of[BDSP_NATIONAL] = [g.name]
 
     entries: dict[str, list[list]] = {dex: [] for dex in groups_of}
-    labels: dict[str, str] = {BDSP_NATIONAL: "Nacional"}
+    labels: dict[str, dict[str, str]] = {BDSP_NATIONAL: _both(_("National"))}
     for dex, number, species in (
         PokemonSpeciesDexEntry.objects.filter(pokedex__in=groups_of)
         .order_by("pokedex", "entry_number")
@@ -396,8 +443,11 @@ def _pokedexes() -> tuple[list[dict], dict[str, set[str]]]:
     pokedexes = [
         {
             "name": dex,
-            "label": labels.get(dex)
-            or POKEDEX_LABELS.get(dex, dex.replace("-", " ").title()),
+            **_labeled(
+                "label",
+                labels.get(dex)
+                or _both(POKEDEX_LABELS.get(dex, dex.replace("-", " ").title())),
+            ),
             "versionGroups": groups,
             "dlc": dlc_of.get(dex),
             "entries": entries[dex],
@@ -411,7 +461,7 @@ def _special_encounters(
     home: set[str],
     groups_of: dict[str, list[str]],
     entries: dict[str, list[list]],
-    labels: dict[str, str],
+    labels: dict[str, dict[str, str]],
 ) -> dict[str, str | None]:
     """Acrescenta as pokédex especiais de ``SPECIAL_ENCOUNTERS_FILE`` dos jogos
     ligados ao HOME (entradas sem número) e devolve a DLC de cada uma."""
@@ -426,11 +476,12 @@ def _special_encounters(
             raise CatalogError(f"{name} com espécies desconhecidas: {unknown}")
         if dlc is not None and dlc not in DLC_VERSION_GROUPS:
             raise CatalogError(f"{name} com DLC desconhecida: {dlc}")
+        label = _text(name, encounter["label"])
         if encounter["versionGroup"] not in home:
             continue
         groups_of[name] = [encounter["versionGroup"]]
         entries[name] = [[species, None] for species in encounter["species"]]
-        labels[name] = encounter["label"]
+        labels[name] = label
         dlc_of[name] = dlc
     return dlc_of
 
@@ -552,7 +603,7 @@ def _shiny_methods() -> list[dict]:
         result.append(
             {
                 "id": id_,
-                "label": method["label"],
+                **_labeled("label", _text(id_, method["label"])),
                 "units": units,
                 "versions": method["versions"],
             }
@@ -603,6 +654,17 @@ def _check_table(where: str, table: dict, sizes: dict[str, int]) -> None:
         raise CatalogError(f"tabela de {where} não bate com os modificadores")
 
 
+def _modifier(where: str, modifier: dict) -> dict:
+    """O modificador com o rótulo dele e o das opções nos idiomas."""
+    result = modifier | _labeled("label", _text(where, modifier["label"]))
+    if "options" in modifier:
+        result["options"] = [
+            option | _labeled("label", _text(where, option["label"]))
+            for option in modifier["options"]
+        ]
+    return result
+
+
 def _shiny_odds(methods: list[dict]) -> list[dict]:
     """As regras de ``SHINY_ODDS_FILE``, com os ids das formas em que o
     Charm não vale. Falha com método ou versão fora de ``SHINY_METHODS_FILE``,
@@ -639,6 +701,9 @@ def _shiny_odds(methods: list[dict]) -> list[dict]:
         if table := rule.get("table"):
             _check_table(where, table, sizes)
         exported = {k: v for k, v in rule.items() if k != "sources"}
+        if "note" in rule:
+            exported |= _labeled("note", _text(where, rule["note"]))
+        exported["modifiers"] = [_modifier(where, m) for m in rule["modifiers"]]
         exported["charmExceptForms"] = sorted(
             forms[n][0] for n in rule["charmExceptForms"]
         )

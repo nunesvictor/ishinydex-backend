@@ -1178,3 +1178,31 @@ msgstr "Marcar como meus saves"
 
 msgid "%(created)d save(s) created; %(skipped)d trainer(s) skipped."
 msgstr "%(created)d save(s) criado(s); %(skipped)d treinador(es) ignorado(s)."
+
+#: catalog/build.py
+msgid "Central Kalos"
+msgstr "Kalos Central"
+
+#: catalog/build.py
+msgid "Coastal Kalos"
+msgstr "Kalos Litoral"
+
+#: catalog/build.py
+msgid "Mountain Kalos"
+msgstr "Kalos Montanhoso"
+
+#: catalog/build.py
+msgid "Isle of Armor"
+msgstr "Ilha da Armadura"
+
+#: catalog/build.py
+msgid "Crown Tundra"
+msgstr "Tundra Coroada"
+
+#: catalog/build.py
+msgid "Hyperspace"
+msgstr "Hiperespaço"
+
+#: catalog/build.py
+msgid "National"
+msgstr "Nacional"
