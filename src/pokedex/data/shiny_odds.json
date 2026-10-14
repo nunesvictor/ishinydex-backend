@@ -5,6 +5,7 @@
     "https://bulbapedia.bulbagarden.net/wiki/DexNav",
     "https://bulbapedia.bulbagarden.net/wiki/Donut",
     "https://bulbapedia.bulbagarden.net/wiki/Fishing",
+    "https://bulbapedia.bulbagarden.net/wiki/Gift_Pok%C3%A9mon",
     "https://bulbapedia.bulbagarden.net/wiki/Masuda_method",
     "https://bulbapedia.bulbagarden.net/wiki/Pok%C3%A9_Radar",
     "https://bulbapedia.bulbagarden.net/wiki/Pok%C3%A9mon_FireRed_and_LeafGreen_Versions",
@@ -22,7 +23,7 @@
   "notes": [
     "Odds de shiny por método e jogo de save (consultado em 2026-10-13). Curadoria revisada em docs/roadmap/ideias/odds-das-cacadas.md no ishinydex.",
     "kind: rolls = sorteios de 1/base (odds = 1 − (1 − 1/base)^sorteios); chance = 1/odds direto (fixo, por cadeia ou por tabela); dexnav = fórmula do DexNav (Search Level, checagens e o sorteio normal).",
-    "charm: sorteios que o Shiny Charm soma (null: não vale). Em chance, charmOdds. charmExceptForms: formas em que o Charm não vale.",
+    "charm: sorteios que o Shiny Charm soma (null: não vale). Em chance, charmOdds. charmExceptForms: formas em que o Charm não vale, inclusive os presentes (iniciais, fósseis, Type: Null…) e as trocas no jogo, que nunca ganham o Charm (Bulbapedia: Shiny Charm e Gift Pokémon; corrigido em 2026-10-13).",
     "chain.steps: a partir de qual cadeia vale cada bônus (rolls somados ou odds). resetAfter: a cadeia volta a 0 depois desse valor (SOS no SM).",
     "modifiers: choice (opções com os sorteios somados; a primeira é a padrão; when liga o modificador a uma opção de outro) ou number (followsCount: sobe com o +1 da caçada).",
     "table: odds por opção de dois modificadores (linhas × colunas); null = combinação que não existe."
@@ -56,10 +57,31 @@
       "rolls": 1,
       "charm": 2,
       "modifiers": [],
-      "charmExceptForms": [],
+      "charmExceptForms": [
+        "aerodactyl",
+        "amaura",
+        "anorith",
+        "archen",
+        "bulbasaur",
+        "charmander",
+        "chespin",
+        "cranidos",
+        "fennekin",
+        "froakie",
+        "kabuto",
+        "lapras",
+        "lileep",
+        "omanyte",
+        "shieldon",
+        "squirtle",
+        "tirtouga",
+        "tyrunt"
+      ],
+      "note": {"en": "Gifts (starters, fossils…) and in-game trades: the Charm doesn't apply.", "pt-BR": "Presentes (iniciais, fósseis…) e trocas no jogo: o Charm não vale."},
       "sources": [
         "https://bulbapedia.bulbagarden.net/wiki/Shiny_Pok%C3%A9mon",
-        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Charm"
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Charm",
+        "https://bulbapedia.bulbagarden.net/wiki/Gift_Pok%C3%A9mon"
       ]
     },
     {
@@ -123,10 +145,40 @@
       "rolls": 1,
       "charm": 2,
       "modifiers": [],
-      "charmExceptForms": [],
+      "charmExceptForms": [
+        "aerodactyl",
+        "anorith",
+        "archen",
+        "beldum",
+        "camerupt",
+        "castform",
+        "chikorita",
+        "chimchar",
+        "cranidos",
+        "cyndaquil",
+        "kabuto",
+        "lileep",
+        "mudkip",
+        "omanyte",
+        "oshawott",
+        "piplup",
+        "sharpedo",
+        "shieldon",
+        "snivy",
+        "tepig",
+        "tirtouga",
+        "togepi",
+        "torchic",
+        "totodile",
+        "treecko",
+        "turtwig",
+        "wynaut"
+      ],
+      "note": {"en": "Gifts (starters, fossils…) and in-game trades: the Charm doesn't apply.", "pt-BR": "Presentes (iniciais, fósseis…) e trocas no jogo: o Charm não vale."},
       "sources": [
         "https://bulbapedia.bulbagarden.net/wiki/Shiny_Pok%C3%A9mon",
-        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Charm"
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Charm",
+        "https://bulbapedia.bulbagarden.net/wiki/Gift_Pok%C3%A9mon"
       ]
     },
     {
@@ -190,10 +242,24 @@
       "rolls": 1,
       "charm": 2,
       "modifiers": [],
-      "charmExceptForms": [],
+      "charmExceptForms": [
+        "aerodactyl",
+        "archen",
+        "cranidos",
+        "eevee",
+        "litten",
+        "popplio",
+        "porygon",
+        "rowlet",
+        "shieldon",
+        "tirtouga",
+        "type-null"
+      ],
+      "note": {"en": "Gifts (starters, fossils…) and in-game trades: the Charm doesn't apply.", "pt-BR": "Presentes (iniciais, fósseis…) e trocas no jogo: o Charm não vale."},
       "sources": [
         "https://bulbapedia.bulbagarden.net/wiki/Shiny_Pok%C3%A9mon",
-        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Charm"
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Charm",
+        "https://bulbapedia.bulbagarden.net/wiki/Gift_Pok%C3%A9mon"
       ]
     },
     {
@@ -257,10 +323,32 @@
       "rolls": 1,
       "charm": 2,
       "modifiers": [],
-      "charmExceptForms": [],
+      "charmExceptForms": [
+        "aerodactyl",
+        "amaura",
+        "anorith",
+        "archen",
+        "cranidos",
+        "eevee",
+        "kabuto",
+        "lileep",
+        "litten",
+        "omanyte",
+        "pikachu",
+        "poipole",
+        "popplio",
+        "porygon",
+        "rowlet",
+        "shieldon",
+        "tirtouga",
+        "type-null",
+        "tyrunt"
+      ],
+      "note": {"en": "Gifts (starters, fossils…) and in-game trades: the Charm doesn't apply.", "pt-BR": "Presentes (iniciais, fósseis…) e trocas no jogo: o Charm não vale."},
       "sources": [
         "https://bulbapedia.bulbagarden.net/wiki/Shiny_Pok%C3%A9mon",
-        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Charm"
+        "https://bulbapedia.bulbagarden.net/wiki/Shiny_Charm",
+        "https://bulbapedia.bulbagarden.net/wiki/Gift_Pok%C3%A9mon"
       ]
     },
     {
@@ -892,11 +980,27 @@
       "rolls": 1,
       "charm": 2,
       "modifiers": [],
-      "charmExceptForms": [],
+      "charmExceptForms": [
+        "aerodactyl",
+        "arcanine",
+        "bulbasaur",
+        "charmander",
+        "eevee",
+        "hitmonchan",
+        "hitmonlee",
+        "kabuto",
+        "lapras",
+        "magikarp",
+        "omanyte",
+        "persian",
+        "porygon",
+        "squirtle"
+      ],
       "note": {"en": "Static encounters: only the Charm applies. Trades and gifts stay at 1/4096.", "pt-BR": "Estáticos: só o Charm vale. Trocas e presentes ficam em 1/4096."},
       "sources": [
         "https://rotomlabs.net/shiny-rates",
-        "https://www.serebii.net/letsgopikachueevee/shinypokemon.shtml"
+        "https://www.serebii.net/letsgopikachueevee/shinypokemon.shtml",
+        "https://bulbapedia.bulbagarden.net/wiki/Gift_Pok%C3%A9mon"
       ]
     },
     {
