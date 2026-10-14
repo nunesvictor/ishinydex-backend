@@ -126,7 +126,7 @@ class CatalogTests(TestCase):
         methods = methods or (
             {
                 "id": "sr",
-                "label": "Soft reset",
+                "label": {"en": "Soft reset", "pt-BR": "Soft reset"},
                 "units": ["resets", "hours"],
                 "versions": ["scarlet"],
             },
@@ -144,7 +144,7 @@ class CatalogTests(TestCase):
         "charm": 2,
         "modifiers": [],
         "charmExceptForms": ["ivysaur"],
-        "note": "Nota.",
+        "note": {"en": "Note.", "pt-BR": "Nota."},
         "sources": ["https://exemplo"],
     }
 
@@ -168,7 +168,11 @@ class CatalogTests(TestCase):
         )
 
     def write_encounters(self, species, dlc: str | None = "the-teal-mask"):
-        encounter = {"label": "Especial", "dlc": dlc, "species": species}
+        encounter = {
+            "label": {"en": "Special", "pt-BR": "Especial"},
+            "dlc": dlc,
+            "species": species,
+        }
         self.encounters.write_text(
             json.dumps(
                 {
@@ -266,14 +270,24 @@ class CatalogTests(TestCase):
             {
                 "value": "poke-ball",
                 "label": "Poké Ball",
+                "labels": {"en": "Poké Ball", "pt-BR": "Poké Ball"},
                 "sprite": "items/poke-ball.png",
             },
             choices["pokeball"],
         )
         water = next(t for t in choices["type"] if t["value"] == "water")
         self.assertEqual(
-            water, {"value": "water", "label": "Água", "sprite": water["sprite"]}
+            water,
+            {
+                "value": "water",
+                "label": "Água",
+                "labels": {"en": "Water", "pt-BR": "Água"},
+                "sprite": water["sprite"],
+            },
         )
+        # Rótulo com parâmetro, traduzido em cada idioma.
+        nine = next(g for g in choices["generation"] if g["value"] == "generation-ix")
+        self.assertEqual(nine["labels"], {"en": "Generation IX", "pt-BR": "Geração IX"})
         self.assertTrue(
             water["sprite"].startswith("types/") and "/small/11.png" in water["sprite"]
         )
@@ -321,6 +335,7 @@ class CatalogTests(TestCase):
             {
                 "name": "kanto",
                 "label": "Kanto",
+                "labels": {"en": "Kanto", "pt-BR": "Kanto"},
                 "versionGroups": ["firered-leafgreen"],
                 "dlc": None,
                 "entries": [["bulbasaur", 1]],
@@ -406,6 +421,7 @@ class CatalogTests(TestCase):
             {
                 "name": "special",
                 "label": "Especial",
+                "labels": {"en": "Special", "pt-BR": "Especial"},
                 "versionGroups": ["scarlet-violet"],
                 "dlc": "the-teal-mask",
                 "entries": [["bulbasaur", None]],
@@ -416,6 +432,7 @@ class CatalogTests(TestCase):
             {
                 "name": "paldea",
                 "label": "Paldea",
+                "labels": {"en": "Paldea", "pt-BR": "Paldea"},
                 "versionGroups": ["scarlet-violet"],
                 "dlc": None,
                 "entries": [["bulbasaur", 9], ["ivysaur", 10]],
@@ -429,6 +446,7 @@ class CatalogTests(TestCase):
             {
                 "name": "bdsp-national",
                 "label": "Nacional",
+                "labels": {"en": "National", "pt-BR": "Nacional"},
                 "versionGroups": ["brilliant-diamond-shining-pearl"],
                 "dlc": None,
                 "entries": [["bulbasaur", 1], ["ivysaur", 2]],
@@ -449,6 +467,7 @@ class CatalogTests(TestCase):
                 {
                     "id": "sr",
                     "label": "Soft reset",
+                    "labels": {"en": "Soft reset", "pt-BR": "Soft reset"},
                     "units": ["resets", "hours"],
                     "versions": ["scarlet"],
                 }
@@ -463,6 +482,18 @@ class CatalogTests(TestCase):
         data = catalog.build_catalog("v")
         new = next(d for d in data["pokedexes"] if d["name"] == "new-dex")
         self.assertEqual(new["label"], "New Dex")
+        self.assertEqual(new["labels"], {"en": "New Dex", "pt-BR": "New Dex"})
+
+    def test_translated_pokedex_label(self):
+        f.make_version_group(
+            name="sword-shield", versions=["sword"], pokedexes=["isle-of-armor"]
+        )
+        data = catalog.build_catalog("v")
+        dex = next(d for d in data["pokedexes"] if d["name"] == "isle-of-armor")
+        self.assertEqual(dex["label"], "Ilha da Armadura")
+        self.assertEqual(
+            dex["labels"], {"en": "Isle of Armor", "pt-BR": "Ilha da Armadura"}
+        )
 
     def test_bad_special_encounters_fail(self):
         for species, dlc, message in (
@@ -473,6 +504,13 @@ class CatalogTests(TestCase):
                 self.write_encounters(species, dlc)
                 with self.assertRaisesRegex(catalog.CatalogError, message):
                     catalog.build_catalog("v")
+        # Rótulo só em um idioma, mesmo num jogo fora do HOME.
+        self.write_encounters(["bulbasaur"])
+        data = json.loads(self.encounters.read_text())
+        data["encounters"][1]["label"] = "Outro"
+        self.encounters.write_text(json.dumps(data))
+        with self.assertRaisesRegex(catalog.CatalogError, "sem os idiomas"):
+            catalog.build_catalog("v")
 
     def test_bad_exclusives_fail(self):
         self.make_victini()
@@ -539,8 +577,16 @@ class CatalogTests(TestCase):
                     catalog.build_catalog("v")
 
     def test_bad_shiny_methods_fail(self):
-        good = {"id": "sr", "label": "SR", "units": ["resets"], "versions": ["scarlet"]}
+        good = {
+            "id": "sr",
+            "label": {"en": "SR", "pt-BR": "SR"},
+            "units": ["resets"],
+            "versions": ["scarlet"],
+        }
         cases = [
+            ((good | {"label": "SR"},), "sem os idiomas"),
+            ((good | {"label": {"en": "SR"}},), "sem os idiomas"),
+            ((good | {"label": {"en": "SR", "pt-BR": ""}},), "sem os idiomas"),
             ((good, good), "repetido: sr"),
             ((good | {"units": []},), "unidades inválidas"),
             ((good | {"units": ["laps"]},), "unidades inválidas"),
@@ -556,19 +602,44 @@ class CatalogTests(TestCase):
         data = catalog.build_catalog("v")
 
         rule = {k: v for k, v in self.SR_ODDS.items() if k != "sources"}
-        self.assertEqual(data["shinyOdds"], [rule | {"charmExceptForms": [2]}])
+        self.assertEqual(
+            data["shinyOdds"],
+            [
+                rule
+                | {
+                    "charmExceptForms": [2],
+                    "note": "Nota.",
+                    "notes": {"en": "Note.", "pt-BR": "Nota."},
+                }
+            ],
+        )
 
     def test_bad_shiny_odds_fail(self):
         good = self.SR_ODDS | {"charmExceptForms": []}
         choice = {
             "id": "a",
-            "label": "A",
+            "label": {"en": "A", "pt-BR": "A"},
             "type": "choice",
-            "options": [{"label": "x", "rolls": 0}, {"label": "y", "rolls": 1}],
+            "options": [
+                {"label": {"en": "x", "pt-BR": "x"}, "rolls": 0},
+                {"label": {"en": "y", "pt-BR": "y"}, "rolls": 1},
+            ],
         }
-        number = {"id": "n", "label": "N", "type": "number", "min": 0, "max": 9}
+        number = {
+            "id": "n",
+            "label": {"en": "N", "pt-BR": "N"},
+            "type": "number",
+            "min": 0,
+            "max": 9,
+        }
         chance = good | {"kind": "chance", "rolls": None}
         cases = [
+            ((good | {"note": "Nota."},), "sem os idiomas"),
+            ((good | {"modifiers": [choice | {"label": "A"}]},), "sem os idiomas"),
+            (
+                (good | {"modifiers": [choice | {"options": [{"label": "x"}]}]},),
+                "sem os idiomas",
+            ),
             ((good | {"method": "dexnav"},), "método desconhecido: dexnav"),
             ((good | {"versions": ["yellow"]},), r"fora dos jogos.*yellow"),
             ((good, good), "repetidas: sr em scarlet"),
@@ -745,6 +816,7 @@ class ShippedShinyMethodsTests(TestCase):
         for method in data["methods"]:
             with self.subTest(id=method["id"]):
                 self.assertEqual(set(method), {"id", "label", "units", "versions"})
+                catalog._text(method["id"], method["label"])  # en e pt-BR
                 self.assertTrue(method["units"])
                 self.assertLessEqual(set(method["units"]), catalog.SHINY_METHOD_UNITS)
                 self.assertTrue(method["versions"])
@@ -769,6 +841,13 @@ class ShippedShinyOddsTests(TestCase):
                 self.assertEqual(
                     rule["charmExceptForms"], sorted(set(rule["charmExceptForms"]))
                 )
+                # Todo texto em en e pt-BR: nota, modificadores e opções.
+                if "note" in rule:
+                    catalog._text(rule["method"], rule["note"])
+                for modifier in rule["modifiers"]:
+                    catalog._text(modifier["id"], modifier["label"])
+                    for option in modifier.get("options", []):
+                        catalog._text(modifier["id"], option["label"])
 
     def test_every_method_of_every_save_game_has_one_rule(self):
         # Nada pela metade: todo par método × jogo ligado ao HOME tem regra,
@@ -833,6 +912,7 @@ class ShippedSpecialEncountersTests(TestCase):
                     {"name", "label", "versionGroup", "dlc", "species"},
                 )
                 self.assertIn(encounter["dlc"], (None, *catalog.DLC_VERSION_GROUPS))
+                catalog._text(encounter["name"], encounter["label"])
                 self.assertEqual(
                     len(encounter["species"]), len(set(encounter["species"]))
                 )

@@ -9,7 +9,7 @@
   "methods": [
     {
       "id": "random",
-      "label": "Encontro aleatório",
+      "label": {"en": "Random encounter", "pt-BR": "Encontro aleatório"},
       "units": [
         "encounters",
         "hours"
@@ -57,7 +57,7 @@
     },
     {
       "id": "soft-reset",
-      "label": "Soft reset",
+      "label": {"en": "Soft reset", "pt-BR": "Soft reset"},
       "units": [
         "resets",
         "hours"
@@ -105,7 +105,7 @@
     },
     {
       "id": "eggs",
-      "label": "Ovos",
+      "label": {"en": "Eggs", "pt-BR": "Ovos"},
       "units": [
         "eggs",
         "hours"
@@ -146,7 +146,7 @@
     },
     {
       "id": "masuda",
-      "label": "Método Masuda",
+      "label": {"en": "Masuda method", "pt-BR": "Método Masuda"},
       "units": [
         "eggs",
         "hours"
@@ -179,7 +179,7 @@
     },
     {
       "id": "poke-radar",
-      "label": "Poké Radar",
+      "label": {"en": "Poké Radar", "pt-BR": "Poké Radar"},
       "units": [
         "chains",
         "encounters"
@@ -196,7 +196,7 @@
     },
     {
       "id": "chain-fishing",
-      "label": "Pesca em cadeia",
+      "label": {"en": "Chain fishing", "pt-BR": "Pesca em cadeia"},
       "units": [
         "chains",
         "encounters"
@@ -210,7 +210,7 @@
     },
     {
       "id": "friend-safari",
-      "label": "Safári dos Amigos",
+      "label": {"en": "Friend Safari", "pt-BR": "Safári dos Amigos"},
       "units": [
         "encounters",
         "hours"
@@ -222,7 +222,7 @@
     },
     {
       "id": "hordes",
-      "label": "Encontro em horda",
+      "label": {"en": "Horde encounter", "pt-BR": "Encontro em horda"},
       "units": [
         "hordes",
         "hours"
@@ -236,7 +236,7 @@
     },
     {
       "id": "dexnav",
-      "label": "DexNav",
+      "label": {"en": "DexNav", "pt-BR": "DexNav"},
       "units": [
         "chains",
         "encounters"
@@ -248,7 +248,7 @@
     },
     {
       "id": "sos",
-      "label": "Corrente SOS",
+      "label": {"en": "SOS chaining", "pt-BR": "Corrente SOS"},
       "units": [
         "chains",
         "encounters"
@@ -262,7 +262,7 @@
     },
     {
       "id": "ultra-wormhole",
-      "label": "Ultra Wormhole",
+      "label": {"en": "Ultra Wormhole", "pt-BR": "Ultra Wormhole"},
       "units": [
         "runs"
       ],
@@ -273,7 +273,7 @@
     },
     {
       "id": "catch-combo",
-      "label": "Combo de captura",
+      "label": {"en": "Catch combo", "pt-BR": "Combo de captura"},
       "units": [
         "combo",
         "encounters"
@@ -285,7 +285,7 @@
     },
     {
       "id": "max-raid",
-      "label": "Reide Dynamax",
+      "label": {"en": "Max Raid", "pt-BR": "Reide Dynamax"},
       "units": [
         "raids"
       ],
@@ -296,7 +296,7 @@
     },
     {
       "id": "dynamax-adventures",
-      "label": "Dynamax Adventures",
+      "label": {"en": "Dynamax Adventures", "pt-BR": "Dynamax Adventures"},
       "units": [
         "runs"
       ],
@@ -307,7 +307,7 @@
     },
     {
       "id": "grand-underground",
-      "label": "Grande Subterrâneo",
+      "label": {"en": "Grand Underground", "pt-BR": "Grande Subterrâneo"},
       "units": [
         "encounters",
         "hours"
@@ -319,7 +319,7 @@
     },
     {
       "id": "outbreak",
-      "label": "Surto em massa",
+      "label": {"en": "Mass outbreak", "pt-BR": "Surto em massa"},
       "units": [
         "encounters",
         "hours"
@@ -332,7 +332,7 @@
     },
     {
       "id": "tera-raid",
-      "label": "Reide Tera",
+      "label": {"en": "Tera Raid", "pt-BR": "Reide Tera"},
       "units": [
         "raids"
       ],
@@ -343,7 +343,7 @@
     },
     {
       "id": "sparkling-power",
-      "label": "Sparkling Power (sanduíche)",
+      "label": {"en": "Sparkling Power (sandwich)", "pt-BR": "Sparkling Power (sanduíche)"},
       "units": [
         "encounters",
         "hours"
