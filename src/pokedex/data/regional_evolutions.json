@@ -6,7 +6,7 @@
   "notes": [
     "A PokéAPI só tem a evolução entre espécies (evolves_from_species). Aqui ficam as evoluções entre formas das famílias com forma regional (Alola, Galar, Hisui e Paldea), mais o Basculin listrado de branco, que só ele evolui para o Basculegion. Nomes das formas como na PokéAPI; consultado em 2026-10-15 (ishinydex-backend#121).",
     "Cada aresta vai da forma que evolui para a forma em que ela evolui, e as espécies precisam bater com o evolves_from_species. As formas de enfeite (bonés do Pikachu, totens) e as só de batalha (Darmanitan Zen) ficam de fora: o app mostra para elas a linha da espécie.",
-    "withoutEvolution: formas de famílias com forma regional que não evoluem, embora a espécie evolua pela forma regional (o Farfetch'd de Kanto não vira Sirfetch'd). Sem elas aqui, o app mostraria a evolução da forma regional."
+    "withoutEvolution: formas de famílias com forma regional que não evoluem, embora a espécie evolua pela forma regional (o Farfetch'd de Kanto não vira Sirfetch'd; o Basculin listrado de vermelho ou de azul não vira Basculegion). Sem elas aqui, o app mostraria a evolução da forma regional."
   ],
   "evolutions": [
     {
@@ -315,6 +315,8 @@
     }
   ],
   "withoutEvolution": [
+    "basculin-blue-striped",
+    "basculin-red-striped",
     "corsola",
     "farfetchd",
     "qwilfish"
