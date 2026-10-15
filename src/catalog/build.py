@@ -65,6 +65,13 @@ REGIONAL_FORMS_FILE = (
     Path(__file__).resolve().parent.parent / "pokedex/data/regional_forms.json"
 )
 
+# Evoluções entre formas das famílias com forma regional (#121): a PokéAPI
+# só tem a evolução entre espécies (o Rattata de Alola vira o Raticate de
+# Alola, e não o comum).
+REGIONAL_EVOLUTIONS_FILE = (
+    Path(__file__).resolve().parent.parent / "pokedex/data/regional_evolutions.json"
+)
+
 # Formas que não podem ser obtidas shiny em cada jogo (Solgaleo em Scarlet).
 GAME_SHINY_LOCKS_FILE = (
     Path(__file__).resolve().parent.parent / "pokedex/data/game_shiny_locks.json"
@@ -560,6 +567,32 @@ def _game_forms(species_of_group: dict[str, set[str]]) -> list[dict]:
     return result
 
 
+def _form_evolutions() -> dict:
+    """As evoluções de ``REGIONAL_EVOLUTIONS_FILE``, com os ids das formas.
+    Falha com forma desconhecida, aresta repetida ou que não bate com o
+    ``evolves_from_species`` das espécies."""
+    data = json.loads(REGIONAL_EVOLUTIONS_FILE.read_text(encoding="utf-8"))
+    edges = [(e["from"], e["to"]) for e in data["evolutions"]]
+    alone = data["withoutEvolution"]
+    if len(set(edges)) != len(edges):
+        raise CatalogError("evoluções regionais repetidas")
+    names = {n for edge in edges for n in edge} | set(alone)
+    forms = _form_ids(names, "evoluções regionais")
+    evolves_from = dict(
+        PokemonSpecies.objects.filter(
+            name__in={species for _, species in forms.values()}
+        ).values_list("name", "evolves_from_species__name")
+    )
+    if wrong := [
+        f"{a}->{b}" for a, b in edges if evolves_from[forms[b][1]] != forms[a][1]
+    ]:
+        raise CatalogError(f"evoluções regionais fora da espécie: {wrong}")
+    return {
+        "evolutions": sorted([forms[a][0], forms[b][0]] for a, b in edges),
+        "withoutEvolution": sorted(forms[n][0] for n in alone),
+    }
+
+
 def _game_shiny_locks(species_of_group: dict[str, set[str]]) -> list[dict]:
     """Os locks de ``GAME_SHINY_LOCKS_FILE``, com os ids das formas. Falha
     com forma ou versão desconhecida, ou com espécie fora das pokédex."""
@@ -737,6 +770,9 @@ def build_catalog(version: str) -> dict:
         # jogo; e as formas que não podem ser shiny em cada versão.
         "gameForms": _game_forms(species_of_group),
         "gameShinyLocks": _game_shiny_locks(species_of_group),
+        # Evoluções entre formas das famílias com forma regional (#121):
+        # pares [de, para] e as formas que não evoluem. Chave nova, aditiva.
+        "formEvolutions": _form_evolutions(),
         # Métodos de shiny hunt e os jogos onde existem (a primeira unidade
         # é a padrão). Chave nova, aditiva: o schemaVersion continua.
         "shinyMethods": methods,

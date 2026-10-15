@@ -111,6 +111,13 @@ class CatalogTests(TestCase):
         patcher = mock.patch.object(catalog, "SHINY_METHODS_FILE", self.methods)
         patcher.start()
         self.addCleanup(patcher.stop)
+        self.evolutions = self.tmp / "evolutions.json"
+        self.write_evolutions([("bulbasaur", "ivysaur")])
+        patcher = mock.patch.object(
+            catalog, "REGIONAL_EVOLUTIONS_FILE", self.evolutions
+        )
+        patcher.start()
+        self.addCleanup(patcher.stop)
         self.odds = self.tmp / "odds.json"
         self.write_odds()
         patcher = mock.patch.object(catalog, "SHINY_ODDS_FILE", self.odds)
@@ -153,6 +160,43 @@ class CatalogTests(TestCase):
         self.odds.write_text(
             json.dumps({"sources": [], "notes": [], "rules": list(rules)})
         )
+
+    def write_evolutions(self, edges, alone=()):
+        self.evolutions.write_text(
+            json.dumps(
+                {
+                    "sources": [],
+                    "notes": [],
+                    "evolutions": [{"from": a, "to": b} for a, b in edges],
+                    "withoutEvolution": list(alone),
+                }
+            )
+        )
+
+    def test_form_evolutions(self):
+        # Bulbasaur → Ivysaur (as espécies batem); a forma só de batalha,
+        # sem evolução.
+        self.write_evolutions([("bulbasaur", "ivysaur")], alone=["bulbasaur-battle"])
+        data = catalog.build_catalog("v")
+        self.assertEqual(
+            data["formEvolutions"],
+            {
+                "evolutions": [[self.bulba_form.pokeapi_id, self.ivy_form.pokeapi_id]],
+                "withoutEvolution": [self.battle.pokeapi_id],
+            },
+        )
+
+    def test_form_evolutions_errors(self):
+        for edges, message in (
+            # Ao contrário: o Ivysaur não evolui para o Bulbasaur.
+            ([("ivysaur", "bulbasaur")], "fora da espécie"),
+            ([("bulbasaur", "ivysaur")] * 2, "repetidas"),
+            ([("bulbasaur", "missingno")], "formas desconhecidas"),
+        ):
+            with self.subTest(message=message):
+                self.write_evolutions(edges)
+                with self.assertRaisesMessage(catalog.CatalogError, message):
+                    catalog.build_catalog("v")
 
     @staticmethod
     def write_game_data(file, key, field, value, forms=("ivysaur",)):
@@ -949,3 +993,29 @@ class ShippedShinyLocksTests(TestCase):
                 )
                 self.assertIn(lock["lockType"], {"distro-only", "unobtainable"})
                 self.assertTrue(lock["forms"])
+
+
+class ShippedRegionalEvolutionsTests(TestCase):
+    def test_file_is_well_formed(self):
+        data = json.loads(catalog.REGIONAL_EVOLUTIONS_FILE.read_text(encoding="utf-8"))
+        self.assertEqual(
+            set(data), {"sources", "notes", "evolutions", "withoutEvolution"}
+        )
+        self.assertTrue(data["sources"])
+        edges = [(e["from"], e["to"]) for e in data["evolutions"]]
+        for entry in data["evolutions"]:
+            self.assertEqual(set(entry), {"from", "to"})
+        self.assertEqual(len(edges), len(set(edges)))
+        alone = data["withoutEvolution"]
+        self.assertEqual(alone, sorted(set(alone)))
+        # Uma forma sem evolução não aparece numa aresta.
+        self.assertFalse(set(alone) & {n for edge in edges for n in edge})
+        # As formas regionais das famílias que evoluem estão todas aqui.
+        names = {n for edge in edges for n in edge}
+        for form in (
+            "rattata-alola",
+            "meowth-galar",
+            "growlithe-hisui",
+            "wooper-paldea",
+        ):
+            self.assertIn(form, names)

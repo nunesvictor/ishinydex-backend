@@ -1,0 +1,324 @@
+{
+  "sources": [
+    "https://bulbapedia.bulbagarden.net/wiki/Regional_form",
+    "https://bulbapedia.bulbagarden.net/wiki/List_of_Pok%C3%A9mon_by_evolution_family"
+  ],
+  "notes": [
+    "A PokéAPI só tem a evolução entre espécies (evolves_from_species). Aqui ficam as evoluções entre formas das famílias com forma regional (Alola, Galar, Hisui e Paldea), mais o Basculin listrado de branco, que só ele evolui para o Basculegion. Nomes das formas como na PokéAPI; consultado em 2026-10-15 (ishinydex-backend#121).",
+    "Cada aresta vai da forma que evolui para a forma em que ela evolui, e as espécies precisam bater com o evolves_from_species. As formas de enfeite (bonés do Pikachu, totens) e as só de batalha (Darmanitan Zen) ficam de fora: o app mostra para elas a linha da espécie.",
+    "withoutEvolution: formas de famílias com forma regional que não evoluem, embora a espécie evolua pela forma regional (o Farfetch'd de Kanto não vira Sirfetch'd; o Basculin listrado de vermelho ou de azul não vira Basculegion). Sem elas aqui, o app mostraria a evolução da forma regional."
+  ],
+  "evolutions": [
+    {
+      "from": "pichu",
+      "to": "pikachu"
+    },
+    {
+      "from": "pikachu",
+      "to": "raichu"
+    },
+    {
+      "from": "pikachu",
+      "to": "raichu-alola"
+    },
+    {
+      "from": "rattata",
+      "to": "raticate"
+    },
+    {
+      "from": "rattata-alola",
+      "to": "raticate-alola"
+    },
+    {
+      "from": "sandshrew",
+      "to": "sandslash"
+    },
+    {
+      "from": "sandshrew-alola",
+      "to": "sandslash-alola"
+    },
+    {
+      "from": "vulpix",
+      "to": "ninetales"
+    },
+    {
+      "from": "vulpix-alola",
+      "to": "ninetales-alola"
+    },
+    {
+      "from": "diglett",
+      "to": "dugtrio"
+    },
+    {
+      "from": "diglett-alola",
+      "to": "dugtrio-alola"
+    },
+    {
+      "from": "meowth",
+      "to": "persian"
+    },
+    {
+      "from": "meowth-alola",
+      "to": "persian-alola"
+    },
+    {
+      "from": "meowth-galar",
+      "to": "perrserker"
+    },
+    {
+      "from": "geodude",
+      "to": "graveler"
+    },
+    {
+      "from": "graveler",
+      "to": "golem"
+    },
+    {
+      "from": "geodude-alola",
+      "to": "graveler-alola"
+    },
+    {
+      "from": "graveler-alola",
+      "to": "golem-alola"
+    },
+    {
+      "from": "grimer",
+      "to": "muk"
+    },
+    {
+      "from": "grimer-alola",
+      "to": "muk-alola"
+    },
+    {
+      "from": "exeggcute",
+      "to": "exeggutor"
+    },
+    {
+      "from": "exeggcute",
+      "to": "exeggutor-alola"
+    },
+    {
+      "from": "cubone",
+      "to": "marowak"
+    },
+    {
+      "from": "cubone",
+      "to": "marowak-alola"
+    },
+    {
+      "from": "ponyta",
+      "to": "rapidash"
+    },
+    {
+      "from": "ponyta-galar",
+      "to": "rapidash-galar"
+    },
+    {
+      "from": "slowpoke",
+      "to": "slowbro"
+    },
+    {
+      "from": "slowpoke",
+      "to": "slowking"
+    },
+    {
+      "from": "slowpoke-galar",
+      "to": "slowbro-galar"
+    },
+    {
+      "from": "slowpoke-galar",
+      "to": "slowking-galar"
+    },
+    {
+      "from": "farfetchd-galar",
+      "to": "sirfetchd"
+    },
+    {
+      "from": "koffing",
+      "to": "weezing"
+    },
+    {
+      "from": "koffing",
+      "to": "weezing-galar"
+    },
+    {
+      "from": "mime-jr",
+      "to": "mr-mime"
+    },
+    {
+      "from": "mime-jr",
+      "to": "mr-mime-galar"
+    },
+    {
+      "from": "mr-mime-galar",
+      "to": "mr-rime"
+    },
+    {
+      "from": "corsola-galar",
+      "to": "cursola"
+    },
+    {
+      "from": "zigzagoon",
+      "to": "linoone"
+    },
+    {
+      "from": "zigzagoon-galar",
+      "to": "linoone-galar"
+    },
+    {
+      "from": "linoone-galar",
+      "to": "obstagoon"
+    },
+    {
+      "from": "darumaka",
+      "to": "darmanitan-standard"
+    },
+    {
+      "from": "darumaka-galar",
+      "to": "darmanitan-galar-standard"
+    },
+    {
+      "from": "yamask",
+      "to": "cofagrigus"
+    },
+    {
+      "from": "yamask-galar",
+      "to": "runerigus"
+    },
+    {
+      "from": "growlithe",
+      "to": "arcanine"
+    },
+    {
+      "from": "growlithe-hisui",
+      "to": "arcanine-hisui"
+    },
+    {
+      "from": "voltorb",
+      "to": "electrode"
+    },
+    {
+      "from": "voltorb-hisui",
+      "to": "electrode-hisui"
+    },
+    {
+      "from": "cyndaquil",
+      "to": "quilava"
+    },
+    {
+      "from": "quilava",
+      "to": "typhlosion"
+    },
+    {
+      "from": "quilava",
+      "to": "typhlosion-hisui"
+    },
+    {
+      "from": "oshawott",
+      "to": "dewott"
+    },
+    {
+      "from": "dewott",
+      "to": "samurott"
+    },
+    {
+      "from": "dewott",
+      "to": "samurott-hisui"
+    },
+    {
+      "from": "rowlet",
+      "to": "dartrix"
+    },
+    {
+      "from": "dartrix",
+      "to": "decidueye"
+    },
+    {
+      "from": "dartrix",
+      "to": "decidueye-hisui"
+    },
+    {
+      "from": "petilil",
+      "to": "lilligant"
+    },
+    {
+      "from": "petilil",
+      "to": "lilligant-hisui"
+    },
+    {
+      "from": "rufflet",
+      "to": "braviary"
+    },
+    {
+      "from": "rufflet",
+      "to": "braviary-hisui"
+    },
+    {
+      "from": "goomy",
+      "to": "sliggoo"
+    },
+    {
+      "from": "sliggoo",
+      "to": "goodra"
+    },
+    {
+      "from": "goomy",
+      "to": "sliggoo-hisui"
+    },
+    {
+      "from": "sliggoo-hisui",
+      "to": "goodra-hisui"
+    },
+    {
+      "from": "bergmite",
+      "to": "avalugg"
+    },
+    {
+      "from": "bergmite",
+      "to": "avalugg-hisui"
+    },
+    {
+      "from": "qwilfish-hisui",
+      "to": "overqwil"
+    },
+    {
+      "from": "sneasel",
+      "to": "weavile"
+    },
+    {
+      "from": "sneasel-hisui",
+      "to": "sneasler"
+    },
+    {
+      "from": "zorua",
+      "to": "zoroark"
+    },
+    {
+      "from": "zorua-hisui",
+      "to": "zoroark-hisui"
+    },
+    {
+      "from": "wooper",
+      "to": "quagsire"
+    },
+    {
+      "from": "wooper-paldea",
+      "to": "clodsire"
+    },
+    {
+      "from": "basculin-white-striped",
+      "to": "basculegion-male"
+    },
+    {
+      "from": "basculin-white-striped",
+      "to": "basculegion-female"
+    }
+  ],
+  "withoutEvolution": [
+    "basculin-blue-striped",
+    "basculin-red-striped",
+    "corsola",
+    "farfetchd",
+    "qwilfish"
+  ]
+}
