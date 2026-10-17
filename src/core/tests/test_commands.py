@@ -243,20 +243,19 @@ class CreatePersonalDexTests(TestCase):
         self.assertTrue(dex.is_shiny_dex)
         self.assertTrue(dex.force_new_box)
         self.assertIn("created", output)
+        # Todas as Alcremie entram, não só as "vanilla".
         self.assertLessEqual(
-            {"pikachu", "venusaur", "arceus", "alcremie-vanilla-cream-strawberry"},
+            {
+                "pikachu",
+                "venusaur",
+                "arceus",
+                "alcremie-vanilla-cream-strawberry",
+                "alcremie-ruby-cream",
+            },
             names,
         )
         self.assertTrue(
-            names.isdisjoint(
-                {
-                    "pikachu-original-cap",
-                    "arceus-fire",
-                    "venusaur-mega",
-                    "alcremie",
-                    "alcremie-ruby-cream",
-                }
-            )
+            names.isdisjoint({"pikachu-original-cap", "arceus-fire", "venusaur-mega"})
         )
 
     def test_updates_existing_dex(self):
