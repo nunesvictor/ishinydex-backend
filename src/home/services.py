@@ -50,14 +50,13 @@ DEFAULT_KWARGS_LOOKUPS = (
     {"name__istartswith": "rockruff-"},
 )
 
-# Alcremie: só as variações "vanilla".
-DEFAULT_EXTRA_ARGS = (
-    Q(pokemon__name="alcremie") & ~Q(name__istartswith="alcremie-vanilla"),
-)
-
 
 def default_forms() -> QuerySet[PokemonForm]:
-    """Conjunto padrão de formas de um PersonalDex, na ordem do esquema."""
+    """Conjunto padrão de formas de um PersonalDex, na ordem do esquema.
+
+    Entram todas as formas, mesmo quando o shiny é igual (as 63 Alcremie, os
+    núcleos do Minior, os tamanhos do Pumpkaboo); saem as formas de batalha e
+    as das listas acima."""
     return (
         PokemonForm.objects.select_related("pokemon__species")
         .filter(is_battle_only=False)
@@ -65,7 +64,6 @@ def default_forms() -> QuerySet[PokemonForm]:
             Q(pokemon__species__name__in=DEFAULT_FORM_ONLY_LIST) & Q(is_default=False)
         )
         .exclude(reduce(or_, (Q(**lookup) for lookup in DEFAULT_KWARGS_LOOKUPS), Q()))
-        .exclude(*DEFAULT_EXTRA_ARGS)
     )
 
 

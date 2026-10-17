@@ -37,3 +37,21 @@ class DefaultFormsTests(TestCase):
         names = set(default_forms().values_list("name", flat=True))
 
         self.assertEqual(names, {"minior-red", "minior-orange", "minior-violet"})
+
+    def test_every_alcremie_but_the_battle_form(self):
+        _, pokemon, _ = f.make_full_pokemon("alcremie", 869)
+        pokemon.forms.all().delete()
+        for cream in ("vanilla-cream", "ruby-cream", "rainbow-swirl"):
+            f.make_form(pokemon, name=f"alcremie-{cream}-strawberry-sweet")
+        f.make_form(pokemon, name="alcremie-gmax", is_battle_only=True)
+
+        names = set(default_forms().values_list("name", flat=True))
+
+        self.assertEqual(
+            names,
+            {
+                "alcremie-vanilla-cream-strawberry-sweet",
+                "alcremie-ruby-cream-strawberry-sweet",
+                "alcremie-rainbow-swirl-strawberry-sweet",
+            },
+        )
