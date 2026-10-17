@@ -39,7 +39,9 @@ DEFAULT_KWARGS_LOOKUPS = (
     {"name__iendswith": "-starter"},
     {"name__iexact": "eternatus-eternamax"},
     {"name__iexact": "greninja-battle-bond"},
-    {"name__iexact": "minior-red-meteor"},
+    # As cascas do Minior são iguais em tudo (no normal e no shiny); os 7
+    # núcleos ficam (formas diferentes no normal, mesmo com o shiny igual).
+    {"name__istartswith": "minior-", "name__iendswith": "-meteor"},
     {"name__istartswith": "calyrex-"},
     {"name__istartswith": "kyurem-"},
     {"name__istartswith": "necrozma-"},
