@@ -77,6 +77,12 @@ GAME_SHINY_LOCKS_FILE = (
     Path(__file__).resolve().parent.parent / "pokedex/data/game_shiny_locks.json"
 )
 
+# Formas que podem aparecer como alfa em cada jogo (motivo "Sem alfa" das
+# Caçadas, #123).
+ALPHA_FORMS_FILE = (
+    Path(__file__).resolve().parent.parent / "pokedex/data/alpha_forms.json"
+)
+
 # Métodos de shiny hunt por jogo (registro da caçada no espécime, #103).
 SHINY_METHODS_FILE = (
     Path(__file__).resolve().parent.parent / "pokedex/data/shiny_methods.json"
@@ -546,18 +552,31 @@ def _form_ids(names: set[str], what: str) -> dict[str, tuple[int, str]]:
 
 
 def _game_forms(species_of_group: dict[str, set[str]]) -> list[dict]:
-    """As formas de ``REGIONAL_FORMS_FILE``, trocadas pelos ids. Falha com
-    forma ou grupo desconhecido, ou com espécie fora das pokédex do jogo."""
-    games = json.loads(REGIONAL_FORMS_FILE.read_text(encoding="utf-8"))["games"]
-    forms = _form_ids({n for game in games for n in game["forms"]}, "formas por jogo")
+    """As formas de ``REGIONAL_FORMS_FILE``, trocadas pelos ids."""
+    return _forms_by_group(REGIONAL_FORMS_FILE, "formas por jogo", species_of_group)
+
+
+def _alpha_forms(species_of_group: dict[str, set[str]]) -> list[dict]:
+    """As formas de ``ALPHA_FORMS_FILE``, trocadas pelos ids."""
+    return _forms_by_group(ALPHA_FORMS_FILE, "alfas", species_of_group)
+
+
+def _forms_by_group(
+    file: Path, what: str, species_of_group: dict[str, set[str]]
+) -> list[dict]:
+    """As formas de cada grupo de versões de ``file``, trocadas pelos ids.
+    Falha com forma ou grupo desconhecido, ou com espécie fora das pokédex
+    do jogo."""
+    games = json.loads(file.read_text(encoding="utf-8"))["games"]
+    forms = _form_ids({n for game in games for n in game["forms"]}, what)
     result = []
     for game in games:
         group = game["versionGroup"]
         species = species_of_group.get(group)
         if species is None:
-            raise CatalogError(f"formas por jogo sem pokédex: {group}")
+            raise CatalogError(f"{what} sem pokédex: {group}")
         if outside := [n for n in game["forms"] if forms[n][1] not in species]:
-            raise CatalogError(f"formas de {group} fora das pokédex do jogo: {outside}")
+            raise CatalogError(f"{what} de {group} fora das pokédex do jogo: {outside}")
         result.append(
             {
                 "versionGroup": group,
@@ -770,6 +789,9 @@ def build_catalog(version: str) -> dict:
         # jogo; e as formas que não podem ser shiny em cada versão.
         "gameForms": _game_forms(species_of_group),
         "gameShinyLocks": _game_shiny_locks(species_of_group),
+        # Formas que podem aparecer como alfa em cada jogo (Legends: Arceus e
+        # Legends: Z-A), para o motivo "Sem alfa". Chave nova, aditiva.
+        "alphaForms": _alpha_forms(species_of_group),
         # Evoluções entre formas das famílias com forma regional (#121):
         # pares [de, para] e as formas que não evoluem. Chave nova, aditiva.
         "formEvolutions": _form_evolutions(),
