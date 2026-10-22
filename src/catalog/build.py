@@ -83,6 +83,10 @@ ALPHA_FORMS_FILE = (
     Path(__file__).resolve().parent.parent / "pokedex/data/alpha_forms.json"
 )
 
+# Espécies que o jogo aceita pelo HOME, fora das pokédex dele, e que só se
+# caçam por ovo (o Phione no Scarlet/Violet, #128).
+HOME_EGGS_FILE = Path(__file__).resolve().parent.parent / "pokedex/data/home_eggs.json"
+
 # Métodos de shiny hunt por jogo (registro da caçada no espécime, #103).
 SHINY_METHODS_FILE = (
     Path(__file__).resolve().parent.parent / "pokedex/data/shiny_methods.json"
@@ -561,6 +565,29 @@ def _alpha_forms(species_of_group: dict[str, set[str]]) -> list[dict]:
     return _forms_by_group(ALPHA_FORMS_FILE, "alfas", species_of_group)
 
 
+def _home_eggs(species_of_group: dict[str, set[str]]) -> list[dict]:
+    """As formas de ``HOME_EGGS_FILE``, trocadas pelos ids. Falha com forma
+    ou grupo desconhecido, ou com espécie que já está numa pokédex do jogo
+    (aí ela não precisa da lista)."""
+    games = json.loads(HOME_EGGS_FILE.read_text(encoding="utf-8"))["games"]
+    forms = _form_ids({n for game in games for n in game["forms"]}, "ovos pelo HOME")
+    result = []
+    for game in games:
+        group = game["versionGroup"]
+        species = species_of_group.get(group)
+        if species is None:
+            raise CatalogError(f"ovos pelo HOME sem pokédex: {group}")
+        if inside := [n for n in game["forms"] if forms[n][1] in species]:
+            raise CatalogError(f"ovos pelo HOME já nas pokédex de {group}: {inside}")
+        result.append(
+            {
+                "versionGroup": group,
+                "forms": sorted(forms[name][0] for name in game["forms"]),
+            }
+        )
+    return result
+
+
 def _forms_by_group(
     file: Path, what: str, species_of_group: dict[str, set[str]]
 ) -> list[dict]:
@@ -792,6 +819,9 @@ def build_catalog(version: str) -> dict:
         # Formas que podem aparecer como alfa em cada jogo (Legends: Arceus e
         # Legends: Z-A), para o motivo "Sem alfa". Chave nova, aditiva.
         "alphaForms": _alpha_forms(species_of_group),
+        # Espécies que o jogo aceita pelo HOME, fora das pokédex, e que só se
+        # caçam por ovo (o Phione no Scarlet/Violet). Chave nova, aditiva.
+        "homeEggs": _home_eggs(species_of_group),
         # Evoluções entre formas das famílias com forma regional (#121):
         # pares [de, para] e as formas que não evoluem. Chave nova, aditiva.
         "formEvolutions": _form_evolutions(),
