@@ -96,6 +96,13 @@ class CatalogTests(TestCase):
         patcher = mock.patch.object(catalog, "REGIONAL_FORMS_FILE", self.game_forms)
         patcher.start()
         self.addCleanup(patcher.stop)
+        self.home_eggs = self.tmp / "home_eggs.json"
+        self.write_game_data(
+            self.home_eggs, "games", "versionGroup", "scarlet-violet", []
+        )
+        patcher = mock.patch.object(catalog, "HOME_EGGS_FILE", self.home_eggs)
+        patcher.start()
+        self.addCleanup(patcher.stop)
         self.alphas = self.tmp / "alphas.json"
         self.write_game_data(self.alphas, "games", "versionGroup", "scarlet-violet")
         patcher = mock.patch.object(catalog, "ALPHA_FORMS_FILE", self.alphas)
@@ -578,6 +585,30 @@ class CatalogTests(TestCase):
                 with self.assertRaisesRegex(catalog.CatalogError, message):
                     catalog.build_catalog("v")
 
+    def test_home_eggs(self):
+        """Espécies que só chegam pelo HOME e se caçam por ovo (#128)."""
+        self.make_victini()
+        self.write_game_data(
+            self.home_eggs, "games", "versionGroup", "scarlet-violet", ["victini"]
+        )
+        data = catalog.build_catalog("v")
+        self.assertEqual(
+            data["homeEggs"], [{"versionGroup": "scarlet-violet", "forms": [494]}]
+        )
+        cases = [
+            (("scarlet-violet", ["missingno"]), "formas desconhecidas"),
+            (("yellow", ["victini"]), "sem pokédex: yellow"),
+            # Já está numa pokédex do jogo: não precisa da lista.
+            (("scarlet-violet", ["ivysaur"]), "já nas pokédex"),
+        ]
+        for (group, forms), message in cases:
+            with self.subTest(message=message):
+                self.write_game_data(
+                    self.home_eggs, "games", "versionGroup", group, forms
+                )
+                with self.assertRaisesRegex(catalog.CatalogError, message):
+                    catalog.build_catalog("v")
+
     def test_bad_game_data_fails(self):
         self.make_victini()
         for file, key, field in (
@@ -847,6 +878,7 @@ class ShippedGameDataTests(TestCase):
         for file, key, field in (
             (catalog.REGIONAL_FORMS_FILE, "games", "versionGroup"),
             (catalog.ALPHA_FORMS_FILE, "games", "versionGroup"),
+            (catalog.HOME_EGGS_FILE, "games", "versionGroup"),
             (catalog.GAME_SHINY_LOCKS_FILE, "locks", "version"),
         ):
             data = json.loads(file.read_text(encoding="utf-8"))

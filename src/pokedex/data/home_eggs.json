@@ -1,0 +1,22 @@
+{
+  "sources": [
+    "https://bulbapedia.bulbagarden.net/wiki/List_of_Pok%C3%A9mon_by_Galar_Pok%C3%A9dex_number#Compatible_Pok%C3%A9mon_not_in_any_Sword_and_Shield_Pok%C3%A9dex",
+    "https://bulbapedia.bulbagarden.net/wiki/List_of_Pok%C3%A9mon_by_Paldea_Pok%C3%A9dex_number#Compatible_Pok%C3%A9mon_not_in_any_Scarlet_and_Violet_Pok%C3%A9dex"
+  ],
+  "notes": [
+    "Espécies que o jogo aceita pelo HOME, fora das pokédex dele, e que só se caçam por ovo, com os pais trazidos pelo HOME (consultado em 2026-10-22). Para as caçadas (frontend#314): contam só nos métodos de ovo.",
+    "Scarlet/Violet: das compatíveis fora das pokédex, só o Phione sai de ovo (de um Manaphy ou de outro Phione). As outras são lendárias e míticas, sem ovo, ou chocam espécies que já estão nas pokédex (o Wyrdeer choca Stantler; o Sneasler, Sneasel de Hisui; o Perrserker, Meowth de Galar).",
+    "Sword/Shield: os iniciais de Hoenn e de Alola. As evoluções deles vêm da pré-evolução (frontend#315); Grovyle, Sceptile, Combusken, Blaziken, Marshtomp e Swampert também saem na Aventura Dinamax (special_encounters.json). O Poipole e o Naganadel, Ultra Beasts, não têm ovo.",
+    "BDSP: a pokédex nacional do jogo tem todas as espécies que ele aceita; nada a acrescentar."
+  ],
+  "games": [
+    {
+      "versionGroup": "scarlet-violet",
+      "forms": ["phione"]
+    },
+    {
+      "versionGroup": "sword-shield",
+      "forms": ["litten", "mudkip", "popplio", "rowlet", "torchic", "treecko"]
+    }
+  ]
+}

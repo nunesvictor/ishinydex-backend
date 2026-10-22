@@ -9,7 +9,8 @@
     "Lendários capturáveis fora das pokédex do jogo: entram como pokédex especiais (sem número) para os saves desses jogos.",
     "FireRed/LeafGreen: a pokédex do jogo na PokéAPI é só a de Kanto (1 a 151). As outras espécies do jogo (Ilhas Sevii, os cães lendários, Deoxys no Switch) vêm dos encontros de FireRed/LeafGreen na PokéAPI (api-data, 2026-10-09), com as evoluções e os filhotes até o nº 386. Ficam de fora os só de evento: Lugia, Ho-Oh, Celebi e as espécies da Altering Cave (Mareep, Aipom, Pineco, Shuckle, Teddiursa, Houndour, Stantler e Smeargle).",
     "XY, ORAS, SM e USUM (\"Outros encontros\"): as espécies que a seção Game locations da Bulbapedia (2026-10-11) dá como obtidas no jogo, mas fora das pokédex do jogo na PokéAPI: Safári Amigo e fósseis (XY); DexNav, Locais Miragem, Voar no céu e os lendários do pós-jogo (ORAS); Island Scan (SM e USUM); Ultra Wormholes / Ultra Space Wilds (USUM); presentes, trocas no jogo, evoluções e criação. Não contam Pokémon Bank, Poké Transporter, troca entre jogadores nem evento.",
-    "Consultadas em 2026-10-07: Aventura Dinamax (seção Special Pokémon) e os Treats do Snacksworth."
+    "Consultadas em 2026-10-07: Aventura Dinamax (seção Special Pokémon) e os Treats do Snacksworth.",
+    "Aventura Dinamax (consultada em 2026-10-22, seção \"Rentable and encounterable Pokémon\"): além dos lendários, entram os Pokémon da Max Lair que não estão em nenhuma pokédex de Sword/Shield: Grovyle, Sceptile, Combusken, Blaziken, Marshtomp e Swampert. Os outros 209 já estão nas pokédex do jogo."
   ],
   "encounters": [
     {
@@ -63,7 +64,7 @@
       "versionGroup": "sword-shield",
       "dlc": "the-crown-tundra",
       "species": [
-        "articuno", "zapdos", "moltres", "mewtwo", "raikou", "entei", "suicune", "lugia", "ho-oh", "latias", "latios", "kyogre", "groudon", "rayquaza", "uxie", "mesprit", "azelf", "dialga", "palkia", "heatran", "giratina", "cresselia", "tornadus", "thundurus", "reshiram", "zekrom", "landorus", "kyurem", "xerneas", "yveltal", "zygarde", "tapu-koko", "tapu-lele", "tapu-bulu", "tapu-fini", "solgaleo", "lunala", "nihilego", "buzzwole", "pheromosa", "xurkitree", "celesteela", "kartana", "guzzlord", "necrozma", "stakataka", "blacephalon"
+        "articuno", "zapdos", "moltres", "mewtwo", "raikou", "entei", "suicune", "lugia", "ho-oh", "latias", "latios", "kyogre", "groudon", "rayquaza", "uxie", "mesprit", "azelf", "dialga", "palkia", "heatran", "giratina", "cresselia", "tornadus", "thundurus", "reshiram", "zekrom", "landorus", "kyurem", "xerneas", "yveltal", "zygarde", "tapu-koko", "tapu-lele", "tapu-bulu", "tapu-fini", "solgaleo", "lunala", "nihilego", "buzzwole", "pheromosa", "xurkitree", "celesteela", "kartana", "guzzlord", "necrozma", "stakataka", "blacephalon", "grovyle", "sceptile", "combusken", "blaziken", "marshtomp", "swampert"
       ]
     },
     {
