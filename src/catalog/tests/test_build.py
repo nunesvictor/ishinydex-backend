@@ -96,6 +96,11 @@ class CatalogTests(TestCase):
         patcher = mock.patch.object(catalog, "REGIONAL_FORMS_FILE", self.game_forms)
         patcher.start()
         self.addCleanup(patcher.stop)
+        self.alphas = self.tmp / "alphas.json"
+        self.write_game_data(self.alphas, "games", "versionGroup", "scarlet-violet")
+        patcher = mock.patch.object(catalog, "ALPHA_FORMS_FILE", self.alphas)
+        patcher.start()
+        self.addCleanup(patcher.stop)
         self.game_locks = self.tmp / "game_locks.json"
         self.write_game_data(self.game_locks, "locks", "version", "scarlet")
         patcher = mock.patch.object(catalog, "GAME_SHINY_LOCKS_FILE", self.game_locks)
@@ -506,6 +511,9 @@ class CatalogTests(TestCase):
         )
         self.assertEqual(data["gameShinyLocks"], [{"version": "scarlet", "forms": [2]}])
         self.assertEqual(
+            data["alphaForms"], [{"versionGroup": "scarlet-violet", "forms": [2]}]
+        )
+        self.assertEqual(
             data["shinyMethods"],
             [
                 {
@@ -574,6 +582,7 @@ class CatalogTests(TestCase):
         self.make_victini()
         for file, key, field in (
             (self.game_forms, "games", "versionGroup"),
+            (self.alphas, "games", "versionGroup"),
             (self.game_locks, "locks", "version"),
         ):
             good = "scarlet-violet" if field == "versionGroup" else "scarlet"
@@ -837,6 +846,7 @@ class ShippedGameDataTests(TestCase):
     def test_files_are_well_formed(self):
         for file, key, field in (
             (catalog.REGIONAL_FORMS_FILE, "games", "versionGroup"),
+            (catalog.ALPHA_FORMS_FILE, "games", "versionGroup"),
             (catalog.GAME_SHINY_LOCKS_FILE, "locks", "version"),
         ):
             data = json.loads(file.read_text(encoding="utf-8"))
