@@ -345,6 +345,16 @@ def _home_cutoffs() -> dict[str, str]:
     return result
 
 
+# O Pokémon GO como jogo (ishinydex-backend#131): a PokéAPI não tem uma
+# versão dele. Entra só na lista de jogos, sem grupo de versão (o app o
+# põe no topo da lista); como o FRLG, só envia para o HOME.
+GO_VERSION = {
+    "name": "pokemon-go",
+    "versionGroup": "pokemon-go",
+    "receivesFromHome": False,
+}
+
+
 def _versions() -> tuple[list[dict], list[dict]]:
     mark_by_group = {
         group: mark
@@ -374,7 +384,7 @@ def _versions() -> tuple[list[dict], list[dict]]:
             "version_group__order", "name"
         )
     ]
-    return groups, versions
+    return groups, [GO_VERSION, *versions]
 
 
 def _choices() -> dict:

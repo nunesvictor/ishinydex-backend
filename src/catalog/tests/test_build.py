@@ -318,6 +318,16 @@ class CatalogTests(TestCase):
         versions = {v["name"]: v for v in data["versions"]}
         self.assertTrue(versions["scarlet"]["receivesFromHome"])
         self.assertFalse(versions["yellow"]["receivesFromHome"])
+        # O GO (#131): um jogo sem grupo de versão, primeiro da lista.
+        self.assertEqual(
+            data["versions"][0],
+            {
+                "name": "pokemon-go",
+                "versionGroup": "pokemon-go",
+                "receivesFromHome": False,
+            },
+        )
+        self.assertNotIn("pokemon-go", groups)
 
         self.assertEqual(data["defaultDex"], [1, 2])  # sem a forma de batalha
 
