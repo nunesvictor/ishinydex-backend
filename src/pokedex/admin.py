@@ -37,7 +37,7 @@ class PokemonAdmin(PokeAPIAdmin):
     list_filter = ("is_default", "species__generation")
     ordering = ("species__id", "-is_default", "pk")
     raw_id_fields = ("species",)
-    readonly_fields = ("abilities", "game_indices", "moves", "stats", "types")
+    readonly_fields = ("abilities", "game_indices", "stats", "types")
     search_fields = ("name",)
 
 

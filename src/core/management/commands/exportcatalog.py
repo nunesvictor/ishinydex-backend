@@ -6,14 +6,15 @@ from django.core.management.base import CommandError
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy as _lazy
 
-from catalog.build import CatalogError, build_catalog
+from catalog.build import CatalogError, build_catalog, build_moves
 from core.management.base import BaseCommand
 
 
 class Command(BaseCommand):
     help = _lazy(
         "Export the reference data (forms, pokémon, species, versions, choices "
-        "and default shiny locks) as the catalog package used by the app."
+        "and default shiny locks) as the catalog package used by the app, and "
+        "the moves in a separate file."
     )
 
     def add_arguments(self, parser):
@@ -32,15 +33,18 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         try:
             catalog = build_catalog(options["catalog_version"])
+            moves = build_moves(options["catalog_version"])
         except CatalogError as error:
             raise CommandError(str(error))
         output = Path(options["output"])
         output.mkdir(parents=True, exist_ok=True)
         file = output / "catalog.json"
-        file.write_text(
-            json.dumps(catalog, ensure_ascii=False, separators=(",", ":")),
-            encoding="utf-8",
-        )
+        moves_file = output / catalog["movesFile"]
+        for path, data in ((file, catalog), (moves_file, moves)):
+            path.write_text(
+                json.dumps(data, ensure_ascii=False, separators=(",", ":")),
+                encoding="utf-8",
+            )
 
         counts = ", ".join(
             f"{key}={len(catalog[key])}"
@@ -54,6 +58,17 @@ class Command(BaseCommand):
                     "file": file,
                     "size": file.stat().st_size // 1024,
                     "counts": counts,
+                }
+            )
+        )
+        self.stdout.write(
+            self.style.SUCCESS(
+                _("%(file)s (%(size)d KB): moves=%(moves)d, pokemon=%(pokemon)d")
+                % {
+                    "file": moves_file,
+                    "size": moves_file.stat().st_size // 1024,
+                    "moves": len(moves["moves"]),
+                    "pokemon": len(moves["learnsets"]),
                 }
             )
         )

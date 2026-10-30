@@ -1,5 +1,6 @@
 # Gera o pacote do catálogo (ishinydex#48, etapa 1) e o publica como release
-# `catalog-AAAA.MM.DD`, com o catalog.json anexado.
+# `catalog-AAAA.MM.DD`, com o catalog.json e o arquivo dos golpes
+# (moves-AAAA.MM.DD.json, #134) anexados.
 #
 # Os dados vêm do PokeAPI/api-data (o JSON estático da PokéAPI), lido do disco
 # pelo sync_pokeapi: sem instância local da PokéAPI e sem a API pública.
@@ -67,7 +68,7 @@ jobs:
             data/api/v2/pokemon-species data/api/v2/pokemon \
             data/api/v2/pokemon-form data/api/v2/version data/api/v2/version-group \
             data/api/v2/evolution-chain data/api/v2/item data/api/v2/move \
-            data/api/v2/location
+            data/api/v2/location data/api/v2/machine
           echo "API_DATA_COMMIT=$(git -C api-data rev-parse --short HEAD)" >> "$GITHUB_ENV"
 
       - run: pipx install "poetry==${POETRY_VERSION}"
@@ -94,13 +95,13 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ env.CATALOG_VERSION }}
-          path: catalog/catalog.json
+          path: catalog/*.json
 
       - name: Publicar a release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$CATALOG_VERSION" catalog/catalog.json \
+          gh release create "$CATALOG_VERSION" catalog/*.json \
             --target "$GITHUB_SHA" \
             --title "$CATALOG_VERSION" \
             --notes "Pacote do catálogo gerado do PokeAPI/api-data@${API_DATA_COMMIT} pelo commit ${GITHUB_SHA::7}. Formato em src/catalog/build.py."

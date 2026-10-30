@@ -15,7 +15,10 @@ from core.tests import factories as f
 from home.models import HOME_ORIGIN_VERSIONS, HOME_TRANSFER_VERSIONS
 from pokedex.models import (
     EvolutionMethod,
+    Move,
+    MoveMachine,
     PokemonAbility,
+    PokemonMoveLearn,
     PokemonSpecies,
     PokemonSpeciesDexEntry,
     VersionGroup,
@@ -1022,6 +1025,149 @@ class CatalogTests(TestCase):
         self.assertNotIn("\n", file.read_text(encoding="utf-8"))
         self.assertIn("catalog-2026.01.02", out.getvalue())
         self.assertIn("forms=3", out.getvalue())
+        # Os golpes, à parte, com a versão no nome; o catálogo só aponta.
+        self.assertEqual(data["movesFile"], "moves-2026.01.02.json")
+        moves = json.loads(
+            (self.tmp / "out" / "moves-2026.01.02.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(moves["version"], "catalog-2026.01.02")
+        self.assertIn("moves-2026.01.02.json (", out.getvalue())
+
+    @staticmethod
+    def make_move(name, **kwargs):
+        defaults = {
+            "label": name.title(),
+            "pp": 35,
+            "priority": 0,
+            "damage_class": "physical",
+            "generation": "generation-i",
+            "target": "selected-pokemon",
+            "type": "normal",
+        }
+        return Move.objects.create(name=name, **(defaults | kwargs))
+
+    def learn(self, move, method="level-up", level=1, group="scarlet-violet", **kw):
+        return PokemonMoveLearn.objects.create(
+            pokemon=kw.get("pokemon", self.bulba),
+            move=move,
+            version_group=VersionGroup.objects.get(name=group),
+            method=method,
+            level=level,
+        )
+
+    def test_moves_file(self):
+        tackle = self.make_move("tackle", power=40, accuracy=100, effect="Hits.")
+        vine = self.make_move(
+            "vine-whip",
+            label="Vine Whip",
+            type="grass",
+            power=45,
+            accuracy=100,
+            pp=25,
+            past_values=[
+                {
+                    "version_group": "brilliant-diamond-shining-pearl",
+                    "power": 35,
+                    "accuracy": None,
+                    "pp": 15,
+                    "type": None,
+                }
+            ],
+        )
+        # Ninguém aprende: fica de fora.
+        self.make_move("splash")
+        self.learn(vine, level=3)
+        self.learn(tackle)
+        self.learn(vine, "machine", 0)
+        self.learn(tackle, group="brilliant-diamond-shining-pearl")
+        self.learn(tackle, "egg", 0, pokemon=self.ivy_form.pokemon)
+        sv = VersionGroup.objects.get(name="scarlet-violet")
+        MoveMachine.objects.create(move=vine, version_group=sv, item="tm2")
+        # De um jogo sem ninguém aprendendo nada: fica de fora.
+        MoveMachine.objects.create(
+            move=vine,
+            version_group=VersionGroup.objects.get(name="the-teal-mask"),
+            item="tm9",
+        )
+
+        data = catalog.build_moves("catalog-2026.01.02")
+
+        self.assertEqual(data["version"], "catalog-2026.01.02")
+        self.assertEqual([m["name"] for m in data["moves"]], ["tackle", "vine-whip"])
+        self.assertEqual(
+            data["moves"][0],
+            {
+                "name": "tackle",
+                "label": "Tackle",
+                "type": "normal",
+                "category": "physical",
+                "power": 40,
+                "accuracy": 100,
+                "pp": 35,
+                "priority": 0,
+                "target": "selected-pokemon",
+                "effect": "Hits.",
+            },
+        )
+        self.assertEqual(
+            data["moves"][1]["past"],
+            [
+                {
+                    "versionGroup": "brilliant-diamond-shining-pearl",
+                    "power": 35,
+                    "accuracy": None,
+                    "pp": 15,
+                    "type": None,
+                }
+            ],
+        )
+        # Na ordem dos jogos.
+        self.assertEqual(
+            data["versionGroups"], ["brilliant-diamond-shining-pearl", "scarlet-violet"]
+        )
+        self.assertEqual(data["methods"], list(catalog.MOVE_LEARN_METHODS))
+        level, machine, egg = 0, 1, 2
+        self.assertEqual(
+            data["learnsets"],
+            {
+                str(self.bulba.pokeapi_id): {
+                    "0": [0, level, 1],
+                    # Por modo e nível: Tackle (Nv. 1), Vine Whip (Nv. 3), a TM.
+                    "1": [0, level, 1, 1, level, 3, 1, machine, 0],
+                },
+                str(self.ivy_form.pokemon.pokeapi_id): {"1": [0, egg, 0]},
+            },
+        )
+        self.assertEqual(data["machines"], {"scarlet-violet": {"1": "tm2"}})
+
+    def test_moves_file_without_moves(self):
+        self.assertEqual(
+            catalog.build_moves("v"),
+            {
+                "schemaVersion": catalog.SCHEMA_VERSION,
+                "version": "v",
+                "moves": [],
+                "versionGroups": [],
+                "methods": list(catalog.MOVE_LEARN_METHODS),
+                "learnsets": {},
+                "machines": {},
+            },
+        )
+
+    def test_unknown_learn_method_fails(self):
+        self.learn(self.make_move("tackle"), "dance")
+
+        with self.assertRaisesMessage(catalog.CatalogError, "dance"):
+            catalog.build_moves("v")
+
+    def test_catalog_does_not_carry_the_moves(self):
+        """O catálogo, que o app baixa ao abrir, não leva os golpes."""
+        self.learn(self.make_move("tackle"))
+
+        data = catalog.build_catalog("catalog-2026.01.02")
+
+        self.assertEqual(data["movesFile"], "moves-2026.01.02.json")
+        self.assertNotIn("tackle", json.dumps(data))
 
 
 class ShippedVersionExclusivesTests(TestCase):

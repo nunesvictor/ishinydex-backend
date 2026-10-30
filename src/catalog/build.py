@@ -32,8 +32,11 @@ from home.origin_marks import ORIGIN_MARK_VERSION_GROUPS
 from home.services import default_forms
 from pokedex.models import (
     EvolutionMethod,
+    Move,
+    MoveMachine,
     Pokemon,
     PokemonForm,
+    PokemonMoveLearn,
     PokemonSpecies,
     PokemonSpeciesDexEntry,
     Version,
@@ -137,6 +140,21 @@ EVOLUTION_NAME_KINDS = {
     "location": "locations",
 }
 GENDERS = {1: "female", 2: "male"}
+
+# Modos de aprender um golpe que o app sabe mostrar (os quatro principais e
+# os de "Outros", #36). Um novo na PokéAPI falha o pacote dos golpes.
+MOVE_LEARN_METHODS = (
+    "level-up",
+    "machine",
+    "egg",
+    "tutor",
+    "light-ball-egg",
+    "form-change",
+    "zygarde-cube",
+    "stadium-surfing-pikachu",
+    "train",
+    "xd-purification",
+)
 
 # Formas que não podem ser obtidas shiny em cada jogo (Solgaleo em Scarlet).
 GAME_SHINY_LOCKS_FILE = (
@@ -982,6 +1000,110 @@ def _shiny_odds(methods: list[dict]) -> list[dict]:
     return result
 
 
+def moves_file_name(version: str) -> str:
+    """O arquivo dos golpes de uma versão do catálogo, com a versão no nome
+    (``catalog-2026.11.02`` → ``moves-2026.11.02.json``): o conteúdo de um
+    nome nunca muda, e o app guarda o arquivo sem conferir de novo."""
+    return f"moves-{version.removeprefix('catalog-')}.json"
+
+
+def build_moves(version: str) -> dict:
+    """O pacote dos golpes (#134), à parte do catálogo: o app só o baixa ao
+    abrir a aba Golpes ou a busca (frontend#36).
+
+    Compacto, com índices no lugar dos nomes repetidos:
+
+    - ``moves``: os golpes que algum pokémon aprende, em ordem de nome; o
+      índice na lista é o que ``learnsets`` e ``machines`` usam. Os valores
+      de jogos antigos ficam em ``past`` (valem nos grupos de versões
+      anteriores ao ``versionGroup`` de cada um; ``null`` = igual ao atual);
+    - ``versionGroups`` e ``methods``: os nomes por índice;
+    - ``learnsets``: por id de pokémon e índice do grupo de versões, a lista
+      plana ``[golpe, modo, nível, golpe, modo, nível...]``;
+    - ``machines``: por grupo de versões, o item da TM de cada golpe
+      (``"tm71"``, ``"hm01"``, ``"tr12"``).
+
+    Falha com modo de aprender desconhecido."""
+    learns = list(
+        PokemonMoveLearn.objects.values_list(
+            "pokemon__pokeapi_id", "version_group__name", "move_id", "method", "level"
+        ).order_by(
+            "pokemon__pokeapi_id",
+            "version_group__order",
+            "method",
+            "level",
+            "order",
+            "move__name",
+        )
+    )
+    if unknown := sorted({row[3] for row in learns} - set(MOVE_LEARN_METHODS)):
+        raise CatalogError(f"modos de aprender golpes desconhecidos: {unknown}")
+    moves = list(
+        Move.objects.filter(id__in={row[2] for row in learns}).order_by("name")
+    )
+    move_index = {m.id: i for i, m in enumerate(moves)}
+    groups = list(
+        VersionGroup.objects.filter(name__in={row[1] for row in learns}).values_list(
+            "name", flat=True
+        )
+    )
+    group_index = {name: i for i, name in enumerate(groups)}
+    method_index = {name: i for i, name in enumerate(MOVE_LEARN_METHODS)}
+
+    learnsets: dict[str, dict[str, list[int]]] = {}
+    for pokemon, group, move, method, level in learns:
+        flat = learnsets.setdefault(str(pokemon), {}).setdefault(
+            str(group_index[group]), []
+        )
+        flat += [move_index[move], method_index[method], level]
+
+    machines: dict[str, dict[str, str]] = {}
+    for move, group, item in MoveMachine.objects.filter(
+        move_id__in=move_index, version_group__name__in=group_index
+    ).values_list("move_id", "version_group__name", "item"):
+        machines.setdefault(group, {})[str(move_index[move])] = item
+
+    def move_json(m: Move) -> dict:
+        return {
+            "name": m.name,
+            "label": m.label or m.name,
+            "type": m.type,
+            "category": m.damage_class,
+            "power": m.power,
+            "accuracy": m.accuracy,
+            "pp": m.pp,
+            "priority": m.priority,
+            "target": m.target,
+            "effect": m.effect,
+            **(
+                {
+                    "past": [
+                        {
+                            "versionGroup": v["version_group"],
+                            "power": v["power"],
+                            "accuracy": v["accuracy"],
+                            "pp": v["pp"],
+                            "type": v["type"],
+                        }
+                        for v in m.past_values
+                    ]
+                }
+                if m.past_values
+                else {}
+            ),
+        }
+
+    return {
+        "schemaVersion": SCHEMA_VERSION,
+        "version": version,
+        "moves": [move_json(m) for m in moves],
+        "versionGroups": groups,
+        "methods": list(MOVE_LEARN_METHODS),
+        "learnsets": learnsets,
+        "machines": {g: machines[g] for g in groups if g in machines},
+    }
+
+
 def build_catalog(version: str) -> dict:
     groups, versions = _versions()
     pokedexes, species_of_group = _pokedexes()
@@ -1022,6 +1144,10 @@ def build_catalog(version: str) -> dict:
         # lugares, e a frase e o link "Veja mais" nos casos bizarros. Chave
         # nova, aditiva.
         "evolutionMethods": _evolution_methods(),
+        # Os golpes ficam num arquivo à parte (``build_moves``), baixado só
+        # ao abrir a aba Golpes ou a busca (#134); aqui, só o nome dele.
+        # Chave nova, aditiva.
+        "movesFile": moves_file_name(version),
         # Métodos de shiny hunt e os jogos onde existem (a primeira unidade
         # é a padrão). Chave nova, aditiva: o schemaVersion continua.
         "shinyMethods": methods,

@@ -56,7 +56,15 @@ class EvolutionMethod(TimestampedModel):
 
 
 class Move(TimestampedModel):
-    name = models.CharField(_("name"), max_length=255)
+    """Um golpe da PokéAPI, com os valores atuais. Os de jogos antigos ficam
+    em ``past_values`` como na API: cada um vale nos grupos de versões
+    **anteriores** ao ``version_group`` dele, e ``null`` é "igual ao atual"."""
+
+    name = models.CharField(_("name"), max_length=255, unique=True)
+    pokeapi_id = models.PositiveIntegerField(_("PokéAPI ID"), blank=True, null=True)
+    label = models.CharField(_("label"), max_length=255, blank=True)
+    effect = models.TextField(_("effect"), blank=True)
+    past_values = models.JSONField(_("past values"), default=list)
     accuracy = models.PositiveIntegerField(_("accuracy"), blank=True, null=True)
     effect_chance = models.PositiveIntegerField(
         _("effect chance"), blank=True, null=True
@@ -173,29 +181,47 @@ class PokemonForm(TimestampedModel):
         return f"{self.name}{suffix}"
 
 
-class PokemonMove(TimestampedModel):
-    move = models.ForeignKey(Move, on_delete=models.CASCADE)
-    version_group_details = models.ManyToManyField(
-        "PokemonMoveVersion", related_name="moves"
+class MoveMachine(TimestampedModel):
+    """A TM (ou HM, ou TR) de um golpe num grupo de versões: o item da
+    PokéAPI, como ``tm24`` ou ``tr12``."""
+
+    move = models.ForeignKey(Move, on_delete=models.CASCADE, related_name="machines")
+    version_group = models.ForeignKey("VersionGroup", on_delete=models.CASCADE)
+    item = models.CharField(_("item"), max_length=255)
+
+    class Meta(TimestampedModel.Meta):
+        verbose_name = _("move machine")
+        verbose_name_plural = _("move machines")
+        constraints = [
+            models.UniqueConstraint(
+                fields=("move", "version_group"), name="unique_move_machine"
+            )
+        ]
+
+    def __str__(self):
+        return self.item
+
+
+class PokemonMoveLearn(TimestampedModel):
+    """Um golpe que o pokémon aprende num grupo de versões, com o modo
+    (``level-up``, ``machine``, ``egg``, ``tutor``...) e o nível."""
+
+    pokemon = models.ForeignKey(
+        "Pokemon", on_delete=models.CASCADE, related_name="move_learns"
     )
+    move = models.ForeignKey(Move, on_delete=models.CASCADE)
+    version_group = models.ForeignKey("VersionGroup", on_delete=models.CASCADE)
+    method = models.CharField(_("move learn method"), max_length=255)
+    level = models.PositiveIntegerField(_("level learned at"))
+    order = models.PositiveIntegerField(_("order"), blank=True, null=True)
+    move_id: int
 
     class Meta(TimestampedModel.Meta):
         verbose_name = _("pokémon move")
         verbose_name_plural = _("pokémon moves")
 
     def __str__(self):
-        return self.move.name
-
-
-class PokemonMoveVersion(TimestampedModel):
-    move_learn_method = models.CharField(_("move learn method"), max_length=255)
-    version_group = models.ForeignKey("VersionGroup", on_delete=models.CASCADE)
-    level_learned_at = models.PositiveIntegerField(_("level learned at"))
-    order = models.PositiveIntegerField(_("order"), blank=True, null=True)
-
-    class Meta(TimestampedModel.Meta):
-        verbose_name = _("pokémon move version")
-        verbose_name_plural = _("pokémon move versions")
+        return f"{self.move_id} ({self.method})"
 
 
 class PokemonSpecies(TimestampedModel):
@@ -309,7 +335,6 @@ class Pokemon(TimestampedModel):
     weight = models.PositiveIntegerField(_("weight"))
     abilities = models.ManyToManyField(PokemonAbility, related_name="pokemons")
     game_indices = models.ManyToManyField("VersionGameIndex", related_name="pokemons")
-    moves = models.ManyToManyField(PokemonMove, related_name="pokemons")
     sprites = models.JSONField(_("sprites"), default=dict)
     cries = models.JSONField(_("cries"), default=dict)
     species = models.ForeignKey(
