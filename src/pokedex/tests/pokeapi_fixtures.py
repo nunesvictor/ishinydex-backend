@@ -124,7 +124,22 @@ def _pokemon(name, id_, species, *, forms, types, abilities, stats, games, **ext
             for v, index in games
         ],
         "moves": [
-            {"move": ref("move", "thunder-shock", 84), "version_group_details": []}
+            {
+                "move": ref("move", "thunder-shock", 84),
+                "version_group_details": [
+                    {
+                        "level_learned_at": level,
+                        "move_learn_method": ref("move-learn-method", method, 1),
+                        "version_group": ref(
+                            "version-group", group, VERSION_GROUPS[group][0]
+                        ),
+                        "order": None,
+                    }
+                    for group, method, level in extra.get(
+                        "learns", [("red-blue", "level-up", 1)]
+                    )
+                ],
+            }
         ],
     }
 
@@ -237,6 +252,48 @@ def _evolution_chain():
     }
 
 
+def _move():
+    """O Thunder Shock, com a TM do Red/Blue e um valor antigo."""
+    return {
+        "id": 84,
+        "name": "thunder-shock",
+        "accuracy": 100,
+        "effect_chance": 10,
+        "pp": 30,
+        "priority": 0,
+        "power": 40,
+        "damage_class": ref("move-damage-class", "special", 3),
+        "generation": ref("generation", "generation-i", 1),
+        "target": ref("move-target", "selected-pokemon", 10),
+        "type": ref("type", "electric", 13),
+        "names": [{"language": ref("language", "en", 9), "name": "Thunder Shock"}],
+        "effect_entries": [
+            {
+                "language": ref("language", "en", 9),
+                "short_effect": "Has a $effect_chance% chance to paralyze.",
+            }
+        ],
+        "past_values": [
+            {
+                "accuracy": None,
+                "power": 35,
+                "pp": None,
+                "effect_chance": None,
+                "effect_entries": [],
+                "type": None,
+                "version_group": ref("version-group", "gold-silver", 3),
+            }
+        ],
+        "machines": [
+            {
+                "machine": ref("machine", "", 400),
+                "version_group": ref("version-group", "red-blue", 1),
+            }
+        ],
+        "learned_by_pokemon": [],
+    }
+
+
 def _named(id_, name, english, **extra):
     """Item ou lugar: só o nome em cada idioma importa."""
     return {
@@ -269,6 +326,11 @@ def build_world() -> dict[str, dict]:
             abilities=[("static", 1, False), ("lightning-rod", 3, True)],
             stats=[("hp", 35, 0), ("speed", 90, 2)],
             games=[("red", 84), ("blue", 84), ("gold", 156)],
+            learns=[
+                ("red-blue", "level-up", 1),
+                ("red-blue", "machine", 0),
+                ("sword-shield", "level-up", 1),
+            ],
         ),
         _pokemon(
             "pikachu-gmax",
@@ -315,6 +377,13 @@ def build_world() -> dict[str, dict]:
             form_name="spiky-eared",
         ),
         _evolution_chain(),
+        _move(),
+        {
+            "id": 400,
+            "item": ref("item", "tm24", 328),
+            "move": ref("move", "thunder-shock", 84),
+            "version_group": ref("version-group", "red-blue", 1),
+        },
         _named(83, "thunder-stone", "Thunder Stone", cost=3000),
         _named(88, "viridian-forest", "Viridian Forest", areas=[]),
         *(_version(v) for v in VERSIONS),
@@ -327,12 +396,16 @@ def build_world() -> dict[str, dict]:
         "pokemon": [r for r in resources if "game_indices" in r],
         "pokemon-form": [r for r in resources if "form_order" in r],
         "version": [
-            r for r in resources if "version_group" in r and "form_order" not in r
+            r
+            for r in resources
+            if "version_group" in r and "form_order" not in r and "move" not in r
         ],
         "version-group": [r for r in resources if "pokedexes" in r],
         "evolution-chain": [r for r in resources if "chain" in r],
         "item": [r for r in resources if "cost" in r],
         "location": [r for r in resources if "areas" in r],
+        "move": [r for r in resources if "learned_by_pokemon" in r],
+        "machine": [r for r in resources if "move" in r and "item" in r],
     }
 
     for endpoint, items in endpoints.items():

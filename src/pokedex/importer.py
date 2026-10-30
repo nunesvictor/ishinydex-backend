@@ -1,14 +1,17 @@
 """Importação da PokéAPI em duas fases.
 
 1. **Busca**: parte das espécies e segue as referências (variedades → pokémon →
-   formas → versões → grupos de versão), baixando cada nível em paralelo.
+   formas e golpes → TMs → versões → grupos de versão), baixando cada nível em
+   paralelo.
 2. **Gravação**: numa transação, em ordem de dependência, com upsert em lote
    por ``name`` e mapas ``nome → id`` em memória. As relações que dependem de
    registros criados depois (``evolves_from_species``, variedades) são
    resolvidas numa segunda passada, então a ordem da API não importa.
 
 É idempotente: rodar de novo atualiza os campos e as relações, sem duplicar.
-Golpes (moves) não são importados. Das cadeias de evolução vêm os métodos
+Dos pokémon vêm os golpes que cada um aprende por grupo de versões
+(``PokemonMoveLearn``), os dados de cada golpe (``Move``) e as TMs
+(``MoveMachine``). Das cadeias de evolução vêm os métodos
 (``EvolutionMethod``), com o nome em inglês dos itens, golpes e lugares que
 eles citam.
 """
@@ -22,10 +25,13 @@ from django.db import models, transaction
 from core.services.pokeapi import PokeAPIClient
 from pokedex.models import (
     EvolutionMethod,
+    Move,
+    MoveMachine,
     Pokemon,
     PokemonAbility,
     PokemonForm,
     PokemonFormType,
+    PokemonMoveLearn,
     PokemonSpecies,
     PokemonSpeciesDexEntry,
     PokemonSpeciesVariety,
@@ -95,6 +101,23 @@ def _evolution_conditions(detail: dict) -> dict:
     return conditions
 
 
+def _english(resource: dict) -> str:
+    """O nome em inglês de um recurso (``names``); sem ele, o ``name``."""
+    return next(
+        (n["name"] for n in resource["names"] if n["language"]["name"] == "en"),
+        resource["name"],
+    )
+
+
+def _effect(entries: list[dict], chance: int | None) -> str:
+    """O ``short_effect`` em inglês, com a chance no lugar de
+    ``$effect_chance``; vazio se a PokéAPI não tiver."""
+    effect = next(
+        (e["short_effect"] for e in entries if e["language"]["name"] == "en"), ""
+    )
+    return effect.replace("$effect_chance", str(chance))
+
+
 def _chain_links(chain: dict) -> Iterable[tuple[str, str, dict]]:
     """``(de, para, ligação)`` de cada ligação de uma ``evolution-chain``."""
     for link in chain["evolves_to"]:
@@ -112,6 +135,8 @@ class FetchedData:
     evolution_chains: list[dict] = field(default_factory=list)
     # Itens, golpes e lugares citados nos métodos de evolução.
     references: list[dict] = field(default_factory=list)
+    moves: list[dict] = field(default_factory=list)
+    machines: list[dict] = field(default_factory=list)
 
 
 class PokeAPIImporter:
@@ -169,6 +194,13 @@ class PokeAPIImporter:
         data.forms = self._get_many(
             "forms", (f["url"] for p in data.pokemon for f in p["forms"])
         )
+        data.moves = self._get_many(
+            "moves", (m["move"]["url"] for p in data.pokemon for m in p["moves"])
+        )
+        data.machines = self._get_many(
+            "machines",
+            (mm["machine"]["url"] for m in data.moves for mm in m["machines"]),
+        )
         # Import completo: todas as versões (jogos recentes, como Scarlet/Violet,
         # não aparecem em game_indices mas são usadas em OriginalTrainer).
         all_versions = [] if species_names else self.client.list("version")
@@ -183,7 +215,14 @@ class PokeAPIImporter:
             [r["url"] for r in all_groups]
             + [v["version_group"]["url"] for v in data.versions]
             + [f["version_group"]["url"] for f in data.forms]
-            + [d["version_group"]["url"] for d in details],
+            + [d["version_group"]["url"] for d in details]
+            + [
+                d["version_group"]["url"]
+                for p in data.pokemon
+                for m in p["moves"]
+                for d in m["version_group_details"]
+            ]
+            + [m["version_group"]["url"] for m in data.machines],
         )
 
         return data
@@ -212,6 +251,8 @@ class PokeAPIImporter:
         methods = self._save_evolution_methods(
             data.evolution_chains, data.references, species_ids, vg_ids
         )
+        move_ids = self._save_moves(data.moves, data.machines, vg_ids)
+        learns = self._save_move_learns(data.pokemon, pokemon_ids, move_ids, vg_ids)
 
         return {
             "version_groups": len(vg_ids),
@@ -220,6 +261,8 @@ class PokeAPIImporter:
             "pokemon": len(pokemon_ids),
             "forms": len(data.forms),
             "evolution_methods": methods,
+            "moves": len(move_ids),
+            "move_learns": learns,
         }
 
     def _save_version_groups(self, version_groups: list[dict]) -> dict[str, int]:
@@ -436,13 +479,7 @@ class PokeAPIImporter:
         """Troca os métodos que chegam nas espécies importadas. A espécie de
         origem pode vir do banco (import parcial); sem ela, a ligação fica de
         fora."""
-        english = {
-            r["name"]: next(
-                (n["name"] for n in r["names"] if n["language"]["name"] == "en"),
-                r["name"],
-            )
-            for r in references
-        }
+        english = {r["name"]: _english(r) for r in references}
         known = dict(PokemonSpecies.objects.values_list("name", "id"))
         rows = []
         for chain in chains:
@@ -471,6 +508,79 @@ class PokeAPIImporter:
                     )
         EvolutionMethod.objects.filter(to_species_id__in=species_ids.values()).delete()
         EvolutionMethod.objects.bulk_create(rows, batch_size=BATCH_SIZE)
+        return len(rows)
+
+    def _save_moves(
+        self, moves: list[dict], machines: list[dict], vg_ids
+    ) -> dict[str, int]:
+        """Os golpes e as TMs deles (as dos golpes importados são trocadas)."""
+        move_ids = self._upsert(
+            Move,
+            [
+                {
+                    "name": m["name"],
+                    "pokeapi_id": m["id"],
+                    "label": _english(m),
+                    "effect": _effect(m["effect_entries"], m["effect_chance"]),
+                    "accuracy": m["accuracy"],
+                    "effect_chance": m["effect_chance"],
+                    # A PokéAPI traz null no PP de alguns golpes (os Shadow).
+                    "pp": m["pp"] or 0,
+                    "priority": m["priority"],
+                    "power": m["power"],
+                    "damage_class": _name(m["damage_class"]) or "",
+                    "generation": _name(m["generation"]) or "",
+                    "target": _name(m["target"]) or "",
+                    "type": _name(m["type"]) or "",
+                    "past_values": [
+                        {
+                            "version_group": _name(v["version_group"]),
+                            "power": v["power"],
+                            "accuracy": v["accuracy"],
+                            "pp": v["pp"],
+                            "type": _name(v["type"]),
+                        }
+                        for v in m["past_values"]
+                    ],
+                }
+                for m in moves
+            ],
+        )
+        MoveMachine.objects.filter(move_id__in=move_ids.values()).delete()
+        MoveMachine.objects.bulk_create(
+            [
+                MoveMachine(
+                    move_id=move_ids[m["move"]["name"]],
+                    version_group_id=vg_ids[m["version_group"]["name"]],
+                    item=m["item"]["name"],
+                )
+                for m in machines
+                if m["move"]["name"] in move_ids
+            ],
+            batch_size=BATCH_SIZE,
+        )
+        return move_ids
+
+    def _save_move_learns(
+        self, pokemon: list[dict], pokemon_ids, move_ids, vg_ids
+    ) -> int:
+        """Troca os golpes que os pokémon importados aprendem."""
+        rows = [
+            PokemonMoveLearn(
+                pokemon_id=pokemon_ids[p["name"]],
+                move_id=move_ids[m["move"]["name"]],
+                version_group_id=vg_ids[d["version_group"]["name"]],
+                method=d["move_learn_method"]["name"],
+                level=d["level_learned_at"],
+                order=d.get("order"),
+            )
+            for p in pokemon
+            for m in p["moves"]
+            for d in m["version_group_details"]
+        ]
+        PokemonMoveLearn.objects.filter(pokemon_id__in=pokemon_ids.values()).delete()
+        PokemonMoveLearn.objects.bulk_create(rows, batch_size=BATCH_SIZE * 4)
+        self.log(f"  {PokemonMoveLearn._meta.verbose_name_plural}: {len(rows)}")
         return len(rows)
 
     def _link_varieties(self, species: list[dict]) -> None:

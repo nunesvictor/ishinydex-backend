@@ -4,9 +4,12 @@ from core.tests import factories as f
 from pokedex.importer import PokeAPIImporter, UnknownSpeciesError
 from pokedex.models import (
     EvolutionMethod,
+    Move,
+    MoveMachine,
     Pokemon,
     PokemonAbility,
     PokemonForm,
+    PokemonMoveLearn,
     PokemonSpecies,
     PokemonSpeciesVariety,
     PokemonStat,
@@ -43,6 +46,9 @@ class FullImportTests(ImporterTestCase):
                 "pokemon": 4,
                 "forms": 5,
                 "evolution_methods": 3,
+                "moves": 1,
+                # Pikachu 3, Raichu e Pichu 1, o Gigantamax 1.
+                "move_learns": 6,
             },
         )
         self.assertEqual(PokemonForm.objects.count(), 5)
@@ -175,9 +181,47 @@ class FullImportTests(ImporterTestCase):
         )
         self.assertEqual(other.labels, {"viridian-forest": "Viridian Forest"})
 
-    def test_moves_are_not_imported(self):
-        self.assertFalse(any(p.startswith("move/") for p in self.client_api.requested))
-        self.assertFalse(Pokemon.objects.get(name="pikachu").moves.exists())
+    def test_moves(self):
+        move = Move.objects.get(name="thunder-shock")
+
+        self.assertEqual(move.pokeapi_id, 84)
+        self.assertEqual(move.label, "Thunder Shock")
+        self.assertEqual(move.effect, "Has a 10% chance to paralyze.")
+        self.assertEqual(
+            (move.type, move.damage_class, move.power, move.accuracy, move.pp),
+            ("electric", "special", 40, 100, 30),
+        )
+        self.assertEqual(move.target, "selected-pokemon")
+        self.assertEqual(
+            move.past_values,
+            [
+                {
+                    "version_group": "gold-silver",
+                    "power": 35,
+                    "accuracy": None,
+                    "pp": None,
+                    "type": None,
+                }
+            ],
+        )
+        self.assertEqual(
+            list(MoveMachine.objects.values_list("version_group__name", "item")),
+            [("red-blue", "tm24")],
+        )
+
+    def test_move_learns(self):
+        self.assertEqual(
+            sorted(
+                PokemonMoveLearn.objects.filter(pokemon__name="pikachu").values_list(
+                    "version_group__name", "method", "level"
+                )
+            ),
+            [
+                ("red-blue", "level-up", 1),
+                ("red-blue", "machine", 0),
+                ("sword-shield", "level-up", 1),
+            ],
+        )
 
 
 class ReimportTests(ImporterTestCase):
@@ -187,6 +231,9 @@ class ReimportTests(ImporterTestCase):
             model: model.objects.count()
             for model in (
                 EvolutionMethod,
+                Move,
+                MoveMachine,
+                PokemonMoveLearn,
                 Pokemon,
                 PokemonForm,
                 PokemonSpecies,
