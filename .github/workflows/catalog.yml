@@ -65,7 +65,9 @@ jobs:
             https://github.com/PokeAPI/api-data.git api-data
           git -C api-data sparse-checkout set \
             data/api/v2/pokemon-species data/api/v2/pokemon \
-            data/api/v2/pokemon-form data/api/v2/version data/api/v2/version-group
+            data/api/v2/pokemon-form data/api/v2/version data/api/v2/version-group \
+            data/api/v2/evolution-chain data/api/v2/item data/api/v2/move \
+            data/api/v2/location
           echo "API_DATA_COMMIT=$(git -C api-data rev-parse --short HEAD)" >> "$GITHUB_ENV"
 
       - run: pipx install "poetry==${POETRY_VERSION}"

@@ -1,0 +1,66 @@
+{
+  "sources": [
+    "https://bulbapedia.bulbagarden.net/wiki/Methods_of_evolution"
+  ],
+  "notes": [
+    "Frases próprias dos métodos de evolução que a PokéAPI não deixa descrever bem (#133), consultadas em 2026-10-29. O app monta a frase dos outros pelo gatilho e pelas condições; estas a substituem em todas as ligações entre as duas espécies, e o link \"Veja mais\" leva à Bulbapedia.",
+    "from e to são espécies, como na PokéAPI. Itens, golpes e lugares ficam em inglês, como no app.",
+    "Cosmoem: a PokéAPI não diz que o Solgaleo e o Lunala dependem da versão (Bulbapedia, \"Cosmoem (Pokémon)\")."
+  ],
+  "methods": [
+    {
+      "from": "yamask",
+      "to": "runerigus",
+      "text": {
+        "en": "After losing at least 49 HP without fainting, walk under the stone arch in the Dusty Bowl",
+        "pt-BR": "Com 49 de HP perdidos ou mais, sem desmaiar, passar sob o arco de pedra do Dusty Bowl"
+      },
+      "link": "https://bulbapedia.bulbagarden.net/wiki/Runerigus_(Pok%C3%A9mon)#Evolution"
+    },
+    {
+      "from": "milcery",
+      "to": "alcremie",
+      "text": {
+        "en": "Spin the player around while it holds a Sweet; the form depends on the Sweet, the time of day and the direction and length of the spin",
+        "pt-BR": "Girar o personagem enquanto ele segura um Sweet; a forma depende do Sweet, da hora do dia e do sentido e da duração do giro"
+      },
+      "link": "https://bulbapedia.bulbagarden.net/wiki/Alcremie_(Pok%C3%A9mon)#Evolution"
+    },
+    {
+      "from": "nincada",
+      "to": "shedinja",
+      "text": {
+        "en": "When Nincada evolves into Ninjask, with a free party slot and a Poké Ball in the bag",
+        "pt-BR": "Quando o Nincada vira Ninjask, com um espaço livre no grupo e uma Poké Ball na bolsa"
+      },
+      "link": "https://bulbapedia.bulbagarden.net/wiki/Shedinja_(Pok%C3%A9mon)#Evolution"
+    },
+    {
+      "from": "toxel",
+      "to": "toxtricity",
+      "text": {
+        "en": "Level 30; Amped or Low Key depends on the nature",
+        "pt-BR": "Nv. 30; Amped ou Low Key depende da natureza"
+      },
+      "link": "https://bulbapedia.bulbagarden.net/wiki/Toxtricity_(Pok%C3%A9mon)#Evolution"
+    },
+    {
+      "from": "cosmoem",
+      "to": "solgaleo",
+      "text": {
+        "en": "Level 53 in Sun, Ultra Sun, Sword and Scarlet",
+        "pt-BR": "Nv. 53 no Sun, no Ultra Sun, no Sword e no Scarlet"
+      },
+      "link": "https://bulbapedia.bulbagarden.net/wiki/Cosmoem_(Pok%C3%A9mon)#Evolution"
+    },
+    {
+      "from": "cosmoem",
+      "to": "lunala",
+      "text": {
+        "en": "Level 53 in Moon, Ultra Moon, Shield and Violet",
+        "pt-BR": "Nv. 53 no Moon, no Ultra Moon, no Shield e no Violet"
+      },
+      "link": "https://bulbapedia.bulbagarden.net/wiki/Cosmoem_(Pok%C3%A9mon)#Evolution"
+    }
+  ]
+}

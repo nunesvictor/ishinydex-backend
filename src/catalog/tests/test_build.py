@@ -3,6 +3,7 @@ import shutil
 import tempfile
 from io import StringIO
 from pathlib import Path
+from typing import Any
 from unittest import mock
 
 from django.core.management import call_command
@@ -12,7 +13,13 @@ from django.test import TestCase
 from catalog import build as catalog
 from core.tests import factories as f
 from home.models import HOME_ORIGIN_VERSIONS, HOME_TRANSFER_VERSIONS
-from pokedex.models import PokemonAbility, PokemonSpeciesDexEntry
+from pokedex.models import (
+    EvolutionMethod,
+    PokemonAbility,
+    PokemonSpecies,
+    PokemonSpeciesDexEntry,
+    VersionGroup,
+)
 
 
 class CatalogTests(TestCase):
@@ -130,6 +137,13 @@ class CatalogTests(TestCase):
         )
         patcher.start()
         self.addCleanup(patcher.stop)
+        self.evolution_methods = self.tmp / "evolution_methods.json"
+        self.write_evolution_methods()
+        patcher = mock.patch.object(
+            catalog, "EVOLUTION_METHODS_FILE", self.evolution_methods
+        )
+        patcher.start()
+        self.addCleanup(patcher.stop)
         self.odds = self.tmp / "odds.json"
         self.write_odds()
         patcher = mock.patch.object(catalog, "SHINY_ODDS_FILE", self.odds)
@@ -209,6 +223,171 @@ class CatalogTests(TestCase):
                 self.write_evolutions(edges)
                 with self.assertRaisesMessage(catalog.CatalogError, message):
                     catalog.build_catalog("v")
+
+    def write_evolution_methods(self, *methods):
+        self.evolution_methods.write_text(
+            json.dumps({"sources": [], "notes": [], "methods": list(methods)})
+        )
+
+    BULBA_TEXT = {
+        "from": "bulbasaur",
+        "to": "ivysaur",
+        "text": {"en": "Sunbathe", "pt-BR": "Tomar sol"},
+        "link": "https://bulbapedia.bulbagarden.net/wiki/Ivysaur_(Pok%C3%A9mon)",
+    }
+
+    @staticmethod
+    def make_evolution(group="scarlet-violet", **kwargs):
+        """Bulbasaur → Ivysaur no ``group``, por padrão o método padrão."""
+        defaults = {
+            "from_species": PokemonSpecies.objects.get(name="bulbasaur"),
+            "to_species": PokemonSpecies.objects.get(name="ivysaur"),
+            "version_group": VersionGroup.objects.get(name=group),
+            "trigger": "level-up",
+            "is_default": True,
+            "conditions": {"min_level": 16},
+            "order": 0,
+        }
+        return EvolutionMethod.objects.create(**(defaults | kwargs))
+
+    def test_evolution_methods(self):
+        self.make_evolution()
+        self.make_evolution(
+            "brilliant-diamond-shining-pearl",
+            trigger="use-item",
+            is_default=False,
+            conditions={
+                "item": "leaf-stone",
+                "location": "eterna-forest",
+                "gender": 1,
+                # O 0 vale: Ataque igual à Defesa.
+                "relative_physical_stats": 0,
+                "allowed_natures": ["hardy", "docile"],
+                "condition_expression": {"expression": "EC 100 % 0 ==", "chance": 1.0},
+            },
+            labels={"leaf-stone": "Leaf Stone", "eterna-forest": "Eterna Forest"},
+        )
+        # Da forma só de batalha: outro par de formas.
+        self.make_evolution(
+            from_form="bulbasaur-battle",
+            trigger="trade",
+            conditions={"held_item": "leaf-stone", "known_move": "vine-whip"},
+            labels={"leaf-stone": "Leaf Stone", "vine-whip": "Vine Whip"},
+        )
+        self.write_evolution_methods(self.BULBA_TEXT)
+
+        data = catalog.build_catalog("v")["evolutionMethods"]
+
+        text = {
+            "text": "Tomar sol",
+            "texts": {"en": "Sunbathe", "pt-BR": "Tomar sol"},
+            "link": self.BULBA_TEXT["link"],
+        }
+        self.assertEqual(
+            data["edges"],
+            [
+                {
+                    "from": self.bulba_form.pokeapi_id,
+                    "to": self.ivy_form.pokeapi_id,
+                    # Na ordem dos jogos: o BDSP (23) antes do SV (25).
+                    "methods": [
+                        {
+                            "versionGroup": "brilliant-diamond-shining-pearl",
+                            "default": False,
+                            "trigger": "use-item",
+                            "item": "leaf-stone",
+                            "location": "eterna-forest",
+                            "gender": "female",
+                            "relativePhysicalStats": 0,
+                            "allowedNatures": ["hardy", "docile"],
+                            "chance": 1.0,
+                        },
+                        {
+                            "versionGroup": "scarlet-violet",
+                            "default": True,
+                            "trigger": "level-up",
+                            "minLevel": 16,
+                        },
+                    ],
+                    **text,
+                },
+                {
+                    "from": self.battle.pokeapi_id,
+                    "to": self.ivy_form.pokeapi_id,
+                    "methods": [
+                        {
+                            "versionGroup": "scarlet-violet",
+                            "default": True,
+                            "trigger": "trade",
+                            "heldItem": "leaf-stone",
+                            "knownMove": "vine-whip",
+                        }
+                    ],
+                    **text,
+                },
+            ],
+        )
+        self.assertEqual(
+            data["names"],
+            {
+                "items": {"leaf-stone": "Leaf Stone"},
+                "moves": {"vine-whip": "Vine Whip"},
+                "locations": {"eterna-forest": "Eterna Forest"},
+            },
+        )
+
+    def test_without_evolution_methods(self):
+        self.assertEqual(
+            catalog.build_catalog("v")["evolutionMethods"],
+            {"edges": [], "names": {"items": {}, "moves": {}, "locations": {}}},
+        )
+
+    def test_evolution_methods_errors(self):
+        spin = {"condition_expression": {"expression": "SPIN", "chance": None}}
+        bad_link = self.BULBA_TEXT | {"link": "https://exemplo"}
+        no_pt = self.BULBA_TEXT | {"text": {"en": "Sunbathe"}}
+        to_venusaur = self.BULBA_TEXT | {"to": "venusaur"}
+        cases: list[tuple[list[dict[str, Any]], list[dict], str]] = [
+            ([{"trigger": "dance"}], [], "gatilhos de evolução desconhecidos"),
+            ([{"conditions": {"min_dance": 1}}], [], "condições de evolução"),
+            ([{}, {"order": 1}], [], "sem um método padrão"),
+            ([{"is_default": False}], [], "sem um método padrão"),
+            ([{"conditions": spin}], [], "sem frase curada"),
+            ([{"to_form": "missingno"}], [], "formas desconhecidas"),
+            ([{}], [self.BULBA_TEXT] * 2, "curadoria de evolução repetida"),
+            ([{}], [bad_link], "link fora da Bulbapedia"),
+            ([{}], [no_pt], "texto sem os idiomas"),
+            ([{}], [to_venusaur], "curadoria de evolução sem métodos"),
+        ]
+        for methods, curated, message in cases:
+            with self.subTest(message=message, methods=methods):
+                EvolutionMethod.objects.all().delete()
+                for method in methods:
+                    self.make_evolution(**method)
+                self.write_evolution_methods(*curated)
+                with self.assertRaisesMessage(catalog.CatalogError, message):
+                    catalog.build_catalog("v")
+
+    def test_curated_text_allows_any_condition(self):
+        """O giro do Milcery: sem chance, mas com frase curada."""
+        self.make_evolution(
+            conditions={"condition_expression": {"expression": "SPIN", "chance": None}}
+        )
+        self.write_evolution_methods(self.BULBA_TEXT)
+
+        (edge,) = catalog.build_catalog("v")["evolutionMethods"]["edges"]
+
+        self.assertEqual(
+            edge["methods"],
+            [
+                {
+                    "versionGroup": "scarlet-violet",
+                    "default": True,
+                    "trigger": "level-up",
+                }
+            ],
+        )
+        self.assertEqual(edge["text"], "Tomar sol")
 
     @staticmethod
     def write_game_data(file, key, field, value, forms=("ivysaur",)):
