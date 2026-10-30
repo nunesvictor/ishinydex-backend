@@ -17,6 +17,44 @@ if TYPE_CHECKING:
 FORM_NATIONAL_ORDERING = ("pokemon__species__id", "form_order", "pk")
 
 
+class EvolutionMethod(TimestampedModel):
+    """Um método de evolução da PokéAPI (``evolution_details`` de uma ligação
+    da ``evolution-chain``): de uma espécie para outra, num grupo de versões.
+
+    As formas de origem e de destino vêm pelo nome (``required_pokemon_form``
+    e ``evolved_pokemon_form``), vazias quando valem as padrão. As condições
+    ficam como na API, com as referências trocadas pelo nome (``item``:
+    ``"water-stone"``), e o nome em inglês de cada referência em ``labels``.
+    """
+
+    from_species = models.ForeignKey(
+        "PokemonSpecies",
+        on_delete=models.CASCADE,
+        related_name="evolution_methods_from",
+    )
+    to_species = models.ForeignKey(
+        "PokemonSpecies", on_delete=models.CASCADE, related_name="evolution_methods"
+    )
+    from_form = models.CharField(_("from form"), max_length=255, blank=True)
+    to_form = models.CharField(_("to form"), max_length=255, blank=True)
+    version_group = models.ForeignKey("VersionGroup", on_delete=models.CASCADE)
+    trigger = models.CharField(_("trigger"), max_length=255)
+    is_default = models.BooleanField(_("is default"), default=False)
+    conditions = models.JSONField(_("conditions"), default=dict)
+    labels = models.JSONField(_("labels"), default=dict)
+    order = models.PositiveIntegerField(_("order"))
+    from_species_id: int
+    to_species_id: int
+
+    class Meta(TimestampedModel.Meta):
+        verbose_name = _("evolution method")
+        verbose_name_plural = _("evolution methods")
+        ordering = ("to_species", "order")
+
+    def __str__(self):
+        return f"{self.from_species_id} → {self.to_species_id} ({self.trigger})"
+
+
 class Move(TimestampedModel):
     name = models.CharField(_("name"), max_length=255)
     accuracy = models.PositiveIntegerField(_("accuracy"), blank=True, null=True)

@@ -31,6 +31,7 @@ from home.models import HOME_ORIGIN_VERSIONS, HOME_TRANSFER_VERSIONS
 from home.origin_marks import ORIGIN_MARK_VERSION_GROUPS
 from home.services import default_forms
 from pokedex.models import (
+    EvolutionMethod,
     Pokemon,
     PokemonForm,
     PokemonSpecies,
@@ -71,6 +72,71 @@ REGIONAL_FORMS_FILE = (
 REGIONAL_EVOLUTIONS_FILE = (
     Path(__file__).resolve().parent.parent / "pokedex/data/regional_evolutions.json"
 )
+
+# Frases próprias e links "Veja mais" dos métodos de evolução bizarros (#133),
+# e as correções do que a PokéAPI não diz (a versão do Cosmoem).
+EVOLUTION_METHODS_FILE = (
+    Path(__file__).resolve().parent.parent / "pokedex/data/evolution_methods.json"
+)
+# Gatilhos e condições que o app sabe descrever. Um novo na PokéAPI falha o
+# catálogo: ou o app aprende a descrevê-lo, ou ele ganha uma frase curada.
+EVOLUTION_TRIGGERS = {
+    "level-up",
+    "use-item",
+    "trade",
+    "spin",
+    "in-battle-level-up",
+    "recoil-damage",
+    "use-move",
+    "gimmighoul-coins",
+    "tower-of-darkness",
+    "tower-of-waters",
+    "meltan-candies",
+    "three-critical-hits",
+    "three-defeated-bisharp",
+    "take-damage",
+    "shed",
+    "agile-style-move",
+    "strong-style-move",
+}
+EVOLUTION_CONDITIONS = {
+    "min_level",
+    "time_of_day",
+    "held_item",
+    "item",
+    "location",
+    "min_happiness",
+    "known_move",
+    "known_move_type",
+    "gender",
+    "region",
+    "near_special_rock",
+    "used_move",
+    "min_move_count",
+    "min_steps",
+    "min_damage_taken",
+    "relative_physical_stats",
+    "allowed_natures",
+    "needs_overworld_rain",
+    "trade_species",
+    "min_beauty",
+    "min_affection",
+    "needs_multiplayer",
+    "turn_upside_down",
+    "party_type",
+    "party_species",
+    "condition_expression",
+}
+# O tipo de recurso de cada condição com nome próprio (os nomes em inglês
+# saem em ``names``).
+EVOLUTION_NAME_KINDS = {
+    "item": "items",
+    "held_item": "items",
+    "known_move": "moves",
+    "used_move": "moves",
+    "location": "locations",
+}
+GENDERS = {1: "female", 2: "male"}
 
 # Formas que não podem ser obtidas shiny em cada jogo (Solgaleo em Scarlet).
 GAME_SHINY_LOCKS_FILE = (
@@ -649,6 +715,122 @@ def _form_evolutions() -> dict:
     }
 
 
+def _camel(key: str) -> str:
+    """``min_level`` → ``minLevel``."""
+    head, *rest = key.split("_")
+    return head + "".join(word.title() for word in rest)
+
+
+def _evolution_method(method: EvolutionMethod) -> dict:
+    """Um método no formato do catálogo: o jogo, se é o padrão, o gatilho e
+    as condições em camelCase. Da ``condition_expression`` sai só a chance
+    (``chance``: 50 no Wurmple); o gênero vira ``female``/``male``."""
+    result = {
+        "versionGroup": method.version_group.name,
+        "default": method.is_default,
+        "trigger": method.trigger,
+    }
+    for key, value in method.conditions.items():
+        if key == "condition_expression":
+            if value["chance"] is not None:
+                result["chance"] = value["chance"]
+        elif key == "gender":
+            result["gender"] = GENDERS[value]
+        else:
+            result[_camel(key)] = value
+    return result
+
+
+def _evolution_methods() -> dict:
+    """Os métodos de evolução da PokéAPI por par de formas (``from`` e ``to``
+    com os ids; sem forma na PokéAPI, a padrão da espécie), os nomes em
+    inglês dos itens, golpes e lugares citados e, de
+    ``EVOLUTION_METHODS_FILE``, as frases e os links por par de espécies.
+
+    Falha com gatilho ou condição desconhecidos, com um par de formas sem
+    exatamente um método padrão, com uma condição que o app não descreve
+    (``condition_expression`` sem chance, o giro do Milcery) sem frase
+    curada, ou com curadoria de um par sem métodos."""
+    methods = list(
+        EvolutionMethod.objects.select_related(
+            "from_species", "to_species", "version_group"
+        ).order_by("version_group__order", "to_species_id", "order")
+    )
+    if unknown := sorted({m.trigger for m in methods} - EVOLUTION_TRIGGERS):
+        raise CatalogError(f"gatilhos de evolução desconhecidos: {unknown}")
+    if unknown := sorted(
+        {k for m in methods for k in m.conditions} - EVOLUTION_CONDITIONS
+    ):
+        raise CatalogError(f"condições de evolução desconhecidas: {unknown}")
+
+    default_form = dict(
+        PokemonForm.objects.filter(is_default=True, pokemon__is_default=True)
+        .values_list("pokemon__species__name", "name")
+        .order_by()
+    )
+
+    def ends(m: EvolutionMethod) -> tuple[str, str]:
+        return (
+            m.from_form or default_form[m.from_species.name],
+            m.to_form or default_form[m.to_species.name],
+        )
+
+    forms = _form_ids({n for m in methods for n in ends(m)}, "métodos de evolução")
+    data = json.loads(EVOLUTION_METHODS_FILE.read_text(encoding="utf-8"))
+    curated = {}
+    for entry in data["methods"]:
+        pair = (entry["from"], entry["to"])
+        where = f"{pair[0]}->{pair[1]}"
+        if pair in curated:
+            raise CatalogError(f"curadoria de evolução repetida: {where}")
+        if not entry["link"].startswith("https://bulbapedia.bulbagarden.net/"):
+            raise CatalogError(f"link fora da Bulbapedia em {where}")
+        curated[pair] = {
+            **_labeled("text", _text(where, entry["text"])),
+            "link": entry["link"],
+        }
+
+    by_edge: dict[tuple[str, str], list[EvolutionMethod]] = {}
+    for m in methods:
+        by_edge.setdefault(ends(m), []).append(m)
+    species_pairs = {(m.from_species.name, m.to_species.name) for m in methods}
+    if unused := sorted(f"{a}->{b}" for a, b in curated.keys() - species_pairs):
+        raise CatalogError(f"curadoria de evolução sem métodos: {unused}")
+
+    names: dict[str, dict[str, str]] = {
+        kind: {} for kind in ("items", "moves", "locations")
+    }
+    edges = []
+    for (a, b), edge in by_edge.items():
+        where = f"{a}->{b}"
+        if sum(m.is_default for m in edge) != 1:
+            raise CatalogError(f"evolução sem um método padrão: {where}")
+        pair = (edge[0].from_species.name, edge[0].to_species.name)
+        if pair not in curated and any(
+            m.conditions.get("condition_expression", {}).get("chance", 0) is None
+            for m in edge
+        ):
+            raise CatalogError(f"evolução sem frase curada: {where}")
+        for m in edge:
+            for key, kind in EVOLUTION_NAME_KINDS.items():
+                if key in m.conditions:
+                    slug = m.conditions[key]
+                    names[kind][slug] = m.labels[slug]
+        edges.append(
+            {
+                "from": forms[a][0],
+                "to": forms[b][0],
+                "methods": [_evolution_method(m) for m in edge],
+                **curated.get(pair, {}),
+            }
+        )
+    edges.sort(key=lambda e: (e["from"], e["to"]))
+    return {
+        "edges": edges,
+        "names": {kind: dict(sorted(n.items())) for kind, n in names.items()},
+    }
+
+
 def _game_shiny_locks(species_of_group: dict[str, set[str]]) -> list[dict]:
     """Os locks de ``GAME_SHINY_LOCKS_FILE``, com os ids das formas. Falha
     com forma ou versão desconhecida, ou com espécie fora das pokédex."""
@@ -835,6 +1017,11 @@ def build_catalog(version: str) -> dict:
         # Evoluções entre formas das famílias com forma regional (#121):
         # pares [de, para] e as formas que não evoluem. Chave nova, aditiva.
         "formEvolutions": _form_evolutions(),
+        # Como cada forma evolui (#133): os métodos da PokéAPI por par de
+        # formas e jogo, com o padrão, os nomes em inglês dos itens, golpes e
+        # lugares, e a frase e o link "Veja mais" nos casos bizarros. Chave
+        # nova, aditiva.
+        "evolutionMethods": _evolution_methods(),
         # Métodos de shiny hunt e os jogos onde existem (a primeira unidade
         # é a padrão). Chave nova, aditiva: o schemaVersion continua.
         "shinyMethods": methods,

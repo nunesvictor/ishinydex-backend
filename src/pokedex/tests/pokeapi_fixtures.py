@@ -75,6 +75,7 @@ def _species(name, *, evolves_from=None, varieties, is_baby=False):
         "color": ref("pokemon-color", "yellow", 10),
         "shape": ref("pokemon-shape", "quadruped", 8),
         "generation": ref("generation", "generation-i", 1),
+        "evolution_chain": {"url": f"{BASE}/evolution-chain/10/"},
         "evolves_from_species": (
             ref("pokemon-species", evolves_from, SPECIES_IDS[evolves_from])
             if evolves_from
@@ -145,6 +146,110 @@ def _form(name, id_, pokemon, pokemon_id, group, *, is_default=True, form_name="
     }
 
 
+def _detail(trigger, group, **conditions):
+    """Um ``evolution_details`` com todos os campos da API (os vazios como
+    ela os traz: ``null``, ``false`` e ``""``)."""
+    detail = {
+        "gender": None,
+        "held_item": None,
+        "item": None,
+        "known_move": None,
+        "known_move_type": None,
+        "location": None,
+        "min_affection": None,
+        "min_beauty": None,
+        "min_happiness": None,
+        "min_level": None,
+        "needs_overworld_rain": False,
+        "party_species": None,
+        "party_type": None,
+        "relative_physical_stats": None,
+        "time_of_day": "",
+        "trade_species": None,
+        "turn_upside_down": False,
+        "allowed_natures": [],
+        "condition_expression": None,
+        "region": None,
+        "required_pokemon_form": None,
+        "evolved_pokemon_form": None,
+        "is_default": False,
+        "trigger": ref("evolution-trigger", trigger, 1),
+        "version_group": ref("version-group", group, VERSION_GROUPS[group][0]),
+    }
+    return detail | conditions
+
+
+def _evolution_chain():
+    """Pichu → Pikachu → Raichu, com dois métodos na segunda ligação."""
+    return {
+        "id": 10,
+        "baby_trigger_item": None,
+        "chain": {
+            "species": ref("pokemon-species", "pichu", 172),
+            "evolution_details": [],
+            "evolves_to": [
+                {
+                    "species": ref("pokemon-species", "pikachu", 25),
+                    "evolution_details": [
+                        _detail(
+                            "level-up",
+                            "gold-silver",
+                            min_happiness=220,
+                            # O 0 vale: Ataque igual à Defesa.
+                            relative_physical_stats=0,
+                            is_default=True,
+                        )
+                    ],
+                    "evolves_to": [
+                        {
+                            "species": ref("pokemon-species", "raichu", 26),
+                            "evolution_details": [
+                                _detail(
+                                    "use-item",
+                                    "red-blue",
+                                    item=ref("item", "thunder-stone", 83),
+                                    required_pokemon_form=ref(
+                                        "pokemon-form", "pikachu", 25
+                                    ),
+                                    is_default=True,
+                                ),
+                                _detail(
+                                    "level-up",
+                                    "sword-shield",
+                                    location=ref("location", "viridian-forest", 88),
+                                    allowed_natures=[
+                                        ref("nature", "hardy", 1),
+                                        ref("nature", "docile", 7),
+                                    ],
+                                    condition_expression={
+                                        "expression": "EC 100 % 0 ==",
+                                        "percentage_chance": 1.0,
+                                        "variables": [],
+                                    },
+                                ),
+                            ],
+                            "evolves_to": [],
+                        }
+                    ],
+                }
+            ],
+        },
+    }
+
+
+def _named(id_, name, english, **extra):
+    """Item ou lugar: só o nome em cada idioma importa."""
+    return {
+        "id": id_,
+        "name": name,
+        "names": [
+            {"language": ref("language", "ja", 1), "name": english.upper()},
+            {"language": ref("language", "en", 9), "name": english},
+        ],
+        **extra,
+    }
+
+
 def build_world() -> dict[str, dict]:
     """Recursos por caminho (``endpoint/id``), como o cliente os entrega."""
     resources = [
@@ -209,6 +314,9 @@ def build_world() -> dict[str, dict]:
             is_default=False,
             form_name="spiky-eared",
         ),
+        _evolution_chain(),
+        _named(83, "thunder-stone", "Thunder Stone", cost=3000),
+        _named(88, "viridian-forest", "Viridian Forest", areas=[]),
         *(_version(v) for v in VERSIONS),
         *(_version_group(vg) for vg in VERSION_GROUPS),
     ]
@@ -222,6 +330,9 @@ def build_world() -> dict[str, dict]:
             r for r in resources if "version_group" in r and "form_order" not in r
         ],
         "version-group": [r for r in resources if "pokedexes" in r],
+        "evolution-chain": [r for r in resources if "chain" in r],
+        "item": [r for r in resources if "cost" in r],
+        "location": [r for r in resources if "areas" in r],
     }
 
     for endpoint, items in endpoints.items():

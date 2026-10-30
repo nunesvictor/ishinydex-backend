@@ -8,7 +8,9 @@
    resolvidas numa segunda passada, então a ordem da API não importa.
 
 É idempotente: rodar de novo atualiza os campos e as relações, sem duplicar.
-Golpes (moves) não são importados.
+Golpes (moves) não são importados. Das cadeias de evolução vêm os métodos
+(``EvolutionMethod``), com o nome em inglês dos itens, golpes e lugares que
+eles citam.
 """
 
 import logging
@@ -19,6 +21,7 @@ from django.db import models, transaction
 
 from core.services.pokeapi import PokeAPIClient
 from pokedex.models import (
+    EvolutionMethod,
     Pokemon,
     PokemonAbility,
     PokemonForm,
@@ -50,6 +53,55 @@ def _names(refs: Iterable[dict]) -> list[str]:
     return [ref["name"] for ref in refs]
 
 
+# Campos de ``evolution_details`` que não são condições: viram colunas.
+EVOLUTION_FIELDS = {
+    "trigger",
+    "version_group",
+    "is_default",
+    "required_pokemon_form",
+    "evolved_pokemon_form",
+}
+# Condições que citam um recurso com nome próprio (o nome em inglês vai para
+# ``EvolutionMethod.labels``).
+EVOLUTION_REFERENCES = {
+    "item": "item",
+    "held_item": "item",
+    "known_move": "move",
+    "used_move": "move",
+    "location": "location",
+}
+
+
+def _evolution_conditions(detail: dict) -> dict:
+    """As condições preenchidas de um ``evolution_details``, com as
+    referências trocadas pelo nome. O ``0`` vale (``relative_physical_stats``:
+    Ataque igual à Defesa); ``null``, ``false``, ``""`` e ``[]``, não."""
+    conditions = {}
+    for key, value in detail.items():
+        if key in EVOLUTION_FIELDS or value is None or value is False:
+            continue
+        if value == "" or value == []:
+            continue
+        if key == "condition_expression":
+            value = {
+                "expression": value["expression"],
+                "chance": value["percentage_chance"],
+            }
+        elif isinstance(value, list):
+            value = _names(value)
+        elif isinstance(value, dict):
+            value = value["name"]
+        conditions[key] = value
+    return conditions
+
+
+def _chain_links(chain: dict) -> Iterable[tuple[str, str, dict]]:
+    """``(de, para, ligação)`` de cada ligação de uma ``evolution-chain``."""
+    for link in chain["evolves_to"]:
+        yield chain["species"]["name"], link["species"]["name"], link
+        yield from _chain_links(link)
+
+
 @dataclass
 class FetchedData:
     species: list[dict] = field(default_factory=list)
@@ -57,6 +109,9 @@ class FetchedData:
     forms: list[dict] = field(default_factory=list)
     versions: list[dict] = field(default_factory=list)
     version_groups: list[dict] = field(default_factory=list)
+    evolution_chains: list[dict] = field(default_factory=list)
+    # Itens, golpes e lugares citados nos métodos de evolução.
+    references: list[dict] = field(default_factory=list)
 
 
 class PokeAPIImporter:
@@ -88,6 +143,25 @@ class PokeAPIImporter:
 
         data = FetchedData()
         data.species = self._get_many("species", (r["url"] for r in species_refs))
+        data.evolution_chains = self._get_many(
+            "evolution chains",
+            (s["evolution_chain"]["url"] for s in data.species if s["evolution_chain"]),
+        )
+        details = [
+            detail
+            for c in data.evolution_chains
+            for _, _, link in _chain_links(c["chain"])
+            for detail in link["evolution_details"]
+        ]
+        data.references = self._get_many(
+            "evolution references",
+            (
+                detail[key]["url"]
+                for detail in details
+                for key in EVOLUTION_REFERENCES
+                if detail.get(key)
+            ),
+        )
         data.pokemon = self._get_many(
             "pokemon",
             (v["pokemon"]["url"] for s in data.species for v in s["varieties"]),
@@ -108,7 +182,8 @@ class PokeAPIImporter:
             "version groups",
             [r["url"] for r in all_groups]
             + [v["version_group"]["url"] for v in data.versions]
-            + [f["version_group"]["url"] for f in data.forms],
+            + [f["version_group"]["url"] for f in data.forms]
+            + [d["version_group"]["url"] for d in details],
         )
 
         return data
@@ -134,6 +209,9 @@ class PokeAPIImporter:
         # Segunda passada: referências entre espécies/pokémon.
         self._link_evolutions(data.species)
         self._link_varieties(data.species)
+        methods = self._save_evolution_methods(
+            data.evolution_chains, data.references, species_ids, vg_ids
+        )
 
         return {
             "version_groups": len(vg_ids),
@@ -141,6 +219,7 @@ class PokeAPIImporter:
             "species": len(species_ids),
             "pokemon": len(pokemon_ids),
             "forms": len(data.forms),
+            "evolution_methods": methods,
         }
 
     def _save_version_groups(self, version_groups: list[dict]) -> dict[str, int]:
@@ -350,6 +429,49 @@ class PokeAPIImporter:
         PokemonSpecies.objects.bulk_update(
             to_update, ["evolves_from_species"], batch_size=BATCH_SIZE
         )
+
+    def _save_evolution_methods(
+        self, chains: list[dict], references: list[dict], species_ids, vg_ids
+    ) -> int:
+        """Troca os métodos que chegam nas espécies importadas. A espécie de
+        origem pode vir do banco (import parcial); sem ela, a ligação fica de
+        fora."""
+        english = {
+            r["name"]: next(
+                (n["name"] for n in r["names"] if n["language"]["name"] == "en"),
+                r["name"],
+            )
+            for r in references
+        }
+        known = dict(PokemonSpecies.objects.values_list("name", "id"))
+        rows = []
+        for chain in chains:
+            for from_name, to_name, link in _chain_links(chain["chain"]):
+                if to_name not in species_ids or from_name not in known:
+                    continue
+                for order, detail in enumerate(link["evolution_details"]):
+                    conditions = _evolution_conditions(detail)
+                    rows.append(
+                        EvolutionMethod(
+                            from_species_id=known[from_name],
+                            to_species_id=species_ids[to_name],
+                            from_form=_name(detail.get("required_pokemon_form")) or "",
+                            to_form=_name(detail.get("evolved_pokemon_form")) or "",
+                            version_group_id=vg_ids[detail["version_group"]["name"]],
+                            trigger=detail["trigger"]["name"],
+                            is_default=bool(detail.get("is_default")),
+                            conditions=conditions,
+                            labels={
+                                conditions[key]: english[conditions[key]]
+                                for key in EVOLUTION_REFERENCES
+                                if key in conditions
+                            },
+                            order=order,
+                        )
+                    )
+        EvolutionMethod.objects.filter(to_species_id__in=species_ids.values()).delete()
+        EvolutionMethod.objects.bulk_create(rows, batch_size=BATCH_SIZE)
+        return len(rows)
 
     def _link_varieties(self, species: list[dict]) -> None:
         pairs = [

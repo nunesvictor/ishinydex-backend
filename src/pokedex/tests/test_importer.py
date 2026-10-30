@@ -3,6 +3,7 @@ from django.test import TestCase
 from core.tests import factories as f
 from pokedex.importer import PokeAPIImporter, UnknownSpeciesError
 from pokedex.models import (
+    EvolutionMethod,
     Pokemon,
     PokemonAbility,
     PokemonForm,
@@ -41,6 +42,7 @@ class FullImportTests(ImporterTestCase):
                 "species": 3,
                 "pokemon": 4,
                 "forms": 5,
+                "evolution_methods": 3,
             },
         )
         self.assertEqual(PokemonForm.objects.count(), 5)
@@ -135,6 +137,44 @@ class FullImportTests(ImporterTestCase):
         self.assertEqual(PokemonAbility.objects.filter(ability="static").count(), 1)
         self.assertEqual(PokemonStat.objects.filter(stat="hp", base_stat=35).count(), 1)
 
+    def test_evolution_methods(self):
+        methods = {
+            (m.from_species.name, m.to_species.name, m.version_group.name): m
+            for m in EvolutionMethod.objects.select_related(
+                "from_species", "to_species", "version_group"
+            )
+        }
+
+        happiness = methods["pichu", "pikachu", "gold-silver"]
+        self.assertEqual(happiness.trigger, "level-up")
+        self.assertTrue(happiness.is_default)
+        self.assertEqual((happiness.from_form, happiness.to_form), ("", ""))
+        # Os vazios da API ficam de fora; o 0 (Ataque igual à Defesa), não.
+        self.assertEqual(
+            happiness.conditions,
+            {"min_happiness": 220, "relative_physical_stats": 0},
+        )
+        self.assertEqual(happiness.labels, {})
+
+        stone = methods["pikachu", "raichu", "red-blue"]
+        self.assertEqual(stone.from_form, "pikachu")
+        self.assertEqual(stone.conditions, {"item": "thunder-stone"})
+        self.assertEqual(stone.labels, {"thunder-stone": "Thunder Stone"})
+        self.assertEqual(stone.order, 0)
+
+        other = methods["pikachu", "raichu", "sword-shield"]
+        self.assertFalse(other.is_default)
+        self.assertEqual(other.order, 1)
+        self.assertEqual(
+            other.conditions,
+            {
+                "location": "viridian-forest",
+                "allowed_natures": ["hardy", "docile"],
+                "condition_expression": {"expression": "EC 100 % 0 ==", "chance": 1.0},
+            },
+        )
+        self.assertEqual(other.labels, {"viridian-forest": "Viridian Forest"})
+
     def test_moves_are_not_imported(self):
         self.assertFalse(any(p.startswith("move/") for p in self.client_api.requested))
         self.assertFalse(Pokemon.objects.get(name="pikachu").moves.exists())
@@ -146,6 +186,7 @@ class ReimportTests(ImporterTestCase):
         counts = {
             model: model.objects.count()
             for model in (
+                EvolutionMethod,
                 Pokemon,
                 PokemonForm,
                 PokemonSpecies,
@@ -219,6 +260,29 @@ class PartialImportTests(ImporterTestCase):
         self.assertEqual(
             PokemonSpecies.objects.get(name="raichu").evolves_from_species.name,
             "pikachu",
+        )
+
+    def test_evolution_methods_of_the_imported_species(self):
+        """Cada import troca os métodos que chegam nas espécies dele; sem a
+        espécie de origem no banco, a ligação fica de fora."""
+
+        def pairs():
+            return sorted(
+                EvolutionMethod.objects.values_list(
+                    "from_species__name", "to_species__name"
+                )
+            )
+
+        self.run_import(["raichu"])
+        self.assertEqual(pairs(), [])
+
+        self.run_import(["pikachu", "pichu"])
+        self.assertEqual(pairs(), [("pichu", "pikachu")])
+
+        self.run_import(["raichu"])
+        self.assertEqual(
+            pairs(),
+            [("pichu", "pikachu"), ("pikachu", "raichu"), ("pikachu", "raichu")],
         )
 
     def test_unknown_species(self):
