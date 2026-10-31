@@ -48,3 +48,9 @@ app instalado.
   - shiny locks padrão: [`src/pokedex/data/shiny_locks.json`](src/pokedex/data/shiny_locks.json);
   - exclusivos de versão: [`src/pokedex/data/version_exclusives.json`](src/pokedex/data/version_exclusives.json);
   - lendários fora das pokédex (Aventura Dinamax, Snacksworth): [`src/pokedex/data/special_encounters.json`](src/pokedex/data/special_encounters.json).
+
+## Licença
+
+O código deste repositório está sob a [licença MIT](LICENSE). Ela não cobre:
+- **Pokémon:** os nomes, as imagens e as marcas são da Nintendo, da Creatures, da GAME FREAK e da The Pokémon Company;
+- **os dados de terceiros:** os da [PokéAPI](https://pokeapi.co/), que seguem a licença dela, e os itens do [Pokémon Showdown](https://github.com/smogon/pokemon-showdown), com o aviso em [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
