@@ -1,0 +1,66 @@
+{
+  "sources": [
+    "https://github.com/smogon/pokemon-showdown/tree/master/data/mods",
+    "https://bulbapedia.bulbagarden.net/wiki/Held_item"
+  ],
+  "notes": [
+    "Itens seguráveis por grupo de versões (#138), para o team builder (frontend#231). A lista de cada jogo vem do Showdown (src/pokedex/showdown.py); aqui fica só o mod do Showdown de cada grupo de versões da PokéAPI e o que a PokéAPI chama diferente.",
+    "versionGroups: o mod de cada grupo; null = o jogo não tem item segurado (a 1ª geração, o Let's Go e o Legends: Arceus). O Legends: Z-A também fica null por ora: a PokéAPI não tem os golpes dele (backend#137). Os DLCs usam o mod do jogo depois deles (gen8 e a base, que é a 9ª geração atual). Todo grupo do banco precisa estar aqui, ou o sync falha.",
+    "aliases: nome do Showdown → nome (slug) na PokéAPI, quando o slug do nome não casa.",
+    "withoutSprite: itens do Showdown que a PokéAPI não tem (da 2ª geração); entram sem sprite. Qualquer outro item sem par na PokéAPI faz o sync falhar."
+  ],
+  "versionGroups": {
+    "red-green-japan": null,
+    "blue-japan": null,
+    "red-blue": null,
+    "yellow": null,
+    "gold-silver": "gen2",
+    "crystal": "gen2",
+    "ruby-sapphire": "gen3rs",
+    "emerald": "gen3",
+    "colosseum": "gen3colosseum",
+    "xd": "gen3colosseum",
+    "firered-leafgreen": "gen3frlg",
+    "diamond-pearl": "gen4pt",
+    "platinum": "gen4pt",
+    "heartgold-soulsilver": "gen4",
+    "black-white": "gen5bw1",
+    "black-2-white-2": "gen5",
+    "x-y": "gen6xy",
+    "omega-ruby-alpha-sapphire": "gen6",
+    "sun-moon": "gen7sm",
+    "ultra-sun-ultra-moon": "gen7",
+    "lets-go-pikachu-lets-go-eevee": null,
+    "sword-shield": "gen8",
+    "the-isle-of-armor": "gen8",
+    "the-crown-tundra": "gen8",
+    "brilliant-diamond-shining-pearl": "gen8bdsp",
+    "legends-arceus": null,
+    "scarlet-violet": "base",
+    "the-teal-mask": "base",
+    "the-indigo-disk": "base",
+    "legends-za": null,
+    "mega-dimension": null,
+    "champions": "champions"
+  },
+  "aliases": {
+    "Leek": "stick",
+    "Pretty Feather": "pretty-wing"
+  },
+  "withoutSprite": [
+    "Berry",
+    "Berserk Gene",
+    "Bitter Berry",
+    "Burnt Berry",
+    "Gold Berry",
+    "Ice Berry",
+    "Mail",
+    "Mint Berry",
+    "Miracle Berry",
+    "Mystery Berry",
+    "PRZ Cure Berry",
+    "PSN Cure Berry",
+    "Pink Bow",
+    "Polkadot Bow"
+  ]
+}

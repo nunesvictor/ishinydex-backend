@@ -55,6 +55,26 @@ class EvolutionMethod(TimestampedModel):
         return f"{self.from_species_id} → {self.to_species_id} ({self.trigger})"
 
 
+class HeldItem(TimestampedModel):
+    """Um item que se segura em batalha (#138), com os grupos de versões em
+    que ele existe. A lista vem do Showdown (``pokedex.showdown``); o ``name``
+    é o da PokéAPI (o do sprite), ou o slug do nome quando ela não tem o item
+    (``has_sprite`` falso)."""
+
+    name = models.CharField(_("name"), max_length=255, unique=True)
+    label = models.CharField(_("label"), max_length=255)
+    has_sprite = models.BooleanField(_("has sprite"), default=True)
+    version_groups = models.ManyToManyField("VersionGroup", related_name="held_items")
+
+    class Meta(TimestampedModel.Meta):
+        verbose_name = _("held item")
+        verbose_name_plural = _("held items")
+        ordering = ("name",)
+
+    def __str__(self):
+        return self.label
+
+
 class Move(TimestampedModel):
     """Um golpe da PokéAPI, com os valores atuais. Os de jogos antigos ficam
     em ``past_values`` como na API: cada um vale nos grupos de versões

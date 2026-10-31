@@ -39,6 +39,7 @@ app instalado.
 | Lint/format | `pre-commit run --all-files` |
 | Backup / restauração | `python manage.py backupdb` / `restoredb` (em `backups/`) |
 | Dados da PokeAPI | `python manage.py sync_pokeapi` (com `POKEAPI_URL=file:///…/api-data/data`, lê um clone do [api-data](https://github.com/PokeAPI/api-data), offline) |
+| Itens seguráveis por jogo | `python manage.py sync_held_items <clone do Showdown>` (depois do `sync_pokeapi`): lê como texto os `data/items.ts` e `data/mods/*/items.ts` do [pokemon-showdown](https://github.com/smogon/pokemon-showdown) (MIT); o mod de cada jogo fica em [`src/pokedex/data/held_items.json`](src/pokedex/data/held_items.json) |
 | Pacote do catálogo (app local-first) | `python manage.py exportcatalog` → `catalog/catalog.json`; no GitHub, o workflow **Catálogo** gera e publica a release `catalog-AAAA.MM.DD` |
 | Boxes do HOME e dex padrão | `python manage.py create_home_boxes` / `create_personal_dex -i` |
 
