@@ -55,6 +55,7 @@ class HeldItemsImporterTests(TestCase):
                 # Grupo que o banco não tem (import parcial): fica de fora.
                 "champions": "gen8",
             },
+            "curated": {},
             "aliases": {"Leek": "stick"},
             "withoutSprite": ["Berserk Gene"],
         }
@@ -103,6 +104,31 @@ class HeldItemsImporterTests(TestCase):
         self.assertFalse(gene.has_sprite)
         self.assertEqual(self.groups("berserk-gene"), ["gold-silver"])
 
+    def test_curated_list_instead_of_a_showdown_mod(self):
+        za = f.make_version_group(name="legends-za", order=30)
+        self.data["versionGroups"]["legends-za"] = "legends-za"
+        self.data["curated"] = {"legends-za": ["Leftovers", "Leek"]}
+
+        self.assertEqual(self.run_import(), 6)
+        self.assertEqual(
+            sorted(
+                HeldItem.objects.filter(version_groups=za).values_list(
+                    "name", flat=True
+                )
+            ),
+            ["leftovers", "stick"],
+        )
+
+    def test_curated_item_without_pokeapi_pair_fails(self):
+        f.make_version_group(name="legends-za", order=30)
+        self.data["versionGroups"]["legends-za"] = "legends-za"
+        self.data["curated"] = {"legends-za": ["Made Up Orb"]}
+
+        with self.assertRaisesMessage(
+            HeldItemsError, "sem par na PokéAPI: Made Up Orb"
+        ):
+            self.run_import()
+
     def test_item_without_pokeapi_pair_fails(self):
         with self.assertRaisesMessage(HeldItemsError, "sem par na PokéAPI: Leftovers"):
             self.run_import(FakeItemsClient(["ability-shield", "kings-rock"]))
@@ -140,8 +166,19 @@ class ShippedHeldItemsTests(SimpleTestCase):
         data = json.loads(held_items.HELD_ITEMS_FILE.read_text(encoding="utf-8"))
         self.assertEqual(
             set(data),
-            {"sources", "notes", "versionGroups", "aliases", "withoutSprite"},
+            {
+                "sources",
+                "notes",
+                "versionGroups",
+                "curated",
+                "aliases",
+                "withoutSprite",
+            },
         )
+        for name, labels in data["curated"].items():
+            with self.subTest(curated=name):
+                self.assertEqual(labels, sorted(set(labels)))
+                self.assertIn(name, data["versionGroups"].values())
         self.assertTrue(data["sources"])
         for group, mod in data["versionGroups"].items():
             with self.subTest(group=group):
@@ -164,6 +201,7 @@ class SyncHeldItemsCommandTests(TestCase):
             json.dumps(
                 {
                     "versionGroups": {"scarlet-violet": "base"},
+                    "curated": {},
                     "aliases": {"Leek": "stick"},
                     "withoutSprite": [],
                 }

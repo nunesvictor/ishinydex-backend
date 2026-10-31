@@ -103,3 +103,49 @@ def showdown_tree(**extra: str) -> tempfile.TemporaryDirectory:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(text, encoding="utf-8")
     return tmp
+
+
+# Um learnsets.ts de mod, com as formas e golpes que o importador usa: a forma
+# com ``inherit``, os códigos de nível, TM, troca de forma e evento, e uma
+# forma só com ``eventData``, sem ``learnset``.
+LEARNSETS = (
+    (
+        "export const Learnsets: "
+        "import('../../../sim/dex-species').ModdedLearnsetDataTable = {\n"
+    )
+    + """\tpumpkaboo: {
+\t\tlearnset: {
+\t\t\tastonish: ["9L1"],
+\t\t\tshadowball: ["9M", "9L30"],
+\t\t},
+\t},
+\tfloette: {
+\t\tlearnset: {
+\t\t\ttackle: ["9L1"],
+\t\t},
+\t},
+\tfloetteeternal: {
+\t\tinherit: true,
+\t\tlearnset: {
+\t\t\tlightofruin: ["9L50", "9S0"],
+\t\t},
+\t},
+\tmeowsticf: {
+\t\tlearnset: {
+\t\t\tshadowball: ["9M"],
+\t\t},
+\t},
+\trotomwash: {
+\t\tlearnset: {
+\t\t\thydropump: ["8R"],
+\t\t\tshadowball: ["9M"],
+\t\t},
+\t},
+\tmewtwo: {
+\t\teventData: [
+\t\t\t{generation: 9, level: 70},
+\t\t],
+\t},
+};
+"""
+)

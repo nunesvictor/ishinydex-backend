@@ -39,7 +39,8 @@ app instalado.
 | Lint/format | `pre-commit run --all-files` |
 | Backup / restauração | `python manage.py backupdb` / `restoredb` (em `backups/`) |
 | Dados da PokeAPI | `python manage.py sync_pokeapi` (com `POKEAPI_URL=file:///…/api-data/data`, lê um clone do [api-data](https://github.com/PokeAPI/api-data), offline) |
-| Itens seguráveis por jogo | `python manage.py sync_held_items <clone do Showdown>` (depois do `sync_pokeapi`): lê como texto os `data/items.ts` e `data/mods/*/items.ts` do [pokemon-showdown](https://github.com/smogon/pokemon-showdown) (MIT, com o aviso em [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md), que vai junto em cada release do catálogo); o mod de cada jogo fica em [`src/pokedex/data/held_items.json`](src/pokedex/data/held_items.json) |
+| Itens seguráveis por jogo | `python manage.py sync_held_items <clone do Showdown>` (depois do `sync_pokeapi`): lê como texto os `data/items.ts` e `data/mods/*/items.ts` do [pokemon-showdown](https://github.com/smogon/pokemon-showdown) (MIT, com o aviso em [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md), que vai junto em cada release do catálogo); o mod de cada jogo fica em [`src/pokedex/data/held_items.json`](src/pokedex/data/held_items.json), que tem também a lista feita à mão do Legends: Z-A |
+| Golpes do Legends: Z-A | `python manage.py sync_showdown_moves <clone do Showdown>` (depois do `sync_pokeapi`): lê como texto o `data/mods/gen9legends/learnsets.ts` do Showdown; o mod de cada jogo fica em [`src/pokedex/data/showdown_learnsets.json`](src/pokedex/data/showdown_learnsets.json) |
 | Pacote do catálogo (app local-first) | `python manage.py exportcatalog` → `catalog/catalog.json`; no GitHub, o workflow **Catálogo** gera e publica a release `catalog-AAAA.MM.DD` |
 | Boxes do HOME e dex padrão | `python manage.py create_home_boxes` / `create_personal_dex -i` |
 
@@ -54,4 +55,4 @@ app instalado.
 
 O código deste repositório está sob a [licença MIT](LICENSE). Ela não cobre:
 - **Pokémon:** os nomes, as imagens e as marcas são da Nintendo, da Creatures, da GAME FREAK e da The Pokémon Company;
-- **os dados de terceiros:** os da [PokéAPI](https://pokeapi.co/), que seguem a licença dela, e os itens do [Pokémon Showdown](https://github.com/smogon/pokemon-showdown), com o aviso em [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
+- **os dados de terceiros:** os da [PokéAPI](https://pokeapi.co/), que seguem a licença dela, e os itens e os golpes do Z-A do [Pokémon Showdown](https://github.com/smogon/pokemon-showdown), com o aviso em [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
