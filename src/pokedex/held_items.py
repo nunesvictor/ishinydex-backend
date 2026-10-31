@@ -1,10 +1,12 @@
 """Importação dos itens seguráveis por grupo de versões (#138).
 
 A lista de cada jogo vem do Showdown (``pokedex.showdown``), pelo mod que
-``HELD_ITEMS_FILE`` dá a cada grupo de versões; da PokéAPI vem só o nome do
-item (o slug, que dá o sprite). Falha, em vez de passar calada, com grupo de
-versões sem mod no arquivo (jogo novo), com mod desconhecido e com item do
-Showdown sem par na PokéAPI que não esteja em ``withoutSprite``.
+``HELD_ITEMS_FILE`` dá a cada grupo de versões, ou de uma lista feita à mão
+(``curated``) para os jogos que o Showdown não tem, como o Legends: Z-A
+(#142); da PokéAPI vem só o nome do item (o slug, que dá o sprite). Falha, em
+vez de passar calada, com grupo de versões sem mod no arquivo (jogo novo), com
+mod desconhecido e com item sem par na PokéAPI que não esteja em
+``withoutSprite``.
 """
 
 import json
@@ -46,6 +48,7 @@ class HeldItemsImporter:
     def run(self) -> int:
         data = json.loads(HELD_ITEMS_FILE.read_text(encoding="utf-8"))
         mods: dict[str, str | None] = data["versionGroups"]
+        curated: dict[str, list[str]] = data["curated"]
         groups = dict(VersionGroup.objects.values_list("name", "id"))
         if missing := sorted(groups.keys() - mods.keys()):
             raise HeldItemsError(f"grupos de versões sem mod do Showdown: {missing}")
@@ -69,10 +72,13 @@ class HeldItemsImporter:
         for group, mod in mods.items():
             if mod is None or group not in groups:
                 continue
-            try:
-                labels = self.showdown.held_items(mod).values()
-            except ShowdownError as error:
-                raise HeldItemsError(str(error)) from None
+            if mod in curated:
+                labels = curated[mod]
+            else:
+                try:
+                    labels = self.showdown.held_items(mod).values()
+                except ShowdownError as error:
+                    raise HeldItemsError(str(error)) from None
             for label in labels:
                 name, has_sprite = resolve(label)
                 items[name] = (label, has_sprite)

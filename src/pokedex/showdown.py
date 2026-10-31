@@ -1,6 +1,6 @@
 """Os itens do Pokémon Showdown (smogon/pokemon-showdown, MIT: o aviso fica em
 ``THIRD_PARTY_NOTICES.md``, que vai junto em cada release do catálogo) por
-jogo (#138).
+jogo (#138), e os golpes dos jogos que a PokéAPI não tem (#142).
 
 A PokéAPI não diz em que jogo um item segurável funciona: o atributo
 ``holdable`` falta nos itens da 9ª geração e sobra na Potion, e as Mega Stones
@@ -13,6 +13,10 @@ executar nada. De cada item saem só os campos simples (``name``, ``gen``,
 ``isNonstandard``, ``isPokeball`` e o ``inherit`` dos mods). Um mod herda do
 ``inherit`` do ``scripts.ts`` dele; sem ele, ``genN`` herda de ``genN+1`` e o
 ``gen8`` herda da base (a geração atual, ``gen9``).
+
+Dos ``learnsets.ts`` sai só o ``learnset`` de cada forma: o golpe e os
+códigos de como se aprende (``"9L12"``, ``"9M"``). Um mod com ``inherit``
+troca o ``learnset`` inteiro, então o do mod basta.
 """
 
 import json
@@ -28,6 +32,8 @@ _FIELD = re.compile(
 )
 _GEN = re.compile(r"^\tgen: (\d+),", re.M)
 _INHERIT = re.compile(r"^\tinherit: '([a-z0-9]+)',", re.M)
+_LEARNSET = re.compile(r"^\t\tlearnset: \{\n(.*?)^\t\t\},?$", re.S | re.M)
+_LEARN = re.compile(r"^\t\t\t([a-z0-9]+): \[([^\]\n]*)\],", re.M)
 
 
 class ShowdownError(ValueError):
@@ -40,6 +46,30 @@ def parse_items(text: str) -> dict[str, dict]:
         key: {field: json.loads(value) for field, value in _FIELD.findall(body)}
         for key, body in _ENTRY.findall(text)
     }
+
+
+def parse_learnsets(text: str) -> dict[str, dict[str, list[str]]]:
+    """``{forma: {golpe: [código, ...]}}`` de um ``learnsets.ts``; as formas
+    sem ``learnset`` (só com ``eventData``, por exemplo) ficam de fora."""
+    result = {}
+    for key, body in _ENTRY.findall(text):
+        if block := _LEARNSET.search(body):
+            result[key] = {
+                move: json.loads(f"[{codes}]")
+                for move, codes in _LEARN.findall(block.group(1))
+            }
+    return result
+
+
+def read_learnsets(root: Path | str, mod: str) -> dict[str, dict[str, list[str]]]:
+    """O ``learnsets.ts`` de um mod de um clone de ``data/`` do Showdown."""
+    file = Path(root) / "data" / "mods" / mod / "learnsets.ts"
+    if not file.exists():
+        raise ShowdownError(f"Showdown: data/mods/{mod}/learnsets.ts não existe")
+    learnsets = parse_learnsets(file.read_text(encoding="utf-8"))
+    if not learnsets:
+        raise ShowdownError(f"nenhum golpe no mod do Showdown {mod}")
+    return learnsets
 
 
 class ShowdownItems:

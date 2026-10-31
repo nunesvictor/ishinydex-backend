@@ -2,8 +2,14 @@ import tempfile
 
 from django.test import SimpleTestCase
 
-from pokedex.showdown import ShowdownError, ShowdownItems, parse_items
-from pokedex.tests.showdown_fixtures import ITEMS, showdown_tree
+from pokedex.showdown import (
+    ShowdownError,
+    ShowdownItems,
+    parse_items,
+    parse_learnsets,
+    read_learnsets,
+)
+from pokedex.tests.showdown_fixtures import ITEMS, LEARNSETS, showdown_tree
 
 
 class ParseItemsTests(SimpleTestCase):
@@ -73,3 +79,37 @@ class ShowdownItemsTests(SimpleTestCase):
         with tempfile.TemporaryDirectory() as empty:
             with self.assertRaisesMessage(ShowdownError, "items.ts não existe"):
                 ShowdownItems(empty)
+
+
+class LearnsetsTests(SimpleTestCase):
+    def test_reads_the_learnset_of_each_form(self):
+        learnsets = parse_learnsets(LEARNSETS)
+
+        self.assertEqual(
+            learnsets["pumpkaboo"], {"astonish": ["9L1"], "shadowball": ["9M", "9L30"]}
+        )
+        self.assertEqual(learnsets["floetteeternal"], {"lightofruin": ["9L50", "9S0"]})
+        # Só com eventData: sem learnset.
+        self.assertNotIn("mewtwo", learnsets)
+        self.assertEqual(len(learnsets), 5)
+
+    def test_reads_the_file_of_a_mod(self):
+        tmp = showdown_tree(**{"mods/gen9legends/learnsets.ts": LEARNSETS})
+        self.addCleanup(tmp.cleanup)
+
+        self.assertEqual(
+            read_learnsets(tmp.name, "gen9legends"), parse_learnsets(LEARNSETS)
+        )
+
+    def test_missing_or_empty_file_fails(self):
+        tmp = showdown_tree(**{"mods/gen9empty/learnsets.ts": "export const L = {};\n"})
+        self.addCleanup(tmp.cleanup)
+
+        with self.assertRaisesMessage(
+            ShowdownError, "gen9legends/learnsets.ts não existe"
+        ):
+            read_learnsets(tmp.name, "gen9legends")
+        with self.assertRaisesMessage(
+            ShowdownError, "nenhum golpe no mod do Showdown gen9empty"
+        ):
+            read_learnsets(tmp.name, "gen9empty")

@@ -2,9 +2,9 @@
 
 ## Pokémon Showdown
 
-O comando `sync_held_items` lê como texto os arquivos de itens do [Pokémon Showdown](https://github.com/smogon/pokemon-showdown) (`data/items.ts` e `data/mods/*/items.ts`), baixados pelo workflow **Catálogo** num commit fixo. Esses arquivos não são copiados para este repositório.
+Os comandos `sync_held_items` e `sync_showdown_moves` leem como texto os arquivos de itens (`data/items.ts` e `data/mods/*/items.ts`) e os golpes do Legends: Z-A (`data/mods/gen9legends/learnsets.ts`) do [Pokémon Showdown](https://github.com/smogon/pokemon-showdown), baixados pelo workflow **Catálogo** num commit fixo. Esses arquivos não são copiados para este repositório.
 
-O catálogo publica, a partir deles, os itens seguráveis de cada jogo (a chave `heldItems`). A licença do Showdown vai junto em cada release do catálogo, no arquivo `THIRD_PARTY_NOTICES.md`.
+O catálogo publica, a partir deles, os itens seguráveis de cada jogo (a chave `heldItems`) e os golpes do Legends: Z-A (no arquivo dos golpes, `moves-AAAA.MM.DD.json`). A licença do Showdown vai junto em cada release do catálogo, no arquivo `THIRD_PARTY_NOTICES.md`.
 
 ```text
 The MIT License (MIT)

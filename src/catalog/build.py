@@ -1047,7 +1047,9 @@ def build_moves(version: str) -> dict:
     - ``learnsets``: por id de pokémon e índice do grupo de versões, a lista
       plana ``[golpe, modo, nível, golpe, modo, nível...]``;
     - ``machines``: por grupo de versões, o item da TM de cada golpe
-      (``"tm71"``, ``"hm01"``, ``"tr12"``).
+      (``"tm71"``, ``"hm01"``, ``"tr12"``). O Legends: Z-A, que vem do
+      Showdown (#142), não tem: lá a TM fica sem número, e os valores dos
+      golpes (poder, PP, precisão) não valem, porque o jogo usa outros.
 
     Falha com modo de aprender desconhecido."""
     learns = list(

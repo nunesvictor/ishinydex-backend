@@ -1,0 +1,17 @@
+{
+  "sources": [
+    "https://github.com/smogon/pokemon-showdown/tree/master/data/mods/gen9legends"
+  ],
+  "notes": [
+    "Golpes dos jogos que a PokéAPI não tem (#142), do Showdown (src/pokedex/showdown_moves.py).",
+    "versionGroups: o mod do Showdown de cada grupo de versões da PokéAPI. O DLC Mega Dimension usa os golpes do Legends: Z-A, no grupo do jogo.",
+    "aliases: id do Showdown → nome do pokémon na PokéAPI, quando nem o nome nem a espécie casam (as fêmeas, que o Showdown marca com f)."
+  ],
+  "versionGroups": {
+    "legends-za": "gen9legends"
+  },
+  "aliases": {
+    "indeedeef": "indeedee-female",
+    "meowsticf": "meowstic-female"
+  }
+}
