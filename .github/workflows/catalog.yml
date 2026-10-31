@@ -117,7 +117,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$CATALOG_VERSION" catalog/*.json \
+          gh release create "$CATALOG_VERSION" catalog/*.json THIRD_PARTY_NOTICES.md \
             --target "$GITHUB_SHA" \
             --title "$CATALOG_VERSION" \
             --notes "Pacote do catálogo gerado do PokeAPI/api-data@${API_DATA_COMMIT} e dos itens do smogon/pokemon-showdown@${SHOWDOWN_COMMIT::7} pelo commit ${GITHUB_SHA::7}. Formato em src/catalog/build.py."

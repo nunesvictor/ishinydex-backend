@@ -1,4 +1,6 @@
-"""Os itens do Pokémon Showdown (smogon/pokemon-showdown, MIT) por jogo (#138).
+"""Os itens do Pokémon Showdown (smogon/pokemon-showdown, MIT: o aviso fica em
+``THIRD_PARTY_NOTICES.md``, que vai junto em cada release do catálogo) por
+jogo (#138).
 
 A PokéAPI não diz em que jogo um item segurável funciona: o atributo
 ``holdable`` falta nos itens da 9ª geração e sobra na Potion, e as Mega Stones

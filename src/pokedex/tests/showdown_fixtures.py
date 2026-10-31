@@ -1,4 +1,8 @@
-"""Um clone mínimo de ``data/`` do Showdown, num diretório temporário."""
+"""Um clone mínimo de ``data/`` do Showdown, num diretório temporário.
+
+Os textos são escritos aqui, no formato dos arquivos do Showdown, sem copiar
+o código deles: só os campos que o leitor usa, mais um objeto e uma função
+inventados, que o leitor tem de ignorar."""
 
 import tempfile
 from pathlib import Path
@@ -9,46 +13,38 @@ MOD = "export const Items: import('../../../sim/dex-items').ModdedItemDataTable 
 ITEMS = """export const Items: import('../sim/dex-items').ItemDataTable = {
 \tabilityshield: {
 \t\tname: "Ability Shield",
-\t\tspritenum: 746,
-\t\tfling: {
-\t\t\tbasePower: 30,
+\t\textra: {
+\t\t\tvalue: 1,
 \t\t},
-\t\tonSetAbility(ability, target, source, effect) {
-\t\t\treturn null;
+\t\tonAnything() {
+\t\t\treturn 1;
 \t\t},
-\t\tnum: 1881,
 \t\tgen: 9,
 \t},
 \tleftovers: {
 \t\tname: "Leftovers",
-\t\tnum: 234,
 \t\tgen: 2,
 \t},
 \tkingsrock: {
 \t\tname: "King's Rock",
-\t\tnum: 221,
 \t\tgen: 2,
 \t},
 \tfiriumz: {
 \t\tname: "Firium Z",
-\t\tnum: 777,
 \t\tgen: 7,
 \t\tisNonstandard: "Past",
 \t},
 \tleek: {
 \t\tname: "Leek",
-\t\tnum: 259,
 \t\tgen: 8,
 \t},
 \tberserkgene: {
 \t\tname: "Berserk Gene",
-\t\tnum: 0,
 \t\tgen: 2,
 \t\tisNonstandard: "Past",
 \t},
 \tpokeball: {
 \t\tname: "Poke Ball",
-\t\tnum: 4,
 \t\tgen: 1,
 \t\tisPokeball: true,
 \t},
@@ -68,7 +64,6 @@ GEN2_ITEMS = MOD + """\tberserkgene: {
 \t},
 \tleek: {
 \t\tname: "Leek",
-\t\tnum: 259,
 \t\tgen: 2,
 \t},
 };
