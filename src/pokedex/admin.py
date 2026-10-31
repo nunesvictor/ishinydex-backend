@@ -8,6 +8,7 @@ from django.contrib import admin
 
 from .models import (
     FORM_NATIONAL_ORDERING,
+    HeldItem,
     Move,
     Pokemon,
     PokemonForm,
@@ -21,6 +22,14 @@ from .models import (
 class PokeAPIAdmin(admin.ModelAdmin):
     def has_add_permission(self, request):
         return False
+
+
+@admin.register(HeldItem)
+class HeldItemAdmin(PokeAPIAdmin):
+    list_display = ("label", "name", "has_sprite")
+    list_filter = ("has_sprite", "version_groups")
+    ordering = ("label",)
+    search_fields = ("name", "label")
 
 
 @admin.register(Move)

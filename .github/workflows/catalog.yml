@@ -3,7 +3,9 @@
 # (moves-AAAA.MM.DD.json, #134) anexados.
 #
 # Os dados vêm do PokeAPI/api-data (o JSON estático da PokéAPI), lido do disco
-# pelo sync_pokeapi: sem instância local da PokéAPI e sem a API pública.
+# pelo sync_pokeapi: sem instância local da PokéAPI e sem a API pública. Os
+# itens seguráveis de cada jogo (#138) vêm do Pokémon Showdown, num commit
+# fixo (SHOWDOWN_COMMIT), lidos como texto pelo sync_held_items.
 # Rodar quando sair jogo novo ou mudar o importador, o exportcatalog ou os
 # dados versionados em src/pokedex/data/ (shiny locks, exclusivos de versão,
 # encontros especiais).
@@ -21,6 +23,9 @@ permissions:
 
 env:
   PYTHON_VERSION: "3.14"
+  # smogon/pokemon-showdown (MIT): trocar o commit e rodar de novo para
+  # pegar itens novos.
+  SHOWDOWN_COMMIT: 5b01be81011ec12efa25dcfff49ea279a6029d6f
   POETRY_VERSION: 2.4.1
 
 jobs:
@@ -71,6 +76,16 @@ jobs:
             data/api/v2/location data/api/v2/machine
           echo "API_DATA_COMMIT=$(git -C api-data rev-parse --short HEAD)" >> "$GITHUB_ENV"
 
+      # Só os itens: data/items.ts e, de cada mod, items.ts e scripts.ts.
+      - name: Baixar os itens do Showdown
+        run: |
+          git init -q showdown
+          git -C showdown remote add origin https://github.com/smogon/pokemon-showdown.git
+          git -C showdown sparse-checkout set --no-cone \
+            /data/items.ts '/data/mods/*/items.ts' '/data/mods/*/scripts.ts'
+          git -C showdown fetch -q --depth 1 --filter=blob:none origin "$SHOWDOWN_COMMIT"
+          git -C showdown checkout -q FETCH_HEAD
+
       - run: pipx install "poetry==${POETRY_VERSION}"
 
       - uses: actions/setup-python@v6
@@ -89,6 +104,7 @@ jobs:
           poetry run python manage.py compilemessages -l pt_BR
           poetry run python manage.py migrate --noinput
           poetry run python manage.py sync_pokeapi
+          poetry run python manage.py sync_held_items ../showdown
           poetry run python manage.py exportcatalog \
             --output ../catalog --catalog-version "$CATALOG_VERSION"
 
@@ -101,7 +117,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$CATALOG_VERSION" catalog/*.json \
+          gh release create "$CATALOG_VERSION" catalog/*.json THIRD_PARTY_NOTICES.md \
             --target "$GITHUB_SHA" \
             --title "$CATALOG_VERSION" \
-            --notes "Pacote do catálogo gerado do PokeAPI/api-data@${API_DATA_COMMIT} pelo commit ${GITHUB_SHA::7}. Formato em src/catalog/build.py."
+            --notes "Pacote do catálogo gerado do PokeAPI/api-data@${API_DATA_COMMIT} e dos itens do smogon/pokemon-showdown@${SHOWDOWN_COMMIT::7} pelo commit ${GITHUB_SHA::7}. Formato em src/catalog/build.py."

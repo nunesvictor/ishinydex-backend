@@ -15,6 +15,7 @@ from core.tests import factories as f
 from home.models import HOME_ORIGIN_VERSIONS, HOME_TRANSFER_VERSIONS
 from pokedex.models import (
     EvolutionMethod,
+    HeldItem,
     Move,
     MoveMachine,
     PokemonAbility,
@@ -1139,6 +1140,43 @@ class CatalogTests(TestCase):
             },
         )
         self.assertEqual(data["machines"], {"scarlet-violet": {"1": "tm2"}})
+
+    def test_held_items(self):
+        sv = VersionGroup.objects.get(name="scarlet-violet")
+        bdsp = VersionGroup.objects.get(name="brilliant-diamond-shining-pearl")
+        leftovers = HeldItem.objects.create(name="leftovers", label="Leftovers")
+        leftovers.version_groups.set([sv, bdsp])
+        HeldItem.objects.create(
+            name="ability-shield", label="Ability Shield"
+        ).version_groups.set([sv])
+        HeldItem.objects.create(
+            name="berserk-gene", label="Berserk Gene", has_sprite=False
+        )
+
+        self.assertEqual(
+            catalog.build_catalog("v")["heldItems"],
+            {
+                # Em ordem de nome; sem sprite quando a PokéAPI não tem o item.
+                "items": [
+                    {
+                        "name": "ability-shield",
+                        "label": "Ability Shield",
+                        "sprite": "items/ability-shield.png",
+                    },
+                    {"name": "berserk-gene", "label": "Berserk Gene", "sprite": None},
+                    {
+                        "name": "leftovers",
+                        "label": "Leftovers",
+                        "sprite": "items/leftovers.png",
+                    },
+                ],
+                # Os grupos na ordem dos jogos; os sem item ficam de fora.
+                "versionGroups": {
+                    "brilliant-diamond-shining-pearl": [2],
+                    "scarlet-violet": [0, 2],
+                },
+            },
+        )
 
     def test_moves_file_without_moves(self):
         self.assertEqual(

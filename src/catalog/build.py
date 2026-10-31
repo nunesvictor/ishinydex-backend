@@ -32,6 +32,7 @@ from home.origin_marks import ORIGIN_MARK_VERSION_GROUPS
 from home.services import default_forms
 from pokedex.models import (
     EvolutionMethod,
+    HeldItem,
     Move,
     MoveMachine,
     Pokemon,
@@ -1000,6 +1001,31 @@ def _shiny_odds(methods: list[dict]) -> list[dict]:
     return result
 
 
+def _held_items() -> dict:
+    """Os itens seguráveis (#138), para o team builder: ``items`` em ordem de
+    nome em inglês (``sprite`` nulo quando a PokéAPI não tem o item) e, por
+    grupo de versões, os índices dos que existem nele. Os grupos sem item
+    segurado (Let's Go, Legends: Arceus) ficam de fora."""
+    items = list(HeldItem.objects.order_by("label", "name"))
+    index = {item.id: i for i, item in enumerate(items)}
+    groups: dict[str, list[int]] = {}
+    for group, item in HeldItem.version_groups.through.objects.order_by(
+        "versiongroup__order", "helditem__label", "helditem__name"
+    ).values_list("versiongroup__name", "helditem_id"):
+        groups.setdefault(group, []).append(index[item])
+    return {
+        "items": [
+            {
+                "name": item.name,
+                "label": item.label,
+                "sprite": f"items/{item.name}.png" if item.has_sprite else None,
+            }
+            for item in items
+        ],
+        "versionGroups": groups,
+    }
+
+
 def moves_file_name(version: str) -> str:
     """O arquivo dos golpes de uma versão do catálogo, com a versão no nome
     (``catalog-2026.11.02`` → ``moves-2026.11.02.json``): o conteúdo de um
@@ -1148,6 +1174,9 @@ def build_catalog(version: str) -> dict:
         # ao abrir a aba Golpes ou a busca (#134); aqui, só o nome dele.
         # Chave nova, aditiva.
         "movesFile": moves_file_name(version),
+        # Os itens seguráveis de cada jogo, do Showdown (#138), para o team
+        # builder. Chave nova, aditiva.
+        "heldItems": _held_items(),
         # Métodos de shiny hunt e os jogos onde existem (a primeira unidade
         # é a padrão). Chave nova, aditiva: o schemaVersion continua.
         "shinyMethods": methods,
